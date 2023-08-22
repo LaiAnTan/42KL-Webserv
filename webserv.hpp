@@ -12,9 +12,4 @@
 
 #include "Networking/hdenetworking.hpp"
 
-using std::string;
-using std::cout;
-using std::endl;
-
-
 #endif
