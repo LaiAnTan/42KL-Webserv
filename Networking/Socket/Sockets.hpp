@@ -9,6 +9,4 @@
 
 #include "ConnectingSocket.hpp"
 
-
-
 #endif
