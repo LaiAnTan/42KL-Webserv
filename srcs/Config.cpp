@@ -1,7 +1,5 @@
 #include "webserv.hpp"
 
-
-
 namespace conf
 {
 	Config::Config()
@@ -68,18 +66,25 @@ namespace conf
 			// 	cout << endl;
 			// }
 		}
-		cout << "server count: " << c << endl;
-		for (size_t i = 0; i < servers.size(); ++i)
-		{
-			std::vector<string> list = servers[i].get_listen();
-			for (size_t a = 0; a < list.size(); ++a)
-					cout << "port : " << list[a] << endl;
-			cout << "server : " << i << endl;
-			cout << "root : " << servers[i].get_root() << endl;
-			cout << "index : " << servers[i].get_index() << endl;
-			cout << "server_name : " << servers[i].get_server_name() << endl;
-			cout << "client_max : " << servers[i].get_client_max() << endl;
-			cout << endl << endl;
-		}
+		cout << *this << endl;
 	}
+
+	std::vector<ServerConfig>	Config::getServers(void) const
+	{
+		return (this->servers);
+	}
+
+	std::ostream &operator << (std::ostream &outs, const Config &config)
+	{
+		cout << "Server count : " << config.getServers().size() << endl;
+
+		std::vector<ServerConfig>::iterator	it = config.getServers().begin();
+		std::vector<ServerConfig>::iterator	end = config.getServers().end();
+
+		for (it; it != end; ++it)
+			outs << *it << endl;
+		
+		return (outs);
+	}
+
 }

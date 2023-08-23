@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string>
 #include <iostream>
+#include <ostream>
 #include <unistd.h>
 #include <sstream>
 #include <map>
@@ -63,14 +64,14 @@ namespace conf
 			void	location_name(string text, std::ifstream *file);
 
 			//getter
-			std::vector<string>	get_listen();
-			string	get_root();
-			string	get_index();
-			string	get_server_name();
-			string	get_client_max();
-			std::map<string, string>	get_error();
-			std::map<string, string>	get_cgi();
-			std::map<string, ServerLocation>	get_locations();
+			std::vector<string>	get_listen() const;
+			string	get_root() const;
+			string	get_index() const;
+			string	get_server_name() const;
+			string	get_client_max() const;
+			std::map<string, string>	get_error() const;
+			std::map<string, string>	get_cgi() const;
+			std::map<string, ServerLocation>	get_locations() const;
 
 		private:
 			std::vector<string>					listen;
@@ -86,6 +87,8 @@ namespace conf
 			std::map<string, ServerLocation>	locations;
 
 	};
+
+	std::ostream &operator << (std::ostream &outs, const ServerConfig &server_config);
 
 	class Error : public std::exception
 	{
@@ -112,12 +115,20 @@ namespace conf
 			Config(const Config &config);
 			Config &operator=(const Config &config);
 			~Config();
+
 			void	config_handle(std::ifstream *file);
+
+			//getter
+			std::vector<ServerConfig>	getServers(void) const;
+
 			// void	add_object(const ServerConfig &obj)
 			// {
 			// 	servers.push_back(obj);
 			// }
 	};
+
+	std::ostream &operator << (std::ostream &outs, const Config &config);
+
 }
 
 #endif
