@@ -77,7 +77,21 @@ namespace conf
 		iss >> var1 >> var2;
 		this->cgi[var1] = var2;
 	}
+	
+	void	ServerConfig::location_name(string text, std::ifstream *file)
+	{
+		string var1, var2;
+		std::istringstream iss(text);
 
+		iss >> var1 >> var2;
+		// cout << "var1: " << var1 << endl;
+		cout << "location: " << var2 << endl;
+		// ServerLocation	tmp(file);
+		// this->locations[var2] = tmp;
+		this->locations.insert(std::make_pair(var2, ServerLocation(file)));
+		// this->locations[var2] = tmp;
+
+	}
 
 	ServerConfig::ServerConfig(std::ifstream *file, int start, int end)
 	{
@@ -100,6 +114,10 @@ namespace conf
 					(this->*funct[i])(text);
 				if (this->server_name.empty())
 					this->server_name = "localhost";
+				if (text.find("location /") != std::string::npos)
+				{
+					location_name(text, file);
+				}
 			}
 			if (text[0] == '}')
 			{

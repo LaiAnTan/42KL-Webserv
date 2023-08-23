@@ -49,7 +49,8 @@ namespace conf
 			if (text.find("server {") < text.length() || text.find("server	{") < text.length())
 			{
 				start = loop;
-				tmp = new ServerConfig(file, start, end);
+				// tmp = new ServerConfig(file, start, end);
+				this->servers.push_back(ServerConfig(file, start, end));
 				c++;
 				cout << endl << "next" << endl << endl;
 			}

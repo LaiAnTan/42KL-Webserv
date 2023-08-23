@@ -37,7 +37,10 @@ namespace conf
 	class ServerLocation
 	{
 		public:
-
+			ServerLocation(std::ifstream *file);
+			ServerLocation(const ServerLocation &L);
+			ServerLocation &operator = (const ServerLocation &L);
+			~ServerLocation();
 		private:
 			std::map<string, std::vector<string> >	rules;
 	};
@@ -58,6 +61,7 @@ namespace conf
 			void	set_error(string text);
 			void	set_cgi(string text);
 
+			void	location_name(string text, std::ifstream *file);
 
 		private:
 			std::vector<string>					listen;
