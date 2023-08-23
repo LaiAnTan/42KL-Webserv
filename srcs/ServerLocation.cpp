@@ -11,16 +11,16 @@ namespace conf
 		{
 			if (text[1] == '}')
 			{
-				std::map<string, std::vector<string> >::iterator it;
-				for (it = rules.begin(); it != rules.end(); it++)
-				{
-					cout << "key : " << it->first << endl;
-					cout << "value: " << endl;
-					for (size_t i = 0; i < it->second.size(); ++i)
-						cout << "	" << it->second[i] << endl;
-					cout << endl;
-				};
-				cout << endl;
+				// std::map<string, std::vector<string> >::iterator it;
+				// for (it = rules.begin(); it != rules.end(); it++)
+				// {
+				// 	cout << "key : " << it->first << endl;
+				// 	cout << "value: " << endl;
+				// 	for (size_t i = 0; i < it->second.size(); ++i)
+				// 		cout << "	" << it->second[i] << endl;
+				// 	cout << endl;
+				// };
+				// cout << endl;
 				break;
 			}
 			if (text.find('#') == std::string::npos)

@@ -60,15 +60,24 @@ namespace conf
 			void	set_client_max(string text);
 			void	set_error(string text);
 			void	set_cgi(string text);
-
 			void	location_name(string text, std::ifstream *file);
+
+			//getter
+			std::vector<string>	get_listen();
+			string	get_root();
+			string	get_index();
+			string	get_server_name();
+			string	get_client_max();
+			std::map<string, string>	get_error();
+			std::map<string, string>	get_cgi();
+			std::map<string, ServerLocation>	get_locations();
 
 		private:
 			std::vector<string>					listen;
-			std::string							root;
-			std::string							index;
-			std::string							server_name;
-			std::string							client_max;
+			string								root;
+			string								index;
+			string								server_name;
+			string								client_max;
 
 			std::map<string, string>			error;
 			std::map<string, string>			cgi;
@@ -104,6 +113,10 @@ namespace conf
 			Config &operator=(const Config &config);
 			~Config();
 			void	config_handle(std::ifstream *file);
+			// void	add_object(const ServerConfig &obj)
+			// {
+			// 	servers.push_back(obj);
+			// }
 	};
 }
 

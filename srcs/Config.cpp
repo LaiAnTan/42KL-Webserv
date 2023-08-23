@@ -49,10 +49,8 @@ namespace conf
 			if (text.find("server {") < text.length() || text.find("server	{") < text.length())
 			{
 				start = loop;
-				// tmp = new ServerConfig(file, start, end);
 				this->servers.push_back(ServerConfig(file, start, end));
 				c++;
-				cout << endl << "next" << endl << endl;
 			}
 			// if (text[0] == '}')
 			// {
@@ -71,5 +69,17 @@ namespace conf
 			// }
 		}
 		cout << "server count: " << c << endl;
+		for (size_t i = 0; i < servers.size(); ++i)
+		{
+			std::vector<string> list = servers[i].get_listen();
+			for (size_t a = 0; a < list.size(); ++a)
+					cout << "port : " << list[a] << endl;
+			cout << "server : " << i << endl;
+			cout << "root : " << servers[i].get_root() << endl;
+			cout << "index : " << servers[i].get_index() << endl;
+			cout << "server_name : " << servers[i].get_server_name() << endl;
+			cout << "client_max : " << servers[i].get_client_max() << endl;
+			cout << endl << endl;
+		}
 	}
 }

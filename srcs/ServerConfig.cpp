@@ -85,13 +85,37 @@ namespace conf
 
 		iss >> var1 >> var2;
 		// cout << "var1: " << var1 << endl;
-		cout << "location: " << var2 << endl;
+		// cout << "location: " << var2 << endl;
 		// ServerLocation	tmp(file);
 		// this->locations[var2] = tmp;
 		this->locations.insert(std::make_pair(var2, ServerLocation(file)));
-		// this->locations[var2] = tmp;
-
 	}
+
+	std::vector<string>	ServerConfig::get_listen()
+	{
+		return(this->listen);
+	}
+
+	string	ServerConfig::get_root()
+	{
+		return (this->root);
+	}
+
+	string	ServerConfig::get_index()
+	{
+		return (this->index);
+	}
+
+	string	ServerConfig::get_server_name()
+	{
+		return (this->server_name);
+	}
+
+	string	ServerConfig::get_client_max()
+	{
+		return (this->client_max);
+	}
+
 
 	ServerConfig::ServerConfig(std::ifstream *file, int start, int end)
 	{
@@ -116,23 +140,26 @@ namespace conf
 					this->server_name = "localhost";
 				if (text.find("location /") != std::string::npos)
 				{
-					location_name(text, file);
+					location_name(text, file);	
 				}
 			}
 			if (text[0] == '}')
 			{
+				this->root = "test";
 				//testing -->
-				for (size_t i = 0; i < listen.size(); ++i)
-					std::cout << "port " << listen[i] << std::endl;
-				cout << this->root << endl;
-				cout << this->index << endl;
-				cout << this->server_name << endl;
-				cout << this->client_max << endl;
-				std::map<string, string>::iterator it;
-				for (it = error.begin(); it != error.end(); it++)
-					cout << it->first << " , " << it->second << endl;
-				for (it = cgi.begin(); it != cgi.end(); it++)
-					cout << it->first << " , " << it->second << endl;
+				std::vector<string> list = get_listen();
+				for (size_t a = 0; a < list.size(); ++a)
+					cout << "port : " << list[a] << endl;
+				cout << "root : " << get_root() << endl;
+				cout << "index : " << get_index() << endl;
+				cout << "server_name : " << get_server_name() << endl;
+				cout << "client_max : " << get_client_max() << endl;
+				cout << endl;
+				// std::map<string, string>::iterator it;
+				// for (it = error.begin(); it != error.end(); it++)
+				// 	cout << it->first << " , " << it->second << endl;
+				// for (it = cgi.begin(); it != cgi.end(); it++)
+				// 	cout << it->first << " , " << it->second << endl;
 				// <--
 				break;
 			}
