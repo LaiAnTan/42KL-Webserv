@@ -57,7 +57,7 @@ namespace conf
 			typedef	std::vector<string>::iterator		portIter;
 			typedef std::map<string, ServerLocation>	locationMap;
 
-			ServerConfig(std::ifstream *file, int start, int end);
+			ServerConfig(std::ifstream *file);
 			ServerConfig(const ServerConfig &server_config);
 			ServerConfig &operator = (const ServerConfig &server_config);
 			~ServerConfig();

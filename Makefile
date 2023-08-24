@@ -8,7 +8,7 @@ SRCS_C = webserv.cpp Config.cpp ServerConfig.cpp ServerLocation.cpp
 
 SRCS_O := $(addprefix $(ODIR)/,$(notdir $(SRCS_C:.cpp=.o)))
 
-# CFLAGS := -Wall -Wextra -Werror
+CFLAGS := -Wall -Wextra -Werror
 
 vpath %.cpp srcs
 

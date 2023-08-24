@@ -131,7 +131,7 @@ namespace conf
 		return(this->locations);
 	}
 
-	ServerConfig::ServerConfig(std::ifstream *file, int start, int end)
+	ServerConfig::ServerConfig(std::ifstream *file)
 	{
 		string text;
 		int i;

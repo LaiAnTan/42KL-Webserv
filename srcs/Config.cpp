@@ -39,17 +39,13 @@ namespace conf
 	void	Config::config_handle(std::ifstream *file)
 	{
 		string text;
-		int loop = 0, start = 0, end = 0;
 		int c = 0;
-		ServerConfig *tmp;
 
 		while (std::getline(*file, text))
 		{
-			loop++;
 			if (text.find("server {") < text.length() || text.find("server	{") < text.length())
 			{
-				start = loop;
-				this->servers.push_back(ServerConfig(file, start, end));
+				this->servers.push_back(ServerConfig(file));
 				c++;
 			}
 		}
