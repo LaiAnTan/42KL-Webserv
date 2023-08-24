@@ -203,14 +203,18 @@ namespace conf
 
 		std::map<string, string>::iterator map_it;
 		std::map<string, string> tmp = server_config.get_error();
+
 		for (map_it = tmp.begin(); map_it != tmp.end(); map_it++)
 			outs << YELLOW "Error : " RESET << map_it->first << "   " << map_it->second << endl;
 		tmp = server_config.get_cgi(); 
 		for (map_it = tmp.begin(); map_it != tmp.end(); map_it++)
 			outs << YELLOW "CGI : " RESET << map_it->first << "   " << map_it->second << endl;
 		
+		outs << endl;
+
 		ServerConfig::locationMap::iterator location_it;
 		ServerConfig::locationMap location_map = server_config.get_locations();
+
 		for (location_it = location_map.begin(); location_it != location_map.end(); location_it++)
 		{
 			outs << BLACK "Location : " RESET << location_it->first << endl;
