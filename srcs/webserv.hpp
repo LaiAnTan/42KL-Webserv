@@ -38,6 +38,7 @@ namespace conf
 	class ServerLocation
 	{
 		public:
+			ServerLocation();
 			ServerLocation(std::ifstream *file);
 			ServerLocation(const ServerLocation &L);
 			ServerLocation &operator = (const ServerLocation &L);
@@ -49,12 +50,17 @@ namespace conf
 	class ServerConfig
 	{
 		public:
+
+			typedef	std::vector<string>::iterator		portIter;
+			typedef std::map<string, ServerLocation>	locationMap;
+
 			ServerConfig(std::ifstream *file, int start, int end);
 			ServerConfig(const ServerConfig &server_config);
 			ServerConfig &operator = (const ServerConfig &server_config);
 			~ServerConfig();
+
 			//setter
-			void	set_listen(string text);
+			void	set_ports(string text);
 			void	set_root(string text);
 			void	set_index(string text);
 			void	set_server_name(string text);
@@ -64,27 +70,25 @@ namespace conf
 			void	location_name(string text, std::ifstream *file);
 
 			//getter
-			std::vector<string>	get_listen() const;
 			string	get_root() const;
 			string	get_index() const;
 			string	get_server_name() const;
 			string	get_client_max() const;
-			std::map<string, string>	get_error() const;
-			std::map<string, string>	get_cgi() const;
-			std::map<string, ServerLocation>	get_locations() const;
+			const std::vector<string>		&get_ports() const;
+			const std::map<string, string>	&get_error() const;
+			const std::map<string, string>	&get_cgi() const;
+			const locationMap				&get_locations() const;
 
 		private:
-			std::vector<string>					listen;
+
 			string								root;
 			string								index;
 			string								server_name;
 			string								client_max;
-
+			std::vector<string>					ports; // keyword listen
 			std::map<string, string>			error;
 			std::map<string, string>			cgi;
-			// stuff
-
-			std::map<string, ServerLocation>	locations;
+			locationMap							locations;
 
 	};
 
@@ -106,8 +110,6 @@ namespace conf
 
 	class Config
 	{
-		private:
-			std::vector<ServerConfig>	servers;
 		public:
 			Config();
 			// Construtor to handle the whole config file
@@ -119,12 +121,10 @@ namespace conf
 			void	config_handle(std::ifstream *file);
 
 			//getter
-			std::vector<ServerConfig>	getServers(void) const;
+			const std::vector<ServerConfig>	&getServers(void) const;
 
-			// void	add_object(const ServerConfig &obj)
-			// {
-			// 	servers.push_back(obj);
-			// }
+		private:
+			std::vector<ServerConfig>	servers;
 	};
 
 	std::ostream &operator << (std::ostream &outs, const Config &config);

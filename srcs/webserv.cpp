@@ -8,6 +8,8 @@ int main(int ac, char **av)
 		try
 		{
 			conf::Config	configuration(file);
+			cout << "--- Config [ " << file << " ] ---" << endl;
+			cout << configuration << endl;
 		}
 		catch (const std::exception &e)
 		{

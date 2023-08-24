@@ -2,6 +2,11 @@
 
 namespace conf
 {
+	ServerLocation::ServerLocation()
+	{
+		cout << "ServerLocation: Constructor called" << endl;
+	}
+
 	ServerLocation::ServerLocation(std::ifstream *file)
 	{
 		string text, var1, var2, key, value;
@@ -55,14 +60,14 @@ namespace conf
 		}
 	}
 
-	ServerLocation::ServerLocation(const ServerLocation &L)
+	ServerLocation::ServerLocation(const ServerLocation &server_location)
 	{
-		*this = L;
+		*this = server_location;
 	}
 
-	ServerLocation	&ServerLocation::operator=(const ServerLocation &L)
+	ServerLocation	&ServerLocation::operator=(const ServerLocation &server_location)
 	{
-		if (this != &L)
+		if (this != &server_location)
 		{
 
 		}
@@ -70,5 +75,7 @@ namespace conf
 	}
 
 	ServerLocation::~ServerLocation()
-	{}
+	{
+		cout << "ServerLocation: Destructor called" << endl;
+	}
 }

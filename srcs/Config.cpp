@@ -3,7 +3,9 @@
 namespace conf
 {
 	Config::Config()
-	{}
+	{
+		cout << "Config: Constructor called" << endl;
+	}
 
 	Config::Config(std::string filename)
 	{
@@ -22,17 +24,19 @@ namespace conf
 		*this = config;
 	}
 
-	Config	&Config::operator=(const Config &config)
+	Config	&Config::operator = (const Config &config)
 	{
 		if (this != &config)
 		{
-			// this->servers = config.servers;
+			this->servers = config.servers;
 		}
 		return (*this);
 	}
 
 	Config::~Config()
-	{}
+	{
+		cout << "Config: Destructor called" << endl;
+	}
 
 	void	Config::config_handle(std::ifstream *file)
 	{
@@ -41,6 +45,7 @@ namespace conf
 		int c = 0;
 		ServerConfig *tmp;
 
+		cout << "Config: Inserting servers into vec" << endl;
 		while (std::getline(*file, text))
 		{
 			loop++;
@@ -66,10 +71,11 @@ namespace conf
 			// 	cout << endl;
 			// }
 		}
-		cout << *this << endl;
+		cout << "Config: done" << endl;
+		// cout << *this << endl;
 	}
 
-	std::vector<ServerConfig>	Config::getServers(void) const
+	const	std::vector<ServerConfig>	&Config::getServers(void) const
 	{
 		return (this->servers);
 	}
@@ -78,13 +84,12 @@ namespace conf
 	{
 		cout << "Server count : " << config.getServers().size() << endl;
 
-		std::vector<ServerConfig>::iterator	it = config.getServers().begin();
-		std::vector<ServerConfig>::iterator	end = config.getServers().end();
+		std::vector<ServerConfig>::const_iterator	it = config.getServers().begin();
+		std::vector<ServerConfig>::const_iterator	end = config.getServers().end();
 
 		for (it; it != end; ++it)
 			outs << *it << endl;
-		
+
 		return (outs);
 	}
-
 }
