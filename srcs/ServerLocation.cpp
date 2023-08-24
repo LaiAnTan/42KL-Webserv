@@ -2,11 +2,6 @@
 
 namespace conf
 {
-	ServerLocation::ServerLocation()
-	{
-		cout << "ServerLocation: Constructor called" << endl;
-	}
-
 	ServerLocation::ServerLocation(std::ifstream *file)
 	{
 		string text, var1, var2, key, value;
@@ -15,24 +10,13 @@ namespace conf
 		while (std::getline(*file, text))
 		{
 			if (text[1] == '}')
-			{
-				// std::map<string, std::vector<string> >::iterator it;
-				// for (it = rules.begin(); it != rules.end(); it++)
-				// {
-				// 	cout << "key : " << it->first << endl;
-				// 	cout << "value: " << endl;
-				// 	for (size_t i = 0; i < it->second.size(); ++i)
-				// 		cout << "	" << it->second[i] << endl;
-				// 	cout << endl;
-				// };
-				// cout << endl;
 				break;
-			}
 			if (text.find('#') == std::string::npos)
 			{
-				std::stringstream ss(text);
 				if (text.empty())
 						continue;
+				text.resize(text.size() - 1);
+				std::stringstream ss(text);
 				if (text.find("return") == std::string::npos)
 				{
 					while (std::getline(ss, key, '	'))
@@ -60,22 +44,42 @@ namespace conf
 		}
 	}
 
-	ServerLocation::ServerLocation(const ServerLocation &server_location)
+	ServerLocation::ServerLocation(const ServerLocation &L)
 	{
-		*this = server_location;
+		*this = L;
 	}
 
-	ServerLocation	&ServerLocation::operator=(const ServerLocation &server_location)
+	ServerLocation	&ServerLocation::operator=(const ServerLocation &L)
 	{
-		if (this != &server_location)
+		if (this != &L)
 		{
-
+			this->rules = L.rules;
 		}
 		return (*this);
 	}
 
 	ServerLocation::~ServerLocation()
+	{}
+
+	const std::map<string, std::vector<string> > &ServerLocation::get_rules() const
 	{
-		cout << "ServerLocation: Destructor called" << endl;
+		return(this->rules);
+	}
+
+	std::ostream &operator << (std::ostream &outs, const ServerLocation &server_location)
+	{
+		ServerLocation::rules_map::iterator rules_it;
+		ServerLocation::rules_map rules_map = server_location.get_rules();
+		for (rules_it = rules_map.begin(); rules_it != rules_map.end(); rules_it++)
+		{
+			outs << BLUE "Key : " RESET << rules_it->first;
+			std::vector<string>::iterator value_it;
+			std::vector<string> value_vec = rules_it->second;
+			outs << RED "|	|Value : " RESET;
+			for (value_it = value_vec.begin(); value_it != value_vec.end(); value_it++)
+				outs << *value_it << " ";
+			outs << endl;
+		}
+		return (outs);
 	}
 }

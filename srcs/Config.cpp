@@ -1,11 +1,11 @@
 #include "webserv.hpp"
 
+
+
 namespace conf
 {
 	Config::Config()
-	{
-		cout << "Config: Constructor called" << endl;
-	}
+	{}
 
 	Config::Config(std::string filename)
 	{
@@ -24,7 +24,7 @@ namespace conf
 		*this = config;
 	}
 
-	Config	&Config::operator = (const Config &config)
+	Config	&Config::operator=(const Config &config)
 	{
 		if (this != &config)
 		{
@@ -34,9 +34,7 @@ namespace conf
 	}
 
 	Config::~Config()
-	{
-		cout << "Config: Destructor called" << endl;
-	}
+	{}
 
 	void	Config::config_handle(std::ifstream *file)
 	{
@@ -45,7 +43,6 @@ namespace conf
 		int c = 0;
 		ServerConfig *tmp;
 
-		cout << "Config: Inserting servers into vec" << endl;
 		while (std::getline(*file, text))
 		{
 			loop++;
@@ -55,41 +52,21 @@ namespace conf
 				this->servers.push_back(ServerConfig(file, start, end));
 				c++;
 			}
-			// if (text[0] == '}')
-			// {
-			// 	end = loop;
-			// 	cout << start << "     " << end << endl;
-			// }
-
-			// if (text.find('#') > text.length())
-			// {
-			// 	std::stringstream ss(text);
-			// 	while (std::getline(ss, word, '	'))
-			// 	{
-			// 		cout << word << "-";
-			// 	}
-			// 	cout << endl;
-			// }
 		}
-		cout << "Config: done" << endl;
-		// cout << *this << endl;
 	}
 
-	const	std::vector<ServerConfig>	&Config::getServers(void) const
+	const std::vector<ServerConfig> &Config::get_servers() const
 	{
 		return (this->servers);
 	}
 
 	std::ostream &operator << (std::ostream &outs, const Config &config)
 	{
-		cout << "Server count : " << config.getServers().size() << endl;
+		cout << GREEN "Server count : " RESET << config.get_servers().size() << endl << endl;
+		std::vector<ServerConfig>::const_iterator	it, end = config.get_servers().end();
 
-		std::vector<ServerConfig>::const_iterator	it = config.getServers().begin();
-		std::vector<ServerConfig>::const_iterator	end = config.getServers().end();
-
-		for (it; it != end; ++it)
+		for (it = config.get_servers().begin(); it != end; ++it)
 			outs << *it << endl;
-
 		return (outs);
 	}
 }
