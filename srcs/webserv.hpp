@@ -30,8 +30,6 @@
 using std::string;
 using std::cout;
 using std::endl;
-// using std::map;
-// using std::vector;
 
 namespace conf
 {

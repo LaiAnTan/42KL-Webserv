@@ -4,15 +4,19 @@
 
 #define REQUEST_HPP
 
-#include <string>
-#include <iostream>
-#include <fstream>
 #include <map>
 #include <vector>
+#include <string>
+#include <ostream>
+#include <fstream>
+#include <iostream>
 
 namespace req
 {
-	// parses and handles client requests
+	/* 
+	Class that parses and handles client requests
+	For request format, refer to RFC section 5
+	*/
 	class Request
 	{
 		public:
@@ -54,6 +58,8 @@ namespace req
 			// request headers
 			requestHeader	header;
 	};
+
+	std::ostream	&operator << (std::ostream outs, const Request &request);
 
 } // namespace req
 
