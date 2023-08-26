@@ -10,6 +10,7 @@
 #include <ostream>
 #include <fstream>
 #include <iostream>
+#include <exception>
 
 namespace req
 {
@@ -40,13 +41,19 @@ namespace req
 			void	setVersion(std::string version);
 
 			// request header field methods
-			/*
-			adds a new header field if it doesnt yet exist,
-			else updates existing header field with new values
-			*/
-			void	updateHeaderField(std::string field_name, std::vector<std::string>	field_values);
+			// adds / updates header with a vector of values
+			void	updateHeaderField(std::string field_name, std::vector<std::string> field_values);
+			// adds / updates header with a value
+			void	updateHeaderField(std::string field_name, std::string field_value);
 
 			// more methods to come
+			
+			// exceptions
+			class WrongRequestFormatException: public std::exception
+			{
+				public:
+					const char* what() const throw();
+			};
 
 		private:
 			// request method
@@ -55,8 +62,12 @@ namespace req
 			std::string		target;
 			// http version 
 			std::string		ver;
-			// request headers
+			// request header
 			requestHeader	header;
+
+			// sockets
+			int				server_fd;
+			int				client_fd;
 	};
 
 	std::ostream	&operator << (std::ostream outs, const Request &request);

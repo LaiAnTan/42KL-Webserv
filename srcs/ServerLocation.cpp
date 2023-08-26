@@ -86,4 +86,3 @@ namespace conf
 		return (outs);
 	}
 }
-//				values.append(*value_it);

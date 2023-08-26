@@ -1,8 +1,8 @@
 #include "Request.hpp"
+#include "Utils.hpp"
 
 using std::cout;
 using std::endl;
-using std::string;
 
 namespace req
 {
@@ -14,7 +14,41 @@ namespace req
 	Request::Request(std::ifstream *file)
 	{
 		cout << "Request: Constructor called" << endl;
-		// do parsing here
+		
+		std::string					line;
+		std::string					key;
+		std::string					val;
+		std::string					delim;
+		std::vector<std::string>	tokens;
+		std::vector<std::string>	valueVec;
+
+		// request line
+		std::getline(*file, line);
+		tokens = util::split(line, " ");
+		if (tokens.size() != 3)
+			throw (Request::WrongRequestFormatException());
+		this->method = tokens[0];
+		this->target = tokens[1];
+		this->ver = tokens[2];
+		tokens.clear();
+
+		// request header
+		while (std::getline(*file, line))
+		{
+			tokens = util::split(line, ":");
+			key = tokens[0];
+			val = tokens[1];
+			tokens.clear();
+
+			// handle values
+			if (key == "User-Agent")
+				delim = " ";
+			else
+				delim = ",";
+
+			valueVec = util::split(val, delim);
+			updateHeaderField(key, valueVec);
+		}
 	}
 
 	Request::Request(const Request &request)
@@ -75,9 +109,40 @@ namespace req
 		this->ver = version;
 	}
 
-	void	Request::updateHeaderField(std::string field_name, std::vector<std::string>	field_values)
+	void	Request::updateHeaderField(std::string field_name, std::vector<std::string> field_values)
 	{
-		// damn
+		std::vector<std::string> 	curr_values;
+		requestHeader::iterator		it = this->header.find(field_name);
+	
+		if (it == this->header.end())
+			this->header.insert(std::make_pair(field_name, field_values));
+		else
+		{
+			curr_values = this->header[field_name];
+			curr_values.insert(curr_values.end(), field_values.begin(), field_values.end());
+			this->header[field_name] = curr_values;
+		}
+	}
+
+	void	Request::updateHeaderField(std::string field_name, std::string field_value)
+	{
+		std::vector<std::string> 	curr_values;
+		std::vector<std::string>	new_values(1, field_value);
+		requestHeader::iterator		it = this->header.find(field_name);
+	
+		if (it == this->header.end())
+			this->header.insert(std::make_pair(field_name, new_values));
+		else
+		{
+			curr_values = this->header[field_name];
+			curr_values.insert(curr_values.end(), new_values.begin(), new_values.end());
+			this->header[field_name] = curr_values;
+		}
+	}
+
+	const char* Request::WrongRequestFormatException::what() const throw()
+	{
+		return ("WrongRequestFormatException: Request in wrong format");
 	}
 
 	std::ostream	&operator << (std::ostream outs, const Request &request)
