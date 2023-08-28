@@ -16,3 +16,6 @@ client: server client_main.cpp
 
 webserv:
 	g++ *.cpp -o webserv
+
+clean:
+	rm -rf client server webserv
