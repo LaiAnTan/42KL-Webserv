@@ -17,7 +17,7 @@ void	WebServer::RunServer()
 
 	if (!server_num)
 	{
-		cerr << RED << "ERROR: No Servers!\nSet Up Some Servers First!!!" << endl;
+		cerr << RED << "ERROR: No Servers connected to any Port!\nSet Up Some Servers First!!!" << endl;
 		return;
 	}
 
@@ -53,7 +53,7 @@ void	WebServer::RunServer()
 		{
 			for (int i = 0; i < total_fd; i++)
 			{
-				cout << "FD: " << used_fd[i].fd << " revent: " << std::hex << used_fd[i].revents << std::dec << endl << endl;
+				// cout << "FD: " << used_fd[i].fd << " revent: " << std::hex << used_fd[i].revents << std::dec << endl << endl;
 				// nothing happened
 				if (used_fd[i].revents == 0)
 					continue;
@@ -61,7 +61,7 @@ void	WebServer::RunServer()
 				if (i < server_num)
 				{
 					// unexpected result (most likely error)
-					// since we set socket's interest as POLLIN
+					// since we set socket's interest as POLLIN (and in theory, will never change it)
 					if (used_fd[i].revents != POLLIN)
 					{
 						cerr << RED << "Error at Server Socket with file descriptor " << used_fd[i].fd << endl;
@@ -183,7 +183,7 @@ void	WebServer::ConnectServer(int port)
 {
 	cout << YELLOW << "Connecting a Server to port..." << endl;
 	Server	*temp = new Server(port);
-	if (not temp->SetUp_Socket())
+	if (!temp->SetUp_Socket())
 	{
 		delete temp;
 		cerr << RED << "Failed to Connect to port! :(" << endl;
@@ -206,7 +206,13 @@ void	WebServer::ConnectServer(int port, char *ip)
 {
 	cout << YELLOW << "Connecting a Server..." << endl;
 	Server			*temp = new Server(port, ip);
-	temp->SetUp_Socket();
+	if (!temp->SetUp_Socket())
+	{
+		delete temp;
+		cerr << RED << "Failed to Connect to port! :(" << endl;
+		return ;
+	}
+	
 	fd_container	temp2;
 
 	temp2.fd = temp->get_Socket().s_get_fd();

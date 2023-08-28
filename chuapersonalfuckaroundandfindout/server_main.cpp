@@ -10,7 +10,9 @@ int main()
 	// loopback
 	runner.ConnectServer(69, "127.0.0.69");
 	// run thy server
+	cout << endl;
 	cout << GREEN << "Starting Server..." << endl;
 	runner.RunServer();
+	cout << endl;
 	cout << BLUE << "Server Closed" << endl;
 }

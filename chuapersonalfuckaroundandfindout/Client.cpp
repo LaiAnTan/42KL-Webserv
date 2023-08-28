@@ -52,6 +52,7 @@ namespace HDE
 			return -1;
 
 		// temp [DATA IS DONE READING] holder
+		// this just detects if the last character read is a '\0'
 		ret = (buff[len - 1] != '\0');
 		if (ret)
 		{
@@ -93,8 +94,9 @@ namespace HDE
 	{
 		cout << RESET << endl;
 		cout << "----------------------------------------------------" << endl;
-		cout << BLUE << "In Client = " << client_socket << endl;
-		cout << RESET << content << endl;
+		cout << BLUE << "In Client " << client_socket << endl;
+		cout << RESET << "----------------------------------------------------" << endl;
+		cout << content << endl;
 		cout << "----------------------------------------------------" << endl;
 		cout << endl;
 

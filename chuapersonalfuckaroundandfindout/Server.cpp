@@ -30,10 +30,7 @@ namespace HDE
 
 	int	Server::SetUp_Socket()
 	{
-		this->server_socket.s_bind();
-		this->server_socket.s_listen();
-
-		return (this->server_socket.s_test());
+		return (server_socket.s_bind() && server_socket.s_listen() && server_socket.s_test());
 	}
 
 	int	Server::CreateClient()
