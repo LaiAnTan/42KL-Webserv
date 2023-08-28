@@ -31,7 +31,8 @@ int main()
 	for (string store; getline(cin, store);)
 	{
 		cout << "To Send: " << store << endl;
-		send(sender.s_get_fd(), store.c_str(), (store.length() + 1), 0);
+		send(sender.s_get_fd(), store.c_str(), (store.length()), 0);
+		send(sender.s_get_fd(), "\0", 1, 0);
 		wait_response(sender);
 		cout << "Input: ";
 	}

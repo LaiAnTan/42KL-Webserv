@@ -52,11 +52,11 @@ namespace HDE
 			return -1;
 
 		// temp [DATA IS DONE READING] holder
-		ret = (buff[len] != '\0');
+		ret = (buff[len - 1] != '\0');
 		if (ret)
 		{
 			cout << MAGENTA << "Data is halfway recieved" << endl;
-			cout << MAGENTA << "Last character was " << buff[len] << " (" << int(buff[len]) << ")" << endl;
+			cout << MAGENTA << "Last character was " << buff[len - 1] << " (" << int(buff[len - 1]) << ")" << endl;
 		}
 		else
 			cout << MAGENTA << "Data is fully received" << endl;
