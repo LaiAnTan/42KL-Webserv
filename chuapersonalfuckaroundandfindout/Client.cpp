@@ -42,16 +42,28 @@ namespace HDE
 		int		ret;
 		char	buff[Client::buffer_size + 1];
 
-		
+		// clean buffer
+		memset(buff, 0, (Client::buffer_size + 1));
+
 		len = recv(this->client_socket, buff, Client::buffer_size, 0);
+		cout << GREEN << "Received " << len << " data" << endl;
 		// client closed connection :P
 		if (len == 0)
 			return -1;
 
 		// temp [DATA IS DONE READING] holder
 		ret = (buff[len] != '\0');
-		buff[len] = '\0';
+		if (ret)
+		{
+			cout << MAGENTA << "Data is halfway recieved" << endl;
+			cout << MAGENTA << "Last character was " << buff[len] << " (" << int(buff[len]) << ")" << endl;
+		}
+		else
+			cout << MAGENTA << "Data is fully received" << endl;
 		// will DEFO CHANGE depending on how the request message is sent
+
+		buff[len] = '\0';
+		cout << GREEN << "Recieved Messsage " << buff << endl;
 		this->content.append(buff);
 		return (ret);
 	}

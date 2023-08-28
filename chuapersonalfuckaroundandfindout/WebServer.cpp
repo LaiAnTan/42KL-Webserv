@@ -53,7 +53,7 @@ void	WebServer::RunServer()
 		{
 			for (int i = 0; i < total_fd; i++)
 			{
-				cout << "FD: " << used_fd[i].fd << " revent: " << std::hex << used_fd[i].revents << endl << endl;
+				cout << "FD: " << used_fd[i].fd << " revent: " << std::hex << used_fd[i].revents << std::dec << endl << endl;
 				// nothing happened
 				if (used_fd[i].revents == 0)
 					continue;
@@ -182,7 +182,7 @@ WebServer::fd_listiter	WebServer::Find_Fd(fd_container tofind)
 void	WebServer::ConnectServer(int port)
 {
 	cout << YELLOW << "Connecting a Server to port..." << endl;
-	Server			*temp = new Server(port);
+	Server	*temp = new Server(port);
 	if (not temp->SetUp_Socket())
 	{
 		delete temp;
@@ -250,8 +250,6 @@ void	WebServer::RemoveClient(fd_container client_fd)
 		return ;
 	fds.erase(to_delete);
 
-	// remove is wonkey
-	// remove(fds.begin(), fds.end(), client_fd);
 	close(client_fd.fd);
 	--client_num;
 }
@@ -272,19 +270,7 @@ void	WebServer::for_each_client(client_node &node)
 WebServer::~WebServer()
 {
 	cout << RED << "Deleting WebServer Instance\nCleaning opened fds" << endl;
-	// no lambda functions for you :(
+
 	for_each(servers.begin(), servers.end(), for_each_server);
 	for_each(clients.begin(), clients.end(), for_each_client);
-
-	// for (server_iter start = servers.begin(); start != servers.end(); ++start)
-	// {
-	// 	// test connection
-	// 	start->second.get_Socket().s_close();
-	// }
-
-	// for (client_iter start = clients.begin(); start != clients.end(); ++start)
-	// {
-	// 	if (start->second.get_Socket() > -1)
-	// 		close(start->second.get_Socket());
-	// }
 }

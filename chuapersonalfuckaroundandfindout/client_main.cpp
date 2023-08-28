@@ -30,7 +30,7 @@ int main()
 	cout << "Input: ";
 	for (string store; getline(cin, store);)
 	{
-		// send the '\0' also
+		cout << "To Send: " << store << endl;
 		send(sender.s_get_fd(), store.c_str(), (store.length() + 1), 0);
 		wait_response(sender);
 		cout << "Input: ";

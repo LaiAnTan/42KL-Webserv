@@ -177,7 +177,6 @@ namespace HDE
 		//			- 0 ==> use a default protocol for the requested socket type
 						- i let you guess which one is used instead
 		//
-		// now the only thing i need to worry about is domain...
 		*/
 
 		this->socket_fd = socket(Socket::addressfam, Socket::socket_type, Socket::protocol);
