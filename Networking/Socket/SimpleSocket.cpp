@@ -36,10 +36,14 @@ namespace HDE
 	{
 		return (this->address);
 	}
+
+	// this returns the fd of the socket
+	// ...I DO NOT KNOW WHO NAMED IT A FUCKING "SOCK"
 	int  SimpleSocket::get_sock()
 	{
 		return (this->sock);
 	}
+
 	// int  SimpleSocket::get_connection()
 	// {
 	// 	return (this->connection);

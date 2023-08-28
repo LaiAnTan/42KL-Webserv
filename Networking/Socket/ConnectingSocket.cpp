@@ -17,10 +17,11 @@ namespace HDE
 	void ConnectingSocket::connect_to_network(int sock, struct sockaddr_in address)
 	{
 		// return (connect(sock, (struct sockaddr *)&address, sizeof(address)));
+	
 		this->connecting = connect(sock, (struct sockaddr *)&address, sizeof(address));
 	}
 
-	int Connecting::get_connecting()
+	int ConnectingSocket::get_connecting()
 	{
 		return (this->connecting);
 	}
