@@ -58,16 +58,16 @@ namespace req
 		private:
 			// request method
 			std::string		method;
-			// request target
+			// request target URI
 			std::string		target;
-			// http version 
+			// HTTP version 
 			std::string		ver;
-			// request header
+			// request header fields
 			requestHeader	header;
 
-			// sockets
-			int				server_fd;
-			int				client_fd;
+			// socket descriptors
+			int				server_sd;
+			int				client_sd;
 	};
 
 	std::ostream	&operator << (std::ostream outs, const Request &request);

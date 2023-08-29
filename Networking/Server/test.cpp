@@ -1,4 +1,5 @@
 #include "test.hpp"
+#include <cstring>
 
 namespace HDE
 {
@@ -24,7 +25,7 @@ namespace HDE
 	void test::responder()
 	{
 		char *hello = "Hello from serverdasdasd";
-		write (this->newsocket, hello, strlen (hello));
+		write (this->newsocket, hello, strlen(hello));
 		close(this->newsocket);
 	}
 
