@@ -8,7 +8,8 @@ int main()
 	WebServer	runner;
 
 	// loopback
-	runner.ConnectServer(69, "127.0.0.69");
+	// runner.ConnectServer(6969, "127.0.0.1");
+	runner.ConnectServer(6969);
 	// run thy server
 	cout << endl;
 	cout << GREEN << "Starting Server..." << endl;

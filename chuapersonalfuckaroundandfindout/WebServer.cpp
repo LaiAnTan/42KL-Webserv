@@ -65,7 +65,6 @@ void	WebServer::RunServer()
 					if (used_fd[i].revents != POLLIN)
 					{
 						cerr << RED << "Error at Server Socket with file descriptor " << used_fd[i].fd << endl;
-						cerr << "Reason: " << strerror(errno) << endl;
 						stop_server = true;
 						break;
 					}
@@ -102,7 +101,7 @@ void	WebServer::RunServer()
 							// socket attempts to send to client, but client is gone
 							// POLLHUP is set
 							if (test_val == -1)
-								cout << BBLUE << "Server Cant Here From This FD Anymore!" << endl;
+								cout << BBLUE << "Server Cant hear From This FD Anymore!" << endl;
 						}
 					}
 					// output stuff
@@ -110,7 +109,7 @@ void	WebServer::RunServer()
 					{
 						Client	*writing_server = clients[used_fd[i].fd];
 						writing_server->c_process();
-						writing_server->c_write("This is a Test Message :P\n\0");
+						writing_server->c_write(string("This is a Test Message :P\n\0"));
 						(*Find_Fd(used_fd[i])).events = POLLIN;
 					}
 					else
@@ -157,7 +156,7 @@ void	WebServer::RunServer()
 	POLLRDNORM	- Same with POLLIN
 	POLLNOMR	- SAME WITH POLLIN THEN WHATS THE DIFF?
 
-	revent - output parameter
+	revent	- output parameter
 			- kernel fills this with the event that actually occurred
 
 	revent option
@@ -239,6 +238,7 @@ void	WebServer::ConnectClient(Server &server)
 	clients.insert(client_node(fd, temp));
 	fds.push_back(temp2);
 
+	send(fd, "Connection Accepted!", 21, 0);
 	++client_num;
 }
 

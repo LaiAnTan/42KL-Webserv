@@ -66,6 +66,7 @@ namespace HDE
 		buff[len] = '\0';
 		cout << GREEN << "Recieved Messsage " << buff << endl;
 		this->content.append(buff);
+		cout << RESET << endl;
 		return (ret);
 	}
 
@@ -104,18 +105,6 @@ namespace HDE
 		return (1);
 	}
 
-	int	Client::c_write(char *to_write)
-	{
-		// i handle chunks later :P
-		int	ret;
-		int	length = -1;
-
-		while (to_write[++length]){};
-
-		ret = send(this->client_socket, to_write, length + 1, 0);
-		return (ret);
-	}
-
 	int	Client::c_write()
 	{
 		int	ret;
@@ -126,7 +115,7 @@ namespace HDE
 		ret = send(this->client_socket, to_send.c_str(), (to_send.length() + 1), 0);
 	}
 
-	int	Client::c_write(string &to_write)
+	int	Client::c_write(string to_write)
 	{
 		// i handle chunks later :P
 		int	ret;

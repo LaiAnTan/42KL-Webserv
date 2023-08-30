@@ -356,6 +356,7 @@ namespace HDE
 			cerr << RED << "Connection Failed :(" << endl;
 			cout << RED << "Reason " << strerror(errno) << endl;
 		}
+		cout << RESET << endl;
 		return ((ret == 0));
 	}
 

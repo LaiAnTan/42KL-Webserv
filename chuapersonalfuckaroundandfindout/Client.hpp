@@ -30,8 +30,7 @@ namespace HDE
 			int		c_read();
 			int		c_process();
 			int		c_write();
-			int		c_write(string &to_write);
-			int		c_write(char *to_write);
+			int		c_write(string to_write);
 
 			int		get_Socket();
 			string	&get_Content();
