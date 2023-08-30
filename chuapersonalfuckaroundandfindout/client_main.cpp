@@ -95,7 +95,7 @@ int main(int ac, char **av)
 		}
 		else
 		{
-			cerr << RED << "Welll something went wrong" << endl;
+			cerr << RED << "Well something went wrong" << endl;
 			break;
 		}
 	}

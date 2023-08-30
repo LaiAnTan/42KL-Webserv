@@ -34,6 +34,7 @@ void	WebServer::RunServer()
 		temp_server = server_num;
 		total_fd = temp_client + temp_server;
 
+		cout << RESET << endl;
 		cout << CYAN << "Server Stats" << endl;
 		cout << CYAN << "No. Server: " << temp_server << endl;
 		cout << BLUE << "No. Client: " << temp_client << endl;
@@ -82,11 +83,8 @@ void	WebServer::RunServer()
 				else
 				{
 					if (used_fd[i].revents & POLLHUP)
-					{
 						// some nerd disconnected
-						cout << YELLOW << "Client at File Descriptor " << used_fd[i].fd << " Stopped responding" << endl;
 						RemoveClient(used_fd[i]);
-					}
 					// peer disconnect is considered a read event
 					// fuck me
 					else if (used_fd[i].revents & POLLIN)
@@ -101,7 +99,11 @@ void	WebServer::RunServer()
 							// socket attempts to send to client, but client is gone
 							// POLLHUP is set
 							if (test_val == -1)
-								cout << BBLUE << "Server Cant hear From This FD Anymore!" << endl;
+							{
+								cout << BBLUE << "Server Cant hear From This FD Anymore! (" 
+									<< (*Find_Fd(used_fd[i])).fd << ")" << endl << endl;
+								RemoveClient(used_fd[i]);
+							}
 						}
 					}
 					// output stuff
@@ -244,6 +246,7 @@ void	WebServer::ConnectClient(Server &server)
 
 void	WebServer::RemoveClient(fd_container client_fd)
 {
+	cout << YELLOW << "Client at File Descriptor " << client_fd.fd << " Stopped responding" << endl;
 	cout << YELLOW << "Removing Client..." << endl;
 	if (client_fd.fd < 0)
 		return;
