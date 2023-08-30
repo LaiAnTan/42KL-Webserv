@@ -9,7 +9,12 @@ int main()
 
 	// loopback
 	// runner.ConnectServer(6969, "127.0.0.1");
-	runner.ConnectServer(49152);
+
+	// ip address should be connect to here
+	// do ipconfig, then grab the wifi's ip
+
+	runner.ConnectServer(6969);
+
 	// run thy server
 	cout << endl;
 	cout << GREEN << "Starting Server..." << endl;

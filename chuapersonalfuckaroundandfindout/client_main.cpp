@@ -60,12 +60,16 @@ int	send_msg(string &str, HDE::Socket &sender)
 	return (1);
 }
 
-int main()
+// use ipconfig then grab the wifi one to determine ip of server
+int main(int ac, char **av)
 {
-	HDE::Socket	sender(49152, "172.22.120.254");
+	if (ac < 2)
+		return (1);
+
+	HDE::Socket	sender(6969, av[1]);
 	struct pollfd fd;
 
-	if (!sender.s_connect())
+	if (sender.s_connect())
 	{
 		return (1);
 	};

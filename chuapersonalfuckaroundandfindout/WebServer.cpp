@@ -6,7 +6,7 @@
 // int	WebServer::timeout = (3 * 60 * 1000);
 
 // 1 minute
-int	WebServer::timeout = (1 * 60 * 1000);
+int	WebServer::timeout = (10 * 60 * 1000);
 
 WebServer::WebServer(): client_num(0), server_num(0)
 { }
