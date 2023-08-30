@@ -9,7 +9,7 @@ int main()
 
 	// loopback
 	// runner.ConnectServer(6969, "127.0.0.1");
-	runner.ConnectServer(6969);
+	runner.ConnectServer(49152);
 	// run thy server
 	cout << endl;
 	cout << GREEN << "Starting Server..." << endl;

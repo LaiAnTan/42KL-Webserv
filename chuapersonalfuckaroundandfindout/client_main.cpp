@@ -62,13 +62,17 @@ int	send_msg(string &str, HDE::Socket &sender)
 
 int main()
 {
-	HDE::Socket	sender(6969, "127.0.0.1");
+	HDE::Socket	sender(49152, "172.22.120.254");
 	struct pollfd fd;
+
+	if (!sender.s_connect())
+	{
+		return (1);
+	};
 
 	fd.fd = sender.s_get_fd();
 	fd.events = POLLIN;
 
-	sender.s_connect();
 	string	buff;
 	while (poll(&fd, 1, 10000000))
 	{
