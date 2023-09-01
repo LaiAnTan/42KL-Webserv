@@ -80,7 +80,7 @@ namespace conf
 			outs << BLUE "|	" RESET;
 			outs << RED << "Value : " RESET << std::left;
 			for (value_it = value_vec.begin(); value_it != value_vec.end(); value_it++)
-				outs << *value_it;
+				outs << *value_it << " ";
 			outs << endl;
 		}
 		return (outs);

@@ -56,14 +56,32 @@ namespace conf
 
 	void	ServerConfig::set_error(string text)
 	{
-		string var1, var2;
+		string var1, var2, var3, key;
+		std::vector<string> error_html;
 
 		size_t errorPos = text.find("error_page");
     	size_t semicolonPos = text.find(";", errorPos);
 		string res = text.substr(errorPos + 11, semicolonPos - errorPos - 11);
-		std::istringstream iss(res);
-		iss >> var1 >> var2;
-		this->error[var1] = var2;
+		std::stringstream ss(res);
+		while (std::getline(ss, var1, '	'))
+		{
+			if (var1.empty())
+				continue;
+			else
+				error_html.push_back(var1);
+		}
+		key = error_html.front();
+		error_html.erase(error_html.begin());
+		std::stringstream err(error_html.front());
+		error_html.clear();
+		while(std::getline(err, var2, ' '))
+		{
+			if (var2.empty())
+				continue;
+			else
+				error_html.push_back(var2);
+		}
+		this->error[key] = error_html;
 	}
 
 	void	ServerConfig::set_cgi(string text)
@@ -76,6 +94,22 @@ namespace conf
 		std::istringstream iss(res);
 		iss >> var1 >> var2;
 		this->cgi[var1] = var2;
+	}
+
+	void	ServerConfig::set_methods(string text)
+	{
+		string	var1;
+		size_t methods = text.find("allowed_methods");
+    	size_t semicolonPos = text.find(";", methods);
+		string res = text.substr(methods + 16, semicolonPos - methods - 16);
+		std::stringstream ss(res);
+		while (std::getline(ss, var1, ' '))
+		{
+			if (var1.empty())
+				continue;
+			else
+				this->allowed_method.push_back(var1);
+		}
 	}
 	
 	void	ServerConfig::location_name(string text, std::ifstream *file)
@@ -116,7 +150,7 @@ namespace conf
 		return (this->client_max);
 	}
 
-	const std::map<string, string>	&ServerConfig::get_error() const
+	const std::map<string, std::vector<string> > &ServerConfig::get_error() const
 	{
 		return(this->error);
 	}
@@ -124,6 +158,11 @@ namespace conf
 	const std::map<string, string>	&ServerConfig::get_cgi() const
 	{
 		return(this->cgi);
+	}
+
+	const std::vector<string> &ServerConfig::get_methods() const
+	{
+		return(this->allowed_method);
 	}
 
 	const std::map<string, ServerLocation>	&ServerConfig::get_locations() const
@@ -138,17 +177,17 @@ namespace conf
 		void (ServerConfig::*funct[])(string text) = {&conf::ServerConfig::set_port, \
 			&conf::ServerConfig::set_root, &conf::ServerConfig::set_index, \
 			&conf::ServerConfig::set_server_name, &conf::ServerConfig::set_client_max, \
-			&conf::ServerConfig::set_error, &conf::ServerConfig::set_cgi};
+			&conf::ServerConfig::set_error, &conf::ServerConfig::set_cgi, &conf::ServerConfig::set_methods};
 		string arr[] = {"listen", "root", "index", "server_name", \
-			"client_max_body_size", "error_page", "cgi_script"};
+			"client_max_body_size", "error_page", "cgi_script", "allowed_methods"};
 		while (std::getline(*file, text))
 		{
 			if (text.find('#') == std::string::npos)
 			{
 				i = 0;
-				while (i < 7 && text.find(arr[i]) == std::string::npos)
+				while (i < 8 && text.find(arr[i]) == std::string::npos)
 					i++;
-				if (i < 7)
+				if (i < 8)
 					(this->*funct[i])(text);
 				if (this->server_name.empty())
 					this->server_name = "localhost";
@@ -179,6 +218,7 @@ namespace conf
 			this->client_max = server_config.client_max;
 			this->error = server_config.error;
 			this->cgi = server_config.cgi;
+			this->allowed_method = server_config.allowed_method;
 			this->locations = server_config.locations;
 		}
 		return (*this);
@@ -201,17 +241,30 @@ namespace conf
 		outs << YELLOW "Index : " RESET << server_config.get_index() << endl;
 		outs << YELLOW "Client_max : " RESET << server_config.get_client_max() << endl;
 
+		std::map<string, std::vector<string> >::iterator error_it;
+		std::map<string, std::vector<string> > err = server_config.get_error(); 
+		std::vector<string>::iterator htmls_it;
+		for (error_it = err.begin(); error_it != err.end(); error_it++)
+		{
+			outs << YELLOW "Error : " RESET << error_it->first << "	" << MAGENTA "Page :" RESET;
+			std::vector<string>	htmls = error_it->second;
+			for (htmls_it = htmls.begin(); htmls_it != htmls.end(); htmls_it++)
+				outs << " " << *htmls_it;
+			outs << endl;
+		}
 		std::map<string, string>::iterator map_it;
-		std::map<string, string> tmp = server_config.get_error();
-
-		for (map_it = tmp.begin(); map_it != tmp.end(); map_it++)
-			outs << YELLOW "Error : " RESET << map_it->first << "   " << map_it->second << endl;
-		tmp = server_config.get_cgi(); 
+		std::map<string, string> tmp = server_config.get_cgi(); 
 		for (map_it = tmp.begin(); map_it != tmp.end(); map_it++)
 			outs << YELLOW "CGI : " RESET << map_it->first << "   " << map_it->second << endl;
-		
-		outs << endl;
 
+		std::vector<string>::iterator	methods_it;
+		std::vector<string>	methods = server_config.get_methods();
+		outs << YELLOW "Allowed_methods : " RESET;
+		for (methods_it = methods.begin(); methods_it != methods.end(); methods_it++)
+			outs << *methods_it << " ";
+		outs << endl;
+	
+		outs << endl;
 		ServerConfig::locationMap::iterator location_it;
 		ServerConfig::locationMap location_map = server_config.get_locations();
 
