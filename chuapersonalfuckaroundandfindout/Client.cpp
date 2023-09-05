@@ -53,7 +53,7 @@ namespace HDE
 
 		// temp [DATA IS DONE READING] holder
 		// this just detects if the last character read is a '\0'
-		ret = (buff[len - 1] != '\0');
+		ret = (buff[len - 1] == '\0');
 		if (ret)
 		{
 			cout << MAGENTA << "Data is halfway recieved" << endl;

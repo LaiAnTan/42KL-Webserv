@@ -82,28 +82,19 @@ void	WebServer::RunServer()
 				// connected clients
 				else
 				{
-					if (used_fd[i].revents & POLLHUP)
-						// some nerd disconnected
-						RemoveClient(used_fd[i]);
-					// peer disconnect is considered a read event
-					// fuck me
-					else if (used_fd[i].revents & POLLIN)
+					if (used_fd[i].revents & POLLIN)
 					{
 						Client	*reading_server = clients[used_fd[i].fd];
 						test_val = reading_server->c_read();
-						if (test_val <= 0)
+						if (test_val)
 						{
 							(*Find_Fd(used_fd[i])).events = POLLOUT;
-							// disconnected 
-							// still have to set POLLOUT 
-							// socket attempts to send to client, but client is gone
-							// POLLHUP is set
-							if (test_val == -1)
-							{
-								cout << BBLUE << "Server Cant hear From This FD Anymore! (" 
-									<< (*Find_Fd(used_fd[i])).fd << ")" << endl << endl;
-								RemoveClient(used_fd[i]);
-							}
+						}
+						else if (test_val == -1)
+						{
+							cout << BBLUE << "Server Cant hear From This FD Anymore! (" 
+								<< (*Find_Fd(used_fd[i])).fd << ")" << endl << endl;
+							RemoveClient(used_fd[i]);
 						}
 					}
 					// output stuff
@@ -117,8 +108,10 @@ void	WebServer::RunServer()
 					else
 					{
 						cerr << RED << "Error at Client Socket with file descriptor " << used_fd[i].fd << endl;
-						stop_server = true;
-						break;
+						if (used_fd[i].revents & POLLHUP)
+							cerr << RED << "Client Has Hung Up on Server" << endl;
+						cerr << "Removing Client..." << RESET << endl;
+						RemoveClient(used_fd[i]);
 					}
 				}
 			}
