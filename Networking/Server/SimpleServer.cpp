@@ -9,6 +9,7 @@ namespace HDE
 	
 	SimpleServer::~SimpleServer()
 	{
+		delete this->socket;
 	}
 
 	ListeningSocket *SimpleServer::get_socket()
