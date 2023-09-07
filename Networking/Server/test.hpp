@@ -21,4 +21,7 @@ namespace HDE
 	};
 }
 
+int sendData(int sckt, void *data, int datalen);
+void dataSet(int socket, void *data);
+
 #endif
