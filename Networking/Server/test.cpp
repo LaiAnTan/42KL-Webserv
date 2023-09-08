@@ -5,6 +5,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <vector>
+#include <string>
 
 namespace HDE
 {
@@ -26,7 +27,7 @@ namespace HDE
 
 	void test::handler()
 	{
-		std::cout << buffer << std::endl;
+		// std::cout << buffer << std::endl;
 		std::stringstream ss(buffer);
 		string key;
 		while (std::getline(ss, key, '\n'))
@@ -36,17 +37,16 @@ namespace HDE
 			else
 				this->bufferVEC.push_back(key);
 		}
-		cout << "==========vector start===========" << endl;
-		for (std::vector<string>::iterator it = this->bufferVEC.begin(); it != this->bufferVEC.end(); it++)
-			std::cout << *it << std::endl;
-		cout << "=========vector end============" << endl;
+		// cout << "==========vector start===========" << endl;
+		// for (std::vector<string>::iterator it = this->bufferVEC.begin(); it != this->bufferVEC.end(); it++)
+		// 	std::cout << *it << std::endl;
+		// cout << "=========vector end============" << endl;
 	}
 
 	void test::responder()
 	{
 		// std::string hello = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nTesting";
 		// sendData(this->newsocket, (void *)hello.c_str(), hello.size());
-		string	test = "test";
 		dataSet(this->newsocket);
 		// write (this->newsocket, hello, strlen(hello));
 		close(this->newsocket);
@@ -134,19 +134,47 @@ void png(string type, int sock)
 
 void html(string type, int sock)
 {
-	string response;
+	string filename, response, str1, str2;
+	std::ifstream file;
+
+	filename = type;
 	response.append("HTTP/1.1 200 OK\r\n");
 	response.append("Content-Type: text/html\r\n\r\n");
-	std::ifstream file;
-	file.open(type.c_str());
+	string code[] = {"400.html", "404.html", "405.html", "413.html", "500.html", "501.html", "505.html"};
+	string msg[] = {"Bad Request", "Not Found", "Method Not Allowed", "Payload Too Large", "Internal Server Error", "Not Implemented", "HTTP Version Not Supported"};
+	for (int i = 0; i < 7; i++)
+	{
+		if (type.find(code[i]) != string::npos)
+		{
+			str1 = code[i].substr(0, code[i].length() - 5);;
+			str2 = msg[i];
+			filename = "../html/error.html";
+		}
+	}
 
+	cout << "filename: " << filename << endl;
+	file.open(filename.c_str());
 	if (file.is_open())
 	{
-		char html[1024];
-		while (file.read(html, sizeof(html)))
-			response.append(html, sizeof(html));
-		if (file.eof())
-			response.append(html, file.gcount());
+		while (!file.eof())
+		{
+			string html;
+			std::getline(file, html);
+			string find_code = "[CODE]";
+			string find_msg = "[MSG]";
+			cout << html << endl; 
+			if (html.find(find_code) != string::npos)
+			{
+				html.replace(html.find(find_code), find_code.length(), str1);
+				cout << "found code" << endl;
+			}
+			if (html.find(find_msg) != string::npos)
+			{
+				html.replace(html.find(find_msg), find_msg.length(), str2);
+				cout << "found msg" << endl;
+			}
+			response.append(html);
+		}
 		file.close();
 		int res = sendData(sock, (void *)response.c_str(), response.size());
 	}
@@ -161,7 +189,7 @@ void dataSet(int socket)
 	cout << "input buffer:";
 	cout << buffer.front() << endl;
 
-	string file = "../html/404.html";
+	string file = "small.png";
 
 
 	void (*funct[])(string type, int sock) = {&icon, &png, &html};
