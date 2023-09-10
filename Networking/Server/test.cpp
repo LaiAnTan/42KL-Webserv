@@ -6,6 +6,11 @@
 #include <unistd.h>
 #include <vector>
 #include <string>
+#include <cstdlib>
+#include <cstdio>
+#include <ctime>
+
+const int BUFFER_SIZE = 1024;
 
 namespace HDE
 {
@@ -22,7 +27,12 @@ namespace HDE
 		int addrlen = sizeof(address);
 		newsocket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t *)&addrlen);
 		bufferVEC.clear();
-		read(this->newsocket, buffer, 30000);
+		int bytesrecv = read(this->newsocket, this->buffer, 30000);
+		if (bytesrecv < 0)
+			cout << "no bytes received" << endl;
+		// std::ostringstream ss;
+		// ss << "------ Received Request from client ------\n\n";
+		// cout << ss.str() << endl;
 	}
 
 	void test::handler()
@@ -48,6 +58,7 @@ namespace HDE
 		// std::string hello = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nTesting";
 		// sendData(this->newsocket, (void *)hello.c_str(), hello.size());
 		dataSet(this->newsocket);
+		// receive(this->newsocket);
 		// write (this->newsocket, hello, strlen(hello));
 		close(this->newsocket);
 	}
@@ -98,7 +109,7 @@ void icon(string type, int sock)
 
 	if (file.is_open())
 	{
-		char img_buffer[1024];
+		char img_buffer[BUFFER_SIZE];
 		while (file.read(img_buffer, sizeof(img_buffer)))
 			response.append(img_buffer, sizeof(img_buffer));
 		if (file.eof())
@@ -120,7 +131,7 @@ void png(string type, int sock)
 
 	if (file.is_open())
 	{
-		char img_buffer[1024];
+		char img_buffer[BUFFER_SIZE];
 		while (file.read(img_buffer, sizeof(img_buffer)))
 			response.append(img_buffer, sizeof(img_buffer));
 		if (file.eof())
@@ -130,6 +141,29 @@ void png(string type, int sock)
 	}
 	else
 		std::cerr << "Error opening png file." << endl;
+}
+
+void css(string type, int sock)
+{
+	string response;
+	response.append("HTTP/1.1 200 OK\r\n");
+	response.append("Content-Type: text/css\r\n\r\n");
+	std::ifstream file;
+	file.open(type.c_str());
+
+	if (file.is_open())
+	{
+		while (!file.eof())
+		{
+			string css;
+			std::getline(file, css);
+			response.append(css);
+		}
+		file.close();
+		int res = sendData(sock, (void *)response.c_str(), response.size());
+	}
+	else
+		std::cerr << "Error opening css file." << endl;
 }
 
 void html(string type, int sock)
@@ -152,7 +186,6 @@ void html(string type, int sock)
 		}
 	}
 
-	cout << "filename: " << filename << endl;
 	file.open(filename.c_str());
 	if (file.is_open())
 	{
@@ -162,17 +195,10 @@ void html(string type, int sock)
 			std::getline(file, html);
 			string find_code = "[CODE]";
 			string find_msg = "[MSG]";
-			cout << html << endl; 
 			if (html.find(find_code) != string::npos)
-			{
 				html.replace(html.find(find_code), find_code.length(), str1);
-				cout << "found code" << endl;
-			}
 			if (html.find(find_msg) != string::npos)
-			{
 				html.replace(html.find(find_msg), find_msg.length(), str2);
-				cout << "found msg" << endl;
-			}
 			response.append(html);
 		}
 		file.close();
@@ -182,20 +208,70 @@ void html(string type, int sock)
 		std::cerr << "Error opening html file." << endl;
 }
 
+void login(string type, int sock)
+{
+    string response;
+    // response.append("HTTP/1.1 200 OK\r\n");
+    // response.append("Content-Type: text/html\r\n\r\n");
+
+    // Check if the provided username and password are correct (hard-coded for demonstration)
+    std::string username = "demo";
+    std::string password = "password";
+
+    std::vector<string> buffer = HDE::test::get_bufferVEC();
+
+	// cout << "==========vector start===========" << endl;
+	// for (std::vector<string>::iterator it = buffer.begin(); it != buffer.end(); it++)
+	// 	std::cout << *it << std::endl;
+	// cout << "=========vector end============" << endl;
+
+    // Check if the POST data contains the correct username and password
+    if (buffer.size() >= 2 && buffer[buffer.size() - 1].find("username=" + username) != std::string::npos &&
+        buffer[buffer.size() - 1].find("password=" + password) != std::string::npos)
+    {
+        response.append("<h1>Login Successful</h1>");
+    }
+    else
+    {
+		response.append("<h1>Login Failed</h1>");
+    }
+
+    int res = sendData(sock, (void *)response.c_str(), response.size());
+}
+
 void dataSet(int socket)
 {
 	std::vector<string> buffer = HDE::test::get_bufferVEC();
 
-	cout << "input buffer:";
-	cout << buffer.front() << endl;
+	string file = "../html/200.html", path;
 
-	string file = "small.png";
+	for (std::vector<string>::iterator it = buffer.begin(); it != buffer.end(); it++)
+	{
+		cout << *it << endl;
+		if ((*it).find("GET") != string::npos)
+		{
+			size_t firstSpacePos = (*it).find(' ');
+			size_t secondSpacePos = (*it).find(' ', firstSpacePos + 1);
+    		path = (*it).substr(firstSpacePos + 1, secondSpacePos - firstSpacePos - 1);
+			string path2 = ".." + path;
+			cout << "path2: " << path2 << endl;
+			if (path.find("error.css") != string::npos)
+				file = "../html" + path;
+			else if (access(path2.c_str(), F_OK) == 0 && path2 != "../")
+				file = ".." + path;
+			break;
+		}
+	}
 
+	cout << "file: " << file << endl;
+	if (file == "../html/test.html")
+	{
+		login(file, socket);
+	}
+	void (*funct[])(string type, int sock) = {&icon, &png, &html, &css};
+	string arr[] = {".ico", ".png", ".html", ".css"};
 
-	void (*funct[])(string type, int sock) = {&icon, &png, &html};
-	string arr[] = {".ico", ".png", ".html"};
-
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 4; i++)
 	{
 		if (file.find(arr[i]) != string::npos)
 		{
@@ -204,4 +280,9 @@ void dataSet(int socket)
 		}
 	}
 
+	cout << "==========vector start===========" << endl;
+	for (std::vector<string>::iterator it = buffer.begin(); it != buffer.end(); it++)
+		std::cout << *it << std::endl;
+
+	cout << "=========vector end============" << endl;
 }
