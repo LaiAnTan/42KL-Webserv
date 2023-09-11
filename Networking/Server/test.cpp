@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <ctime>
+#include <bits/stdc++.h>
 
 const int BUFFER_SIZE = 1024;
 
@@ -30,9 +31,6 @@ namespace HDE
 		int bytesrecv = read(this->newsocket, this->buffer, 30000);
 		if (bytesrecv < 0)
 			cout << "no bytes received" << endl;
-		// std::ostringstream ss;
-		// ss << "------ Received Request from client ------\n\n";
-		// cout << ss.str() << endl;
 	}
 
 	void test::handler()
@@ -40,6 +38,7 @@ namespace HDE
 		// std::cout << buffer << std::endl;
 		std::stringstream ss(buffer);
 		string key;
+		bufferVEC.clear();
 		while (std::getline(ss, key, '\n'))
 		{
 			if (key.empty())
@@ -247,14 +246,14 @@ void dataSet(int socket)
 
 	for (std::vector<string>::iterator it = buffer.begin(); it != buffer.end(); it++)
 	{
-		cout << *it << endl;
+		// cout << *it << endl;
 		if ((*it).find("GET") != string::npos)
 		{
 			size_t firstSpacePos = (*it).find(' ');
 			size_t secondSpacePos = (*it).find(' ', firstSpacePos + 1);
     		path = (*it).substr(firstSpacePos + 1, secondSpacePos - firstSpacePos - 1);
 			string path2 = ".." + path;
-			cout << "path2: " << path2 << endl;
+			// cout << "path2: " << path2 << endl;
 			if (path.find("error.css") != string::npos)
 				file = "../html" + path;
 			else if (access(path2.c_str(), F_OK) == 0 && path2 != "../")
@@ -263,7 +262,7 @@ void dataSet(int socket)
 		}
 	}
 
-	cout << "file: " << file << endl;
+	// cout << "file: " << file << endl;
 	if (file == "../html/test.html")
 	{
 		login(file, socket);
@@ -280,9 +279,64 @@ void dataSet(int socket)
 		}
 	}
 
-	cout << "==========vector start===========" << endl;
-	for (std::vector<string>::iterator it = buffer.begin(); it != buffer.end(); it++)
-		std::cout << *it << std::endl;
 
-	cout << "=========vector end============" << endl;
+	std::vector<string> file_content;
+	string filename;
+	file_content.clear();
+	for (std::vector<string>::iterator it = buffer.begin(); it != buffer.end(); it++)
+	{
+		if ((*it).find("POST") != string::npos)
+		{
+			string boundary;
+			for(std::vector<string>::iterator it2 = it; it2 != buffer.end(); it2++)
+			{
+				if ((*it2).find("boundary=") != string::npos)
+				{
+
+					size_t boundaryPos = (*it2).find("boundary=");
+					boundary = (*it2).substr(boundaryPos + 9);
+					boundary = boundary.substr(0, boundary.find("\r"));
+					cout << "boundary: " << "|" << boundary << "|" << endl;
+					// while(boundary  != "")
+					it2++;
+				}
+				if ((*it2).find(boundary) != string::npos && boundary.empty() == false)
+				{
+					for (std::vector<string>::iterator it3 = it2; it3 != buffer.end(); it3++)
+					{
+						if ((*it3).find(boundary + "--") != string::npos)
+							break;
+						else if ((*it3).find("filename=") != string::npos)
+						{
+							filename = (*it3).substr((*it3).find("filename=") + 10);
+							filename = filename.substr(0, filename.find("\""));
+						}
+						else if ((*it3).find("Content-Type") && (*it3).empty() == false && (*it3).find(boundary) && (*it3).find("\r\n"))
+							file_content.push_back(*it3);
+					}
+				}
+			}
+			break;
+		}
+	}
+
+	if (file_content.empty() == false)
+	{
+		std::ofstream out(filename.c_str(), std::ios::binary);
+		cout << "filename: " << filename << endl;
+		cout << "==========file_content start===========" << endl;
+		std::vector<string>::iterator itf = file_content.begin();
+		itf++;
+		itf++;
+		for (std::vector<string>::iterator it = itf; it != file_content.end(); it++)
+		{
+			if ((*it).find("\r\n") && (*it).empty() == false)
+			{
+				out.write((*it).c_str(), (*it).size());
+				cout << *it << endl;
+			}
+		}
+		cout << "=========file_content end============" << endl;
+		out.close();
+	}
 }
