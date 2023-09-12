@@ -30,6 +30,6 @@ namespace HDE
 
 int sendData(int sckt, const void *data, int datalen);
 void dataSet(int socket);
-void dataGet();
+void dataGet(int socket);
 
 #endif

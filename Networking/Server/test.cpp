@@ -56,7 +56,10 @@ namespace HDE
 				{
 					size_t endOfContent = contentLengthPos + contentLengthHeader.length();
 					size_t endOfLine = headers.find("\r\n", endOfContent);
-					int contentLength = std::stoi(headers.substr(endOfContent, endOfLine - endOfContent));
+					std::stringstream ss;
+					ss << headers.substr(endOfContent, endOfLine - endOfContent);
+					int contentLength;
+					ss >> contentLength;
 					while (content.size() < contentLength)
 					{
 						bytesRead = read(this->newsocket, buffer, sizeof(buffer));
@@ -74,8 +77,8 @@ namespace HDE
 
 	void test::handler()
 	{
-		// cout << this->headers << endl << endl << endl;;
-		// cout << this->content << endl;
+		// cout << this->headers << endl << endl << endl;
+		cout << this->content << endl;
 	}
 
 	void test::responder()
@@ -83,7 +86,7 @@ namespace HDE
 		// std::string hello = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nTesting";
 		// sendData(this->newsocket, (void *)hello.c_str(), hello.size());
 		dataSet(this->newsocket);
-		dataGet();
+		dataGet(this->newsocket);
 		// receive(this->newsocket);
 		// write (this->newsocket, hello, strlen(hello));
 		close(this->newsocket);
@@ -239,31 +242,70 @@ void html(string type, int sock)
 		std::cerr << "Error opening html file." << endl;
 }
 
-void dataGet()
+void login(string content, int sock)
+{
+	string username = "demo";
+	string password = "password";
+
+	size_t usernamePos = content.find("username=");
+	size_t passwordPos = content.find("&password=");
+
+	if (usernamePos != string::npos && passwordPos != string::npos)
+	{
+		// Extract username and password from the content
+		string extractedUsername = content.substr(usernamePos + 9, passwordPos - (usernamePos + 9));
+		string extractedPassword = content.substr(passwordPos + 10);
+
+		cout << "Username: " << extractedUsername << endl;
+		cout << "Password: " << extractedPassword << endl;
+
+		// Compare extracted values with hardcoded values
+		if (extractedUsername == username && extractedPassword == password)
+		{
+			// response.append("<h1>Login Successful</h1>");
+			cout << "Login Successful" << endl;
+		}
+		else
+		{
+			// response.append("<h1>Login Failed</h1>");
+			cout << "Login Failed" << endl;
+		}
+	}
+	// int res = sendData(sock, (void *)response.c_str(), response.size());
+}
+
+void dataGet(int socket)
 {
 	string headers = HDE::test::get_headers();
 	string content = HDE::test::get_content();
-	string boundary, filename;
+	string boundary, filename, path;
 
 	if (headers.find("POST") != string::npos)
 	{
-		size_t boundaryPos = headers.find("boundary=");
-		boundary = headers.substr(boundaryPos + 9);
-		boundary = boundary.substr(0, boundary.find("\r"));
+		path = headers.substr(headers.find("POST ") + 5);
+		path = path.substr(0, path.find(" "));
+		if (path.find("/login") != string::npos)
+			login(content, socket);
+		else
+		{
+			size_t boundaryPos = headers.find("boundary=");
+			boundary = headers.substr(boundaryPos + 9);
+			boundary = boundary.substr(0, boundary.find("\r"));
 
-		size_t filenamePos = content.find("filename=");
-		filename = content.substr(filenamePos + 10);
-		filename = filename.substr(0, filename.find("\""));
+			size_t filenamePos = content.find("filename=");
+			filename = content.substr(filenamePos + 10);
+			filename = filename.substr(0, filename.find("\""));
 
-		cout << "Boundary: |" << boundary << "|" << endl;
-		cout << "Filename: |" << filename << "|" << endl;
+			cout << "Boundary: |" << boundary << "|" << endl;
+			cout << "Filename: |" << filename << "|" << endl;
 
-		size_t dataPos = content.find("\r\n\r\n") + 4;
-		size_t boundaryPosInData = content.find("--" + boundary, dataPos);
-		std::string fileData = content.substr(dataPos, boundaryPosInData - dataPos);
-		std::ofstream outFile(filename.c_str(), std::ios::binary);
-		outFile.write(fileData.c_str(), fileData.length());
-		outFile.close();
+			size_t dataPos = content.find("\r\n\r\n") + 4;
+			size_t boundaryPosInData = content.find("--" + boundary, dataPos);
+			std::string fileData = content.substr(dataPos, boundaryPosInData - dataPos);
+			std::ofstream outFile(filename.c_str(), std::ios::binary);
+			outFile.write(fileData.c_str(), fileData.length());
+			outFile.close();
+		}
 	}
 
 }
@@ -290,7 +332,7 @@ void dataSet(int socket)
 			file = ".." + path;
 	}
 
-	cout << "file: " << file << endl;
+	// cout << "file: " << file << endl;
 	void (*funct[])(string type, int sock) = {&icon, &png, &html, &css};
 	string arr[] = {".ico", ".png", ".html", ".css"};
 
