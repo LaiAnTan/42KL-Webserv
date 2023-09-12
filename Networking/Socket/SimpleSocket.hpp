@@ -32,7 +32,7 @@ namespace HDE
 		void test_connection(int test);
 
 		int get_sock();
-		struct sockaddr_in get_adddress();
+		struct sockaddr_in get_address();
 		// int get_connection();
 
 		// void set_connection(int c);

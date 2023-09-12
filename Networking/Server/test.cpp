@@ -9,13 +9,16 @@
 #include <cstdlib>
 #include <cstdio>
 #include <ctime>
-#include <bits/stdc++.h>
+#include <fcntl.h>
+// #include <bits/stdc++.h>
 
 const int BUFFER_SIZE = 1024;
 
 namespace HDE
 {
-	std::vector<string> test::bufferVEC;
+	string test::headers;
+	string test::content;
+	// char test::buffer[30000];
 
 	test::test() : SimpleServer(AF_INET, SOCK_STREAM, 0, 80, INADDR_ANY, 10)
 	{
@@ -24,32 +27,55 @@ namespace HDE
 
 	void test::accepter()
 	{
-		struct sockaddr_in address = get_socket()->get_adddress();
+		struct sockaddr_in address = get_socket()->get_address();
 		int addrlen = sizeof(address);
-		newsocket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t *)&addrlen);
-		bufferVEC.clear();
-		int bytesrecv = read(this->newsocket, this->buffer, 30000);
-		if (bytesrecv < 0)
-			cout << "no bytes received" << endl;
+		this->newsocket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t *)&addrlen);
+
+		if (this->newsocket < 0)
+		{
+			std::cerr << "Accept failed" << endl;
+			return;
+		}
+
+		string request;
+		char buffer[BUFFER_SIZE];
+		int bytesRead;
+		while ((bytesRead = read(this->newsocket, buffer, sizeof(buffer))) > 0)
+		{
+			request.append(buffer, bytesRead);
+			size_t pos = request.find("\r\n\r\n");
+			if (pos != string::npos)
+			{
+				headers = request.substr(0, pos + 4);
+				// cout << "Received Headers:\n" << headers << endl;
+				content = request.substr(pos + 4);
+				// If Content-Length header is present, continue reading until the specified length
+				string contentLengthHeader = "Content-Length: ";
+				size_t contentLengthPos = headers.find(contentLengthHeader);
+				if (contentLengthPos != std::string::npos)
+				{
+					size_t endOfContent = contentLengthPos + contentLengthHeader.length();
+					size_t endOfLine = headers.find("\r\n", endOfContent);
+					int contentLength = std::stoi(headers.substr(endOfContent, endOfLine - endOfContent));
+					while (content.size() < contentLength)
+					{
+						bytesRead = read(this->newsocket, buffer, sizeof(buffer));
+						if (bytesRead > 0)
+							content.append(buffer, bytesRead);
+						else
+							break;
+					}
+				}
+				// cout << "Received Content:\n" << content << endl;
+				break;
+			}
+		}
 	}
 
 	void test::handler()
 	{
-		// std::cout << buffer << std::endl;
-		std::stringstream ss(buffer);
-		string key;
-		bufferVEC.clear();
-		while (std::getline(ss, key, '\n'))
-		{
-			if (key.empty())
-				continue;
-			else
-				this->bufferVEC.push_back(key);
-		}
-		// cout << "==========vector start===========" << endl;
-		// for (std::vector<string>::iterator it = this->bufferVEC.begin(); it != this->bufferVEC.end(); it++)
-		// 	std::cout << *it << std::endl;
-		// cout << "=========vector end============" << endl;
+		// cout << this->headers << endl << endl << endl;;
+		// cout << this->content << endl;
 	}
 
 	void test::responder()
@@ -57,6 +83,7 @@ namespace HDE
 		// std::string hello = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nTesting";
 		// sendData(this->newsocket, (void *)hello.c_str(), hello.size());
 		dataSet(this->newsocket);
+		dataGet();
 		// receive(this->newsocket);
 		// write (this->newsocket, hello, strlen(hello));
 		close(this->newsocket);
@@ -77,9 +104,14 @@ namespace HDE
 		}
 	}
 
-	std::vector<string> test::get_bufferVEC()
+	string test::get_headers()
 	{
-		return (bufferVEC);
+		return headers;
+	}
+
+	string test::get_content()
+	{
+		return content;
 	}
 }
 
@@ -207,66 +239,58 @@ void html(string type, int sock)
 		std::cerr << "Error opening html file." << endl;
 }
 
-void login(string type, int sock)
+void dataGet()
 {
-    string response;
-    // response.append("HTTP/1.1 200 OK\r\n");
-    // response.append("Content-Type: text/html\r\n\r\n");
+	string headers = HDE::test::get_headers();
+	string content = HDE::test::get_content();
+	string boundary, filename;
 
-    // Check if the provided username and password are correct (hard-coded for demonstration)
-    std::string username = "demo";
-    std::string password = "password";
+	if (headers.find("POST") != string::npos)
+	{
+		size_t boundaryPos = headers.find("boundary=");
+		boundary = headers.substr(boundaryPos + 9);
+		boundary = boundary.substr(0, boundary.find("\r"));
 
-    std::vector<string> buffer = HDE::test::get_bufferVEC();
+		size_t filenamePos = content.find("filename=");
+		filename = content.substr(filenamePos + 10);
+		filename = filename.substr(0, filename.find("\""));
 
-	// cout << "==========vector start===========" << endl;
-	// for (std::vector<string>::iterator it = buffer.begin(); it != buffer.end(); it++)
-	// 	std::cout << *it << std::endl;
-	// cout << "=========vector end============" << endl;
+		cout << "Boundary: |" << boundary << "|" << endl;
+		cout << "Filename: |" << filename << "|" << endl;
 
-    // Check if the POST data contains the correct username and password
-    if (buffer.size() >= 2 && buffer[buffer.size() - 1].find("username=" + username) != std::string::npos &&
-        buffer[buffer.size() - 1].find("password=" + password) != std::string::npos)
-    {
-        response.append("<h1>Login Successful</h1>");
-    }
-    else
-    {
-		response.append("<h1>Login Failed</h1>");
-    }
+		size_t dataPos = content.find("\r\n\r\n") + 4;
+		size_t boundaryPosInData = content.find("--" + boundary, dataPos);
+		std::string fileData = content.substr(dataPos, boundaryPosInData - dataPos);
+		std::ofstream outFile(filename.c_str(), std::ios::binary);
+		outFile.write(fileData.c_str(), fileData.length());
+		outFile.close();
+	}
 
-    int res = sendData(sock, (void *)response.c_str(), response.size());
 }
 
 void dataSet(int socket)
 {
-	std::vector<string> buffer = HDE::test::get_bufferVEC();
+	// std::vector<string> buffer = HDE::test::get_bufferVEC();
 
+	string headers = HDE::test::get_headers();
+	string content = HDE::test::get_content();
 	string file = "../html/200.html", path;
 
-	for (std::vector<string>::iterator it = buffer.begin(); it != buffer.end(); it++)
+	// for (std::vector<string>::iterator it = buffer.begin(); it != buffer.end(); it++)
+	// {
+	file = "../html/200.html";
+	if (headers.find("GET") != string::npos)
 	{
-		// cout << *it << endl;
-		if ((*it).find("GET") != string::npos)
-		{
-			size_t firstSpacePos = (*it).find(' ');
-			size_t secondSpacePos = (*it).find(' ', firstSpacePos + 1);
-    		path = (*it).substr(firstSpacePos + 1, secondSpacePos - firstSpacePos - 1);
-			string path2 = ".." + path;
-			// cout << "path2: " << path2 << endl;
-			if (path.find("error.css") != string::npos)
-				file = "../html" + path;
-			else if (access(path2.c_str(), F_OK) == 0 && path2 != "../")
-				file = ".." + path;
-			break;
-		}
+		path = headers.substr(headers.find("GET ") + 4);
+		path = path.substr(0, path.find(" "));
+		string path2 = ".." + path;
+		if (path.find("/component/error.css") != string::npos)
+			file = "../html" + path;
+		if (access(path2.c_str(), F_OK) == 0 && path2 != "../")
+			file = ".." + path;
 	}
 
-	// cout << "file: " << file << endl;
-	if (file == "../html/test.html")
-	{
-		login(file, socket);
-	}
+	cout << "file: " << file << endl;
 	void (*funct[])(string type, int sock) = {&icon, &png, &html, &css};
 	string arr[] = {".ico", ".png", ".html", ".css"};
 
@@ -277,66 +301,5 @@ void dataSet(int socket)
 			funct[i](file, socket);
 			break;
 		}
-	}
-
-
-	std::vector<string> file_content;
-	string filename;
-	file_content.clear();
-	for (std::vector<string>::iterator it = buffer.begin(); it != buffer.end(); it++)
-	{
-		if ((*it).find("POST") != string::npos)
-		{
-			string boundary;
-			for(std::vector<string>::iterator it2 = it; it2 != buffer.end(); it2++)
-			{
-				if ((*it2).find("boundary=") != string::npos)
-				{
-
-					size_t boundaryPos = (*it2).find("boundary=");
-					boundary = (*it2).substr(boundaryPos + 9);
-					boundary = boundary.substr(0, boundary.find("\r"));
-					cout << "boundary: " << "|" << boundary << "|" << endl;
-					// while(boundary  != "")
-					it2++;
-				}
-				if ((*it2).find(boundary) != string::npos && boundary.empty() == false)
-				{
-					for (std::vector<string>::iterator it3 = it2; it3 != buffer.end(); it3++)
-					{
-						if ((*it3).find(boundary + "--") != string::npos)
-							break;
-						else if ((*it3).find("filename=") != string::npos)
-						{
-							filename = (*it3).substr((*it3).find("filename=") + 10);
-							filename = filename.substr(0, filename.find("\""));
-						}
-						else if ((*it3).find("Content-Type") && (*it3).empty() == false && (*it3).find(boundary) && (*it3).find("\r\n"))
-							file_content.push_back(*it3);
-					}
-				}
-			}
-			break;
-		}
-	}
-
-	if (file_content.empty() == false)
-	{
-		std::ofstream out(filename.c_str(), std::ios::binary);
-		cout << "filename: " << filename << endl;
-		cout << "==========file_content start===========" << endl;
-		std::vector<string>::iterator itf = file_content.begin();
-		itf++;
-		itf++;
-		for (std::vector<string>::iterator it = itf; it != file_content.end(); it++)
-		{
-			if ((*it).find("\r\n") && (*it).empty() == false)
-			{
-				out.write((*it).c_str(), (*it).size());
-				cout << *it << endl;
-			}
-		}
-		cout << "=========file_content end============" << endl;
-		out.close();
 	}
 }

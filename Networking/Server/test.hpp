@@ -9,23 +9,27 @@ namespace HDE
 	class test : public SimpleServer
 	{
 	private:
-		char buffer[30000];
 		int newsocket;
+		static string headers;
+		static string content;
 
 		void accepter();
 		void handler();
 		void responder();
-		static std::vector<string> bufferVEC;
 
 	public:
 		test(/* args */);
 		// ~test();
 		void launch();
-		static std::vector<string> get_bufferVEC();
+		// static std::vector<string> get_bufferVEC();
+		// static char	*get_bufferCHAR();
+		static string get_headers();
+		static string get_content();
 	};
 }
 
 int sendData(int sckt, const void *data, int datalen);
 void dataSet(int socket);
+void dataGet();
 
 #endif

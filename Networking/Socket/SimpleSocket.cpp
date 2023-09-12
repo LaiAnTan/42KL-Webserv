@@ -11,6 +11,9 @@ namespace HDE
 		address.sin_addr.s_addr = htonl(interface);
 		//Establish Socket 
 		this->sock = socket(domain, service, protocol);
+		const int enable = 1;
+		if (setsockopt(this->sock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+    		std::cerr << "setsockopt(SO_REUSEADDR) failed" << endl;
 		test_connection(this->sock);
 		//Establish Connection
 		// std::cout << "run1" << std::endl;
@@ -32,7 +35,7 @@ namespace HDE
 		}
 	}
 
-	struct sockaddr_in SimpleSocket::get_adddress()
+	struct sockaddr_in SimpleSocket::get_address()
 	{
 		return (this->address);
 	}
