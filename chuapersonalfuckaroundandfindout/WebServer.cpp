@@ -23,6 +23,10 @@ void	WebServer::RunServer()
 
 	/*
 	POLLING
+
+	long story short, poll loops thru all fds and if a event that we are interested in occured (usually read/write operations), poll() will then return
+
+	When poll() return, we need to figure out in which fd did the event occur
 	*/
 
 	fd_list	used_fd;
