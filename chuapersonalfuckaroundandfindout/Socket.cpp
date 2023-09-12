@@ -194,6 +194,9 @@ namespace HDE
 
 		// set socket to be non blocking
 
+		// a non blocking fd means that read() will immediately return (EAGAIN) if there is no byte to read
+		// 	- usually read() will wait until at least one byte is available (blocks)
+
 		// FIONBIO or O_NONBLOCK
 		// FIONBIO and O_NDELAY are used b4 O_NONBLOCK
 		// - inconsisten between system
