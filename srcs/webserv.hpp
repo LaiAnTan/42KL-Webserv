@@ -68,6 +68,7 @@ namespace conf
 			void	set_client_max(string text);
 			void	set_error(string text);
 			void	set_cgi(string text);
+			void	set_methods(string text);
 			void	location_name(string text, std::ifstream *file);
 
 			//getter
@@ -76,8 +77,9 @@ namespace conf
 			string	get_server_name() const;
 			string	get_client_max() const;
 			const std::vector<string>			&get_port() const;
-			const std::map<string, string>	&get_error() const;
+			const std::map<string, std::vector<string> >	&get_error() const;
 			const std::map<string, string>	&get_cgi() const;
+			const std::vector<string>	&get_methods() const;
 			const std::map<string, ServerLocation>	&get_locations() const;
 
 		private:
@@ -87,8 +89,9 @@ namespace conf
 			string								server_name;
 			string								client_max;
 
-			std::map<string, string>			error;
+			std::map<string, std::vector<string> >			error;
 			std::map<string, string>			cgi;
+			std::vector<string>					allowed_method;
 			// stuff
 
 			std::map<string, ServerLocation>	locations;
