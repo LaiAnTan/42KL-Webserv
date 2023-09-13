@@ -1,12 +1,24 @@
-#ifndef TEST_HPP
-#define TEST_HPP
+#ifndef Server_HPP
+#define Server_HPP
 
 #include "SimpleServer.hpp"
+#include <cstring>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+#include <unistd.h>
 #include <vector>
+#include <string>
+#include <cstdlib>
+#include <cstdio>
+#include <ctime>
+#include <fcntl.h>
+
+const int BUFFER_SIZE = 1024;
 
 namespace HDE
 {
-	class test : public SimpleServer
+	class Server : public SimpleServer
 	{
 	private:
 		int newsocket;
@@ -18,8 +30,8 @@ namespace HDE
 		void responder();
 
 	public:
-		test(/* args */);
-		// ~test();
+		Server(/* args */);
+		// ~Server();
 		void launch();
 		// static std::vector<string> get_bufferVEC();
 		// static char	*get_bufferCHAR();

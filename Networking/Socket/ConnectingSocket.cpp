@@ -5,7 +5,7 @@ namespace HDE
 	ConnectingSocket::ConnectingSocket(int domain, int service, int protocol, int port, u_long interface) :
 		SimpleSocket(domain, service, protocol, port, interface)
 	{
-		connect_to_network(get_sock(), get_adddress());
+		connect_to_network(get_sock(), get_address());
 		test_connection(this->connecting);
 
 	}
@@ -20,7 +20,7 @@ namespace HDE
 		this->connecting = connect(sock, (struct sockaddr *)&address, sizeof(address));
 	}
 
-	int Connecting::get_connecting()
+	int ConnectingSocket::get_connecting()
 	{
 		return (this->connecting);
 	}

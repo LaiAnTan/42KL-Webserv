@@ -1,34 +1,45 @@
 NAME = webserv
 
-CDIR = srcs
-
 ODIR = obj
 
+# ---SRCS---
+SRCS_CDIR = srcs
 SRCS_C = webserv.cpp Config.cpp ServerConfig.cpp ServerLocation.cpp
 
+# ---Network---
+SERVER_CDIR = Networking/Server
+SERVER_C = Get.cpp Post.cpp Server.cpp SimpleServer.cpp
+
+# ---Socket---
+SOCKET_CDIR = Networking/Socket
+SOCKET_C = SimpleSocket.cpp BindingSocket.cpp ListeningSocket.cpp ConnectingSocket.cpp
+
 SRCS_O := $(addprefix $(ODIR)/,$(notdir $(SRCS_C:.cpp=.o)))
+SERVER_O := $(addprefix $(ODIR)/,$(notdir $(SERVER_C:.cpp=.o)))
+SOCKET_O := $(addprefix $(ODIR)/,$(notdir $(SOCKET_C:.cpp=.o)))
 
-CFLAGS := -Wall -Wextra -Werror
+CFLAGS := -Wall -Wextra -Werror -std=c++98
 
-vpath %.cpp srcs
+vpath %.cpp $(SRCS_CDIR) $(SERVER_CDIR) $(SOCKET_CDIR)
 
 all : $(NAME)
 
-$(NAME) : $(SRCS_O)
-	g++ $(CFLAGS) $(SRCS_O) -o $@
+$(NAME) : $(SRCS_O) $(SERVER_O) $(SOCKET_O)
+	g++ $(CFLAGS) $^ -o $@
 
 $(ODIR) :
 	@mkdir -p $@
+	@mkdir -p upload
 
 $(ODIR)/%.o: %.cpp | $(ODIR)
-	@gcc -std=c++98 $(CFLAGS) $(LIBS_O) -c $< -o $@;
+	g++ $(CFLAGS) -c $< -o $@;
 
 clean :
 	rm -f $(NAME)
 
-fclean :
-	rm -f $(NAME)
+fclean : clean
 	rm -rf $(ODIR)
+	rm -rf upload 
 
 re : fclean all
 
