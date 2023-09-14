@@ -4,10 +4,10 @@
     <title>File Upload Form</title>
 </head>
 <body>
-    <h1>Upload a File</h1>
+    <h1>Upload Files</h1>
     <form method="post" enctype="multipart/form-data">
-        <label for="file">Select a file:</label>
-        <input type="file" name="file" id="file">
+        <label for="file">Select files:</label>
+        <input type="file" name="files[]" id="file" multiple>
         <br>
         <input type="submit" value="Upload">
     </form>

@@ -51,21 +51,32 @@ void dataGet(int socket)
 			boundary = headers.substr(boundaryPos + 9);
 			boundary = boundary.substr(0, boundary.find("\r"));
 
-			size_t filenamePos = content.find("filename=");
-			filename = content.substr(filenamePos + 10);
-			filename = filename.substr(0, filename.find("\""));
+			size_t nextBoundaryPos = content.find(boundary) + 1;
+			string nextContent = content.substr(nextBoundaryPos);
+			string endBoundary = boundary + "--";
 
-			cout << "Boundary: |" << boundary << "|" << endl;
-			// cout << "Filename: |" << filename << "|" << endl;
-
-			size_t dataPos = content.find("\r\n\r\n") + 4;
-			size_t boundaryPosInData = content.find("--" + boundary, dataPos);
-			std::string fileData = content.substr(dataPos, boundaryPosInData - dataPos);
-			filename = "./upload/" + filename;
-			cout << "File Data: |" << filename << "|" << endl;
-			std::ofstream outFile(filename.c_str(), std::ios::binary);
-			outFile.write(fileData.c_str(), fileData.length());
-			outFile.close();
+			while (true)
+			{
+				if (strncmp(nextContent.c_str(), ("-" + endBoundary).c_str(), endBoundary.size()) == 0)
+					break;
+				if (nextContent.find("filename=") != string::npos)
+				{
+					size_t filenamePos = nextContent.find("filename=");
+					filename = nextContent.substr(filenamePos + 10);
+					filename = filename.substr(0, filename.find("\""));
+					cout << "Filename: " << "|" + filename + "|" << endl;
+					size_t dataPos = nextContent.find("\r\n\r\n") + 4;
+					size_t boundaryPosInData = nextContent.find("--" + boundary, dataPos);
+					string fileContent = nextContent.substr(dataPos, boundaryPosInData - dataPos);
+					// cout << RED << fileContent << RESET << endl;
+					filename = "./upload/" + filename;
+					std::ofstream outFile(filename.c_str(), std::ios::binary);
+					outFile.write(fileContent.c_str(), fileContent.length());
+					outFile.close();
+				}
+				size_t nextBoundaryPos = nextContent.find("--" + boundary) + 1;
+				nextContent = nextContent.substr(nextBoundaryPos);
+			}			
 		}
 	}
 }
