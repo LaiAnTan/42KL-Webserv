@@ -9,7 +9,7 @@ int main(int ac, char **av)
 		{
 			conf::Config	configuration(file);
 			// cout << configuration << endl;
-			HDE::Server		server;
+			HDE::Server		server(&configuration);
 
 		}
 		catch (const std::exception &e)
