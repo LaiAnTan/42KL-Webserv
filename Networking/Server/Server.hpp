@@ -28,13 +28,13 @@ namespace HDE
 	{
 	private:
 		int newsocket;
-		static string headers;
-		static string content;
+		string headers;
+		string content;
+		conf::Config *config;
 
 		void accepter();
 		void handler();
 		void responder();
-		conf::Config *config;
 
 	public:
 		Server(conf::Config *config);
@@ -42,13 +42,19 @@ namespace HDE
 		void launch();
 		// static std::vector<string> get_bufferVEC();
 		// static char	*get_bufferCHAR();
-		static string get_headers();
-		static string get_content();
+		string get_headers();
+		string get_content();
+		conf::Config *get_config();
+
+		int		sendData(int sckt, const void *data, int datalen);
+		void	dataSet(int socket);
+		void	dataGet(int socket);
+		void	icon(string type, int sock);
+		void	png(string type, int sock);
+		void	css(string type, int sock);
+		void	html(string type, int sock);
+		void	py(string type, int socket);
 	};
 }
-
-int sendData(int sckt, const void *data, int datalen);
-void dataSet(int socket);
-void dataGet(int socket);
 
 #endif

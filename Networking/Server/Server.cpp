@@ -16,9 +16,6 @@ INADDR_ANY: IP address of the host. INADDR_ANY means that the server will bind
 
 namespace HDE
 {
-	string Server::headers;
-	string Server::content;
-
 	Server::Server(conf::Config *config) : SimpleServer(AF_INET, SOCK_STREAM, 0, 80, INADDR_ANY, 10), config(config)
 	{ 
 		launch();
@@ -83,51 +80,6 @@ namespace HDE
 	{
 		dataSet(this->newsocket);
 		dataGet(this->newsocket);
-
-		std::vector<conf::ServerConfig> servers = config->get_servers();
-		std::map<string, string> cgi_vec = servers[0].get_cgi();
-
-		int stdout_fd = dup(1), stdin_fd = dup(0);
-		string content;
-
-		int pipe_fd[2];
-		if (pipe(pipe_fd) == -1)
-		{
-			std::cerr << "pipe failed" << std::endl;
-			return;
-		}
-
-		int pid = fork();
-		if (pid == 0)
-		{
-			string cgi_path = cgi_vec[".py"];
-			cout << YELLOW << "child" << RESET << endl;
-
-			dup2(pipe_fd[1], 1);
-			close(pipe_fd[0]);
-
-			execve(cgi_path.c_str(), NULL, NULL);
-			std::cerr << "execve failed" << std::endl;
-			exit(1);
-		}
-		else if (pid < 0)
-			std::cerr << "fork failed" << std::endl;
-		else
-		{
-			close(pipe_fd[1]);
-
-			char buffer[BUFFER_SIZE];
-			ssize_t bytes_read;
-			while ((bytes_read = read(pipe_fd[0], buffer, BUFFER_SIZE)) > 0)
-				content.append(buffer, bytes_read);
-			close(pipe_fd[0]);
-
-			cout << RED << content << RESET << endl;
-			waitpid(pid, NULL, 0);
-		}
-		dup2(stdout_fd, 1);
-		dup2(stdin_fd, 0);
-		sendData(this->newsocket, (void *)content.c_str(), content.size());
 		close(this->newsocket);
 	}
 
@@ -155,20 +107,25 @@ namespace HDE
 	{
 		return (content);
 	}
-}
 
-int sendData(int sckt, const void *data, int datalen)
-{
-	const unsigned char *pdata = (const unsigned char *) data;
-	int numSent;
-
-	while (datalen > 0)
+	conf::Config *Server::get_config()
 	{
-		numSent = send(sckt, pdata, datalen, 0);
-		if (numSent == -1)
-			return -1;
-		pdata += numSent;
-		datalen -= numSent;
+		return (config);
 	}
-	return 0;
+
+	int Server::sendData(int sckt, const void *data, int datalen)
+	{
+		const unsigned char *pdata = (const unsigned char *) data;
+		int numSent;
+
+		while (datalen > 0)
+		{
+			numSent = send(sckt, pdata, datalen, 0);
+			if (numSent == -1)
+				return -1;
+			pdata += numSent;
+			datalen -= numSent;
+		}
+		return 0;
+	}
 }
