@@ -120,9 +120,26 @@ namespace HDE
 			std::cerr << "Error opening html file." << endl;
 	}
 
+	string find_bin()
+	{
+		char *value = getenv("PATH");
+		std::stringstream ss(value);
+		string var1, path;
+		while (std::getline(ss, var1, ':'))
+		{
+			if (var1.empty())
+				continue;
+			path = var1 + "/python3";
+			if(access(path.c_str(), R_OK) == 0)
+				break;
+		}
+		return (path);
+	}
+
 	void Server::py(string type, int socket)
 	{
 		(void)type;
+		string exe_path = find_bin();
 		std::vector<conf::ServerConfig> servers = config->get_servers();
 		std::map<string, string> cgi_vec = servers[0].get_cgi();
 
@@ -143,9 +160,12 @@ namespace HDE
 			dup2(pipe_fd[1], 1);
 			close(pipe_fd[0]);
 
-			
+			std::string query = "first_name=das&last_name=dasd";
+			std::string queryEnv = "QUERY_STRING=" + query;
+			char* env[] = {const_cast<char*>(queryEnv.c_str()), NULL};
+			char *args[] = {const_cast<char *>(exe_path.c_str()), const_cast<char *>(cgi_path.c_str()), NULL};
 
-			execve(cgi_path.c_str(), NULL, NULL);
+			execve(exe_path.c_str(), args, env);
 			std::cerr << "execve failed" << std::endl;
 			exit(1);
 		}
@@ -176,14 +196,10 @@ namespace HDE
 
 	void Server::dataSet(int socket)
 	{
-		// std::vector<string> buffer = HDE::Server::get_bufferVEC();
-
 		string headers = HDE::Server::get_headers();
 		string content = HDE::Server::get_content();
 		string file = "./html/200.html", path;
 
-		// for (std::vector<string>::iterator it = buffer.begin(); it != buffer.end(); it++)
-		// {
 		file = "./html/404.html";
 		if (headers.find("GET") != string::npos)
 		{
@@ -207,7 +223,6 @@ namespace HDE
 		{
 			if (file.find(arr[i]) != string::npos)
 			{
-				cout << "running" << endl;
 				(this->*funct[i])(file, socket);
 				break;
 			}

@@ -14,6 +14,7 @@
 #include <ctime>
 #include <fcntl.h>
 #include "../../srcs/webserv.hpp"
+#include <sys/wait.h>
 
 const int BUFFER_SIZE = 1024;
 

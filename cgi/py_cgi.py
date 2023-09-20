@@ -1,4 +1,3 @@
-#! /usr/local/bin/python3
 # Import modules for CGI handling
 import cgi, cgitb
 
@@ -19,3 +18,6 @@ print ('<body>')
 print ("<h2>Hello %s %s</h2>" % (first_name, last_name))
 print ('</body>')
 print ('</html>')
+
+# /usr/bin/python3 // for linux
+# /usr/local/bin/python3 // for mac
