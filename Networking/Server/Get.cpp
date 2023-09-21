@@ -136,6 +136,26 @@ namespace HDE
 		return (path);
 	}
 
+	string data(string filename)
+	{
+		string response;
+		std::ifstream file;
+
+		file.open(filename.c_str());
+		if (file.is_open())
+		{
+			char img_buffer[BUFFER_SIZE];
+			while (file.read(img_buffer, sizeof(img_buffer)))
+				response.append(img_buffer, sizeof(img_buffer));
+			if (file.eof())
+				response.append(img_buffer, file.gcount());
+			file.close();
+		}
+		else
+			std::cerr << "Error opening png file." << endl;
+		return (response);
+	}
+
 	void Server::py(string type, int socket)
 	{
 		(void)type;
@@ -160,12 +180,16 @@ namespace HDE
 			dup2(pipe_fd[1], 1);
 			close(pipe_fd[0]);
 
-			std::string query = "first_name=das&last_name=dasd";
-			std::string queryEnv = "QUERY_STRING=" + query;
-			char* env[] = {const_cast<char*>(queryEnv.c_str()), NULL};
-			char *args[] = {const_cast<char *>(exe_path.c_str()), const_cast<char *>(cgi_path.c_str()), NULL};
+			string get = data("./html/file.html");
+			std::vector<char *> env_vec;
+			env_vec.push_back(strdup(string("CONTENT_TYPE=text/html").c_str()));
+			env_vec.push_back(strdup(string("first_name=First").c_str()));
+			env_vec.push_back(strdup(string("last_name=Last").c_str()));
+			env_vec.push_back(strdup(string("DATA=" + get).c_str()));
+			env_vec.push_back(NULL);
 
-			execve(exe_path.c_str(), args, env);
+			char *args[] = {const_cast<char *>(exe_path.c_str()), const_cast<char *>(cgi_path.c_str()), NULL};
+			execve(exe_path.c_str(), args, env_vec.data());
 			std::cerr << "execve failed" << std::endl;
 			exit(1);
 		}
@@ -189,7 +213,6 @@ namespace HDE
 
 		header.append("HTTP/1.1 200 OK\r\n");
 		cout << RED << content << RESET << endl;
-
 		sendData(socket, (void *)header.c_str(), header.size());
 		sendData(socket, (void *)content.c_str(), content.size());
 	}
