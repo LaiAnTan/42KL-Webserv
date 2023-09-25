@@ -177,15 +177,35 @@ namespace HDE
 		if (pid == 0)
 		{
 			string cgi_path = cgi_vec[".py"];
+			string get = "DATA=" + data("./assets/google.png");
+
+			// Allocate a char array with the same size as the file contents
+			// char* pngData = new char[get.length()];
+			// std::memcpy(pngData, get.c_str(), get.length());
+			char* pngData = new char[get.length()];
+			std::memcpy(pngData, get.c_str(), get.length());
+			write(1, pngData, get.length());
+			cout << RED << get.length() << RESET << endl;
+			// cout << "char: ";
+			// cout << BLUE;
+			// for (size_t i = 0; i < get.length(); i++) {
+			// 	cout << pngData[i];
+			// }
+			// cout << RESET << endl;
+
+			// cout << GREEN << "test: " << pngData << RESET << endl;
+
 			dup2(pipe_fd[1], 1);
 			close(pipe_fd[0]);
 
-			string get = data("./html/file.html");
 			std::vector<char *> env_vec;
-			env_vec.push_back(strdup(string("CONTENT_TYPE=text/html").c_str()));
+			env_vec.push_back(strdup(string("CONTENT_TYPE=image/png").c_str()));
+			env_vec.push_back(strdup(string("CONTENT_LENGTH=" + std::to_string(get.length())).c_str()));
 			env_vec.push_back(strdup(string("first_name=First").c_str()));
 			env_vec.push_back(strdup(string("last_name=Last").c_str()));
-			env_vec.push_back(strdup(string("DATA=" + get).c_str()));
+			env_vec.push_back(strdup(string("DATA_LEN=" + std::to_string(get.length())).c_str()));
+			env_vec.push_back(pngData);
+			// env_vec.push_back(strdup(string("DATA_LEN=" + (get.length())).c_str()));
 			env_vec.push_back(NULL);
 
 			char *args[] = {const_cast<char *>(exe_path.c_str()), const_cast<char *>(cgi_path.c_str()), NULL};
