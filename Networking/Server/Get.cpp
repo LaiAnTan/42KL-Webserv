@@ -1,5 +1,7 @@
 #include "Server.hpp"
 
+#include <string>
+
 namespace HDE
 {
 	void Server::icon(string type, int sock)

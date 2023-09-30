@@ -47,14 +47,22 @@ namespace HDE
 		string get_content();
 		conf::Config *get_config();
 
+		// post
 		int		sendData(int sckt, const void *data, int datalen);
 		void	dataSet(int socket);
 		void	dataGet(int socket);
+
+		// get
 		void	icon(string type, int sock);
 		void	png(string type, int sock);
 		void	css(string type, int sock);
 		void	html(string type, int sock);
 		void	py(string type, int socket);
+
+		// delete
+		void	handleDeleteRequest();
+		void	createDeleteResponse(int socket, string content, string content_type, bool is_deleted);
+
 	};
 }
 
