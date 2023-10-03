@@ -97,7 +97,6 @@ namespace HDE
 			}
 
 		}
-		cout << YELLOW << filename << RESET << endl;
 		file.open( filename.c_str());
 		if (file.is_open())
 		{

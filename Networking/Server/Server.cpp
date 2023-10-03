@@ -72,7 +72,7 @@ namespace HDE
 
 	void Server::handler()
 	{
-		// cout << this->headers << endl;
+		cout << this->headers << endl;
 		// cout << this->content << endl;
 	}
 

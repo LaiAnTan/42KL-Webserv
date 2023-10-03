@@ -18,7 +18,7 @@ SRCS_O := $(addprefix $(ODIR)/,$(notdir $(SRCS_C:.cpp=.o)))
 SERVER_O := $(addprefix $(ODIR)/,$(notdir $(SERVER_C:.cpp=.o)))
 SOCKET_O := $(addprefix $(ODIR)/,$(notdir $(SOCKET_C:.cpp=.o)))
 
-CFLAGS := -Wall -Wextra -Werror
+CFLAGS := -Wall -Wextra -Werror -std=c++98
 
 vpath %.cpp $(SRCS_CDIR) $(SERVER_CDIR) $(SOCKET_CDIR)
 
