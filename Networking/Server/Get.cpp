@@ -188,7 +188,7 @@ namespace HDE
 			env_vec.push_back(strdup(string("CONTENT_LENGTH=" + std::to_string(get.length())).c_str()));
 			env_vec.push_back(strdup(string("first_name=First").c_str()));
 			env_vec.push_back(strdup(string("last_name=Last").c_str()));
-			env_vec.push_back(strdup(string("DATA=" + get).c_str()));
+			// env_vec.push_back(strdup(string("DATA=" + get).c_str()));
 			env_vec.push_back(NULL);
 
 			char *args[] = {const_cast<char *>(exe_path.c_str()), const_cast<char *>(cgi_path.c_str()), NULL};
@@ -232,7 +232,7 @@ namespace HDE
 			path = headers.substr(headers.find("GET ") + 4);
 			path = "." + path.substr(0, path.find(" "));
 			if (path == "./")
-				file = "./html/404.html";
+				file = "./html/index.html";
 			else if (access(path.c_str(), R_OK) == 0)
 				file = path;
 			else if (path.find(".html") != string::npos)

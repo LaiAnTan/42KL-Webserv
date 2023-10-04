@@ -29,7 +29,7 @@ $(NAME) : $(SRCS_O) $(SERVER_O) $(SOCKET_O)
 
 $(ODIR) :
 	@mkdir -p $@
-	@mkdir -p upload
+	@mkdir -p Users
 
 $(ODIR)/%.o: %.cpp | $(ODIR)
 	g++ $(CFLAGS) -c $< -o $@;
@@ -39,7 +39,7 @@ clean :
 
 fclean : clean
 	rm -rf $(ODIR)
-	rm -rf upload 
+	rm -rf Users
 
 re : fclean all
 

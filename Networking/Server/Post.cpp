@@ -71,7 +71,7 @@ namespace HDE
 						size_t boundaryPosInData = nextContent.find("--" + boundary, dataPos);
 						string fileContent = nextContent.substr(dataPos, boundaryPosInData - dataPos);
 						// cout << RED << fileContent << RESET << endl;
-						filename = "./upload/" + filename;
+						filename = "./Users/" + filename;
 						std::ofstream outFile(filename.c_str(), std::ios::binary);
 						outFile.write(fileContent.c_str(), fileContent.length());
 						outFile.close();
