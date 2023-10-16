@@ -89,9 +89,9 @@ namespace conf
 			string								server_name;
 			string								client_max;
 
-			std::map<string, std::vector<string> >			error;
-			std::map<string, string>			cgi;
-			std::vector<string>					allowed_method;
+			std::map<string, std::vector<string>>	error;
+			std::map<string, string>				cgi;
+			std::vector<string>						allowed_method;
 			// stuff
 
 			std::map<string, ServerLocation>	locations;

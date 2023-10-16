@@ -1,4 +1,5 @@
 #include "webserv.hpp"
+#include "WebSurf.hpp"
 
 int main(int ac, char **av)
 {
@@ -9,7 +10,9 @@ int main(int ac, char **av)
 		{
 			conf::Config	configuration(file);
 			// cout << configuration << endl;
-			HDE::Server		server(&configuration);
+			HDE::WebSurf		server(&configuration);
+			server.run_servers();
+			// HDE::Server		server(&configuration);
 
 		}
 		catch (const std::exception &e)

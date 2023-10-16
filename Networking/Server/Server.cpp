@@ -16,21 +16,34 @@ INADDR_ANY: IP address of the host. INADDR_ANY means that the server will bind
 
 namespace HDE
 {
-	Server::Server(conf::Config *config) : SimpleServer(AF_INET, SOCK_STREAM, 0, 80, INADDR_ANY, 10), config(config)
-	{ 
-		launch();
+	Server::Server(const conf::ServerConfig *config, int client_fd)
+	{
+		this->newsocket = client_fd;
+		this->config = config;
 	}
 
-	void Server::accepter()
+	Server::~Server()
 	{
-		struct sockaddr_in address = get_socket()->get_address();
-		int addrlen = sizeof(address);
-		this->newsocket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t *)&addrlen);
-		if (this->newsocket < 0)
-		{
-			std::cerr << "Accept failed" << endl;
-			return;
-		}
+	}
+
+	int	Server::get_socket()
+	{
+		return this->newsocket;
+	}
+
+	int Server::accepter()
+	{
+		// HUH?
+		// wrong place bro
+
+		// struct sockaddr_in address = get_socket()->get_address();
+		// int addrlen = sizeof(address);
+		// this->newsocket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t *)&addrlen);
+		// if (this->newsocket < 0)
+		// {
+		// 	std::cerr << "Accept failed" << endl;
+		// 	return;
+		// }
 
 		string request;
 		char buffer[BUFFER_SIZE];
@@ -68,6 +81,7 @@ namespace HDE
 				break;
 			}
 		}
+		return headers.length() + content.length();
 	}
 
 	void Server::handler()
@@ -80,23 +94,22 @@ namespace HDE
 	{
 		dataSet(this->newsocket);
 		dataGet(this->newsocket);
-		close(this->newsocket);
 	}
 
-	void Server::launch()
-	{
-		while (true)
-		{
-			std::cout << "===Waiting===" << std::endl;
-			accepter();
-			std::cout << "===Accepted===" << std::endl;
-			handler();
-			std::cout << "===Handled===" << std::endl;
-			responder();
-			std::cout << "===Done===" << std::endl;
+	// void Server::launch()
+	// {
+	// 	while (true)
+	// 	{
+	// 		std::cout << "===Waiting===" << std::endl;
+	// 		accepter();
+	// 		std::cout << "===Accepted===" << std::endl;
+	// 		handler();
+	// 		std::cout << "===Handled===" << std::endl;
+	// 		responder();
+	// 		std::cout << "===Done===" << std::endl;
 
-		}
-	}
+	// 	}
+	// }
 
 	string Server::get_headers()
 	{
@@ -108,7 +121,7 @@ namespace HDE
 		return (content);
 	}
 
-	conf::Config *Server::get_config()
+	const conf::ServerConfig *Server::get_config()
 	{
 		return (config);
 	}

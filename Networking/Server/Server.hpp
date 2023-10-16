@@ -20,32 +20,27 @@ const int BUFFER_SIZE = 1024;
 
 namespace conf
 {
-	class Config;
+	class ServerConfig;
 }
 
 namespace HDE
 {
-	class Server : public SimpleServer
+	class Server
 	{
 	private:
 		int newsocket;
+
 		string headers;
 		string content;
-		conf::Config *config;
+		const conf::ServerConfig *config;
 
-		void accepter();
-		void handler();
-		void responder();
+		// kenapalah mereka di public
 
-	public:
-		Server(conf::Config *config);
-		// ~Server();
-		void launch();
+		// tf is launch doing here?
+		// void launch();
+
 		// static std::vector<string> get_bufferVEC();
 		// static char	*get_bufferCHAR();
-		string get_headers();
-		string get_content();
-		conf::Config *get_config();
 
 		// post
 		int		sendData(int sckt, const void *data, int datalen);
@@ -53,6 +48,7 @@ namespace HDE
 		void	dataGet(int socket);
 
 		// get
+		// ...wtf
 		void	icon(string type, int sock);
 		void	png(string type, int sock);
 		void	css(string type, int sock);
@@ -63,6 +59,18 @@ namespace HDE
 		void	handleDeleteRequest();
 		void	createDeleteResponse(int socket, string content, string content_type, bool is_deleted);
 
+	public:
+		Server(const conf::ServerConfig *config, int client_fd);
+		~Server();
+
+		int accepter();
+		void handler();
+		void responder();
+
+		string						get_headers();
+		string						get_content();
+		const conf::ServerConfig	*get_config();
+		int							get_socket();
 	};
 }
 

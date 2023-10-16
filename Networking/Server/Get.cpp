@@ -2,12 +2,16 @@
 
 #include <string>
 
+// WHERE ARE THE 'Connection: Keep-Alive'
+// we will talk about the above when I go to 42 the next time
+
 namespace HDE
 {
 	void Server::icon(string type, int sock)
 	{
 		string response;
 		response.append("HTTP/1.1 200 OK\r\n");
+		response.append("Connection: close\r\n");
 		response.append("Content-Type: image/x-icon\r\n\r\n");
 		std::ifstream file;
 
@@ -32,6 +36,7 @@ namespace HDE
 	{
 		string response;
 		response.append("HTTP/1.1 200 OK\r\n");
+		response.append("Connection: close\r\n");
 		response.append("Content-Type: image/png\r\n\r\n");
 		std::ifstream file;
 
@@ -56,6 +61,7 @@ namespace HDE
 	{
 		string response;
 		response.append("HTTP/1.1 200 OK\r\n");
+		response.append("Connection: close\r\n");
 		response.append("Content-Type: text/css\r\n\r\n");
 		std::ifstream file;
 
@@ -84,6 +90,7 @@ namespace HDE
 
 		filename = type;
 		response.append("HTTP/1.1 200 OK\r\n");
+		response.append("Connection: close\r\n");
 		response.append("Content-Type: text/html\r\n\r\n");
 		string code[] = {"400.html", "404.html", "405.html", "413.html", "500.html", "501.html", "505.html"};
 		string msg[] = {"Bad Request", "Not Found", "Method Not Allowed", "Payload Too Large", "Internal Server Error", "Not Implemented", "HTTP Version Not Supported"};
@@ -160,9 +167,8 @@ namespace HDE
 	void Server::py(string type, int socket)
 	{
 		(void)type;
-		string exe_path = find_bin();
-		std::vector<conf::ServerConfig> servers = config->get_servers();
-		std::map<string, string> cgi_vec = servers[0].get_cgi();
+		string exe_path = find_bin();	
+		std::map<string, string> cgi_vec = config->get_cgi();
 
 		int stdout_fd = dup(1), stdin_fd = dup(0);
 		string content;
@@ -215,6 +221,7 @@ namespace HDE
 		string header;
 
 		header.append("HTTP/1.1 200 OK\r\n");
+		header.append("Connection: close\r\n");
 		cout << RED << content << RESET << endl;
 		sendData(socket, (void *)header.c_str(), header.size());
 		sendData(socket, (void *)content.c_str(), content.size());
