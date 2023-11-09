@@ -19,7 +19,7 @@ SERVER_O := $(addprefix $(ODIR)/,$(notdir $(SERVER_C:.cpp=.o)))
 SOCKET_O := $(addprefix $(ODIR)/,$(notdir $(SOCKET_C:.cpp=.o)))
 
 # imagine using CFLAGS
-CFLAGS := -Wall -Wextra -Werror
+CFLAGS := -Wall -Wextra -Werror -std=c++98
 
 vpath %.cpp $(SRCS_CDIR) $(SERVER_CDIR) $(SOCKET_CDIR)
 
@@ -40,7 +40,7 @@ clean :
 
 fclean : clean
 	rm -rf $(ODIR)
-	rm -rf Users
+	rm -rf root
 
 re : fclean all
 

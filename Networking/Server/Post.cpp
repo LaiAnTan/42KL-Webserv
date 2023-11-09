@@ -15,7 +15,10 @@ namespace HDE
 		pw_loc = header.find("&password=");
 
 		if (un_loc == string::npos || pw_loc == string::npos) // if errror return empty pair
-			details.first, details.second = "";
+		{
+			details.first = "";
+			details.second = "";
+		}
 		else
 		{
 			details.first = header.substr(un_loc + 9, pw_loc - (un_loc + 9));
@@ -26,6 +29,7 @@ namespace HDE
 
 	void Server::dataGet(int socket)
 	{
+		(void) socket;
 		string	root; // root directory
 		string	headers = get_headers();
 		string	content = get_content();

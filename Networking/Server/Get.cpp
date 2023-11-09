@@ -191,7 +191,7 @@ namespace HDE
 			string get = data("./html/file.html");
 			std::vector<char *> env_vec;
 			env_vec.push_back(strdup(string("CONTENT_TYPE=text/html").c_str()));
-			env_vec.push_back(strdup(string("CONTENT_LENGTH=" + std::to_string(get.length())).c_str()));
+			env_vec.push_back(strdup(string("CONTENT_LENGTH=" + get.length()).c_str()));
 			env_vec.push_back(strdup(string("first_name=First").c_str()));
 			env_vec.push_back(strdup(string("last_name=Last").c_str()));
 			// env_vec.push_back(strdup(string("DATA=" + get).c_str()));

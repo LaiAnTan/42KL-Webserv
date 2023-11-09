@@ -32,7 +32,7 @@ namespace HDE
 		if (client_fd < 0)
 		{
 			std::cerr << "Accept failed" << endl;
-			return nullptr;
+			return NULL;
 		}
 
 		// note to self, handle leaky leaky later
