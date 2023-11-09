@@ -94,6 +94,7 @@ namespace HDE
 	{
 		dataSet(this->newsocket);
 		dataGet(this->newsocket);
+		handleDeleteRequest();
 	}
 
 	// void Server::launch()

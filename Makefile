@@ -4,11 +4,11 @@ ODIR = obj
 
 # ---SRCS---
 SRCS_CDIR = srcs
-SRCS_C = webserv.cpp Config.cpp ServerConfig.cpp ServerLocation.cpp WebSurf.cpp
+SRCS_C = webserv.cpp Utils.cpp Config.cpp ServerConfig.cpp ServerLocation.cpp WebSurf.cpp
 
 # ---Network---
 SERVER_CDIR = Networking/Server
-SERVER_C = Get.cpp Post.cpp Server.cpp SimpleServer.cpp ServerListener.cpp
+SERVER_C = Delete.cpp Get.cpp Post.cpp Server.cpp SimpleServer.cpp ServerListener.cpp
 
 # ---Socket---
 SOCKET_CDIR = Networking/Socket

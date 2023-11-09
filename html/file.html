@@ -2,7 +2,35 @@
 <html>
 <head>
     <title>File Upload Form</title>
+
+    <!-- Importing the jQuery -->
+    <script src= 
+"https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"> 
+      </script>
+
 </head>
+
+<script> 
+	var pathname = window.location.href;
+
+	let path_split = pathname.split('?');
+	const slash = '/';
+	const parameters = path_split[1];
+	const username = parameters.split('&')[0].split('=')[1]
+	
+	function makeDELETErequest() { 
+		let delete_url = slash.concat(username);
+
+        $.ajax({ 
+            url: delete_url, 
+            type: 'DELETE', 
+            success: function (result) { 
+                // Do something with the result 
+            } 
+        }); 
+    } 
+</script> 
+
 <body>
     <h1>Upload Files</h1>
     <form method="post" enctype="multipart/form-data">
@@ -11,5 +39,9 @@
         <br>
         <input type="submit" value="Upload">
     </form>
+
+	<button onclick="makeDELETErequest()">
+		Delete
+	</button>
 </body>
 </html>
