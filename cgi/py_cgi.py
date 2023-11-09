@@ -1,6 +1,4 @@
 # Import modules for CGI handling
-import cgi
-import cgitb
 import os
 
 # Create instance of FieldStorage

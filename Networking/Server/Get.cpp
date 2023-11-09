@@ -222,7 +222,7 @@ namespace HDE
 
 		header.append("HTTP/1.1 200 OK\r\n");
 		header.append("Connection: close\r\n");
-		// cout << RED << content << RESET << endl;
+		cout << RED << content << RESET << endl;
 		sendData(socket, (void *)header.c_str(), header.size());
 		sendData(socket, (void *)content.c_str(), content.size());
 	}
@@ -231,7 +231,7 @@ namespace HDE
 	{
 		string headers = HDE::Server::get_headers();
 		string content = HDE::Server::get_content();
-		string file = "./html/200.html", path;
+		string file = "./html/200.html", path, return_value;
 
 		file = "./html/404.html";
 		if (headers.find("GET") != string::npos)
@@ -252,18 +252,28 @@ namespace HDE
 					{
 						if (strcmp("return", rules_it->first.c_str()) == 0)
 						{
-							cout << RED << rules_it->first << RESET << " ";
+							// cout << RED << rules_it->first << RESET << " ";
 							std::vector<string>::const_iterator return_it = rules_it->second.begin();
 							std::vector<string>::const_iterator return_end = rules_it->second.end();
 							for (; return_it != return_end; return_it++)
 							{
-								cout << RED << *return_it << RESET << endl;
+								return_value = *return_it;
+								cout << YELLOW << return_value << RESET << endl;
 							}
 						}
 					}
 					break;
 				}
 			}
+
+			if (return_value.empty() == false)
+			{
+				string response;
+				response.append("HTTP/1.1 302 Found\r\n");
+				response.append("Location:" + return_value + "\r\n\r\n");
+				sendData(socket, (void *)response.c_str(), response.size());
+			}
+			return_value.clear();
 			path = "." + path;
 			if (path == "./")
 				file = "./html/index.html";
