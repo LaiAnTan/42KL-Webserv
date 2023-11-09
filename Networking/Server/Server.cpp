@@ -94,6 +94,7 @@ namespace HDE
 	{
 		dataSet(this->newsocket);
 		dataGet(this->newsocket);
+		handleDeleteRequest(this->newsocket);
 	}
 
 	// void Server::launch()
@@ -107,7 +108,6 @@ namespace HDE
 	// 		std::cout << "===Handled===" << std::endl;
 	// 		responder();
 	// 		std::cout << "===Done===" << std::endl;
-
 	// 	}
 	// }
 

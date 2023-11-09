@@ -8,7 +8,7 @@ SRCS_C = webserv.cpp Config.cpp ServerConfig.cpp ServerLocation.cpp WebSurf.cpp
 
 # ---Network---
 SERVER_CDIR = Networking/Server
-SERVER_C = Get.cpp Post.cpp Server.cpp SimpleServer.cpp ServerListener.cpp
+SERVER_C = Get.cpp Post.cpp Server.cpp SimpleServer.cpp ServerListener.cpp Delete.cpp Utils.cpp
 
 # ---Socket---
 SOCKET_CDIR = Networking/Socket
@@ -30,7 +30,7 @@ $(NAME) : $(SRCS_O) $(SERVER_O) $(SOCKET_O)
 
 $(ODIR) :
 	@mkdir -p $@
-	@mkdir -p Users
+	@mkdir -p root
 
 $(ODIR)/%.o: %.cpp | $(ODIR)
 	g++ $(CFLAGS) -c $< -o $@;
