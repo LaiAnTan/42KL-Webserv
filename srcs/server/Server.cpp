@@ -1,5 +1,5 @@
 #include "Server.hpp"
-
+#include <sys/socket.h>
 /*
 AF_INET: IPv4
 SOCK_STREAM: TCP. Is a connection-based protocol. The connection is established 
@@ -13,6 +13,10 @@ INADDR_ANY: IP address of the host. INADDR_ANY means that the server will bind
 	WiFi connection), it will accept packets destined to either one of them.
 10: Maximum number of pending connections in the socket's listen queue
 */
+
+using std::string;
+using std::endl;
+using std::cout;
 
 namespace HDE
 {
@@ -96,20 +100,6 @@ namespace HDE
 		dataGet(this->newsocket);
 		handleDeleteRequest(this->newsocket);
 	}
-
-	// void Server::launch()
-	// {
-	// 	while (true)
-	// 	{
-	// 		std::cout << "===Waiting===" << std::endl;
-	// 		accepter();
-	// 		std::cout << "===Accepted===" << std::endl;
-	// 		handler();
-	// 		std::cout << "===Handled===" << std::endl;
-	// 		responder();
-	// 		std::cout << "===Done===" << std::endl;
-	// 	}
-	// }
 
 	string Server::get_headers()
 	{

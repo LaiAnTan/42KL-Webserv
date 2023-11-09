@@ -4,9 +4,8 @@
 #ifndef ServerListen_HPP
 #define ServerListen_HPP
 
-#include "SimpleServer.hpp"
 #include "Server.hpp"
-#include "../../srcs/webserv.hpp"
+#include "socket/ListeningSocket.hpp"
 
 namespace HDE
 {

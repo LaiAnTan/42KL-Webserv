@@ -1,7 +1,6 @@
 #ifndef Server_HPP
 #define Server_HPP
 
-#include "SimpleServer.hpp"
 #include <cstring>
 #include <fstream>
 #include <sstream>
@@ -13,7 +12,6 @@
 #include <cstdio>
 #include <ctime>
 #include <fcntl.h>
-#include "../../srcs/webserv.hpp"
 #include <sys/wait.h>
 
 const int BUFFER_SIZE = 1024;

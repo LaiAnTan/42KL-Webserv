@@ -7,6 +7,4 @@
 
 #include "ListeningSocket.hpp"
 
-#include "ConnectingSocket.hpp"
-
 #endif
