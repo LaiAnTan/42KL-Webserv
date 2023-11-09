@@ -222,7 +222,7 @@ namespace HDE
 
 		header.append("HTTP/1.1 200 OK\r\n");
 		header.append("Connection: close\r\n");
-		cout << RED << content << RESET << endl;
+		// cout << RED << content << RESET << endl;
 		sendData(socket, (void *)header.c_str(), header.size());
 		sendData(socket, (void *)content.c_str(), content.size());
 	}
@@ -237,7 +237,34 @@ namespace HDE
 		if (headers.find("GET") != string::npos)
 		{
 			path = headers.substr(headers.find("GET ") + 4);
-			path = "." + path.substr(0, path.find(" "));
+			path = path.substr(0, path.find(" "));
+			cout << YELLOW << path << RESET << endl;
+			std::map<string, conf::ServerLocation>::const_iterator it = config->get_locations().begin();
+			std::map<string, conf::ServerLocation>::const_iterator end = config->get_locations().end();
+
+			for (; it != end; it++)
+			{	
+				if (strcmp(path.c_str(), it->first.c_str()) == 0)
+				{
+					conf::ServerLocation::rules_map::const_iterator rules_it = it->second.get_rules().begin();
+					conf::ServerLocation::rules_map::const_iterator rules_end = it->second.get_rules().end();
+					for (; rules_it != rules_end; rules_it++)
+					{
+						if (strcmp("return", rules_it->first.c_str()) == 0)
+						{
+							cout << RED << rules_it->first << RESET << " ";
+							std::vector<string>::const_iterator return_it = rules_it->second.begin();
+							std::vector<string>::const_iterator return_end = rules_it->second.end();
+							for (; return_it != return_end; return_it++)
+							{
+								cout << RED << *return_it << RESET << endl;
+							}
+						}
+					}
+					break;
+				}
+			}
+			path = "." + path;
 			if (path == "./")
 				file = "./html/index.html";
 			else if (access(path.c_str(), R_OK) == 0)
