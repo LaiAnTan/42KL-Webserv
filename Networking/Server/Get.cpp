@@ -16,7 +16,6 @@ namespace HDE
 			{".mp4", "video/mp4"},
 			{".ico", "image/vnd.microsoft.icon"}
 		};
-
 		if (mime_type.find(extension) != mime_type.end())
 			return mime_type[extension];
 		return "";
@@ -28,8 +27,9 @@ namespace HDE
 		string extension;
 		std::ifstream file;
 
-		extension = filename.substr(filename.find('.') + 1);
-		cout << extension << endl;
+		extension = filename.substr(filename.find(".", 1));
+		cout << filename.find('.', 1) << endl;
+		cout << "Extension " << extension << endl;
 
 		response.append("HTTP/1.1 200 OK\r\n");
 		response.append("Connection: close\r\n");
@@ -134,7 +134,6 @@ namespace HDE
 	}
 
 	// CGI METHODS
-
 	string find_bin()
 	{
 		char *value = getenv("PATH");
