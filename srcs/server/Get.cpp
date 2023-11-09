@@ -1,9 +1,14 @@
 #include "Server.hpp"
+#include "../config/Config.hpp"
 
 #include <string>
+#include <map>
 
 // WHERE ARE THE 'Connection: Keep-Alive'
 // we will talk about the above when I go to 42 the next time
+
+using std::cout;
+using std::endl;
 
 namespace HDE
 {

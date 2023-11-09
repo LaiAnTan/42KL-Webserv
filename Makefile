@@ -12,11 +12,11 @@ CONFIG_C = Config.cpp ServerConfig.cpp ServerLocation.cpp
 
 # --util--
 UTIL_CDIR = srcs/util
-UTIL_C = Utils.c
+UTIL_C = Utils.cpp
 
 # ---Network---
 SERVER_CDIR = srcs/server
-SERVER_C = Delete.cpp Get.cpp Post.cpp Server.cpp SimpleServer.cpp ServerListener.cpp 
+SERVER_C = Delete.cpp Get.cpp Post.cpp Server.cpp ServerListener.cpp 
 
 # ---Socket---
 SOCKET_CDIR = srcs/server/socket
@@ -31,7 +31,7 @@ SOCKET_O := $(addprefix $(ODIR)/,$(notdir $(SOCKET_C:.cpp=.o)))
 # imagine using CFLAGS
 CFLAGS := -Wall -Wextra -Werror -std=c++98
 
-vpath %.cpp $(SRCS_CDIR) $(CONFIG_CDIR) $(UTIL_CDIR) $(SERVER_CDIR) $(SOCKET_CDIR)
+vpath %.cpp $(SRCS) $(SRCS_CDIR) $(CONFIG_CDIR) $(UTIL_CDIR) $(SERVER_CDIR) $(SOCKET_CDIR)
 
 all : $(NAME)
 

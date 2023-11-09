@@ -14,7 +14,7 @@
 #include <vector>
 #include <fstream>
 #include <exception>
-#include "../Networking/Server/Server.hpp"
+#include "../server/Server.hpp"
 
 # define RESET		"\033[0m"
 # define BLACK		"\033[1;30m"

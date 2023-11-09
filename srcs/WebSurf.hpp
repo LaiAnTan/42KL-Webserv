@@ -3,7 +3,6 @@
 #ifndef WebSurf_HPP
 #define WebSurf_HPP
 
-#include "webserv.hpp"
 #include <poll.h>
 
 #include <map>
@@ -11,8 +10,9 @@
 #include <algorithm>
 #include <iostream>
 
-#include "../Networking/Server/ServerListener.hpp"
-#include "../Networking/Server/Server.hpp"
+#include "server/ServerListener.hpp"
+#include "server/Server.hpp"
+#include "config/Config.hpp"
 
 namespace HDE
 {

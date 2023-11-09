@@ -1,6 +1,9 @@
 #include "Server.hpp"
 #include <sys/stat.h>
 
+using std::cout;
+using std::endl;
+
 namespace HDE
 {
 	// extracts login details from header, returns a pair
