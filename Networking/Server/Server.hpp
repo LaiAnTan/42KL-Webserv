@@ -49,6 +49,10 @@ namespace HDE
 
 			// get
 			// ...wtf
+			void	extractAndSend(string filename, int socket);
+			void	sendError(string type, int socket);
+			string	get_type(string extension);
+
 			void	icon(string type, int sock);
 			void	png(string type, int sock);
 			void	css(string type, int sock);
