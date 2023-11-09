@@ -20,6 +20,7 @@ namespace HDE
 
 	// i dont know why i called this doorbells
 	// oh well
+	// doorbells = identifier for a possible client
 	void	WebSurf::init_doorbells()
 	{
 		const std::vector<conf::ServerConfig> &config_server = ng_config->get_servers();

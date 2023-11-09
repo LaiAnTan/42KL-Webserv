@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "Utils.hpp"
 
 using std::cout;
 using std::endl;
@@ -9,6 +10,16 @@ namespace HDE
 
 	void	Server::handleDeleteRequest()
 	{
+		std::string 		filename;
+		std::string			header = get_headers();
+		std::vector<string>	header_tokens = util::split(header, string(" "));
+
+		if (header_tokens.empty() == true || header_tokens[0] != "DELETE")
+			return ;
+		
+		filename = header_tokens[1];
+
+		// i nead the username and password here!!!!!!
 
 	}
 
@@ -35,11 +46,7 @@ namespace HDE
 				response.append("HTTP/1.1 200 OK\r\n");
 				
 				// append content type & content here
-			}
-		}
 
-		if (sendData(socket, (void *) response.c_str(), response.size()) != 0)
-			cerr << "Error sending response" << endl;
 		return ;
 	}
 }
