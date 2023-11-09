@@ -57,7 +57,7 @@ namespace HDE
 		// int res = sendData(sock, (void *)response.c_str(), response.size());
 	}
 
-	// return null if fail
+	// depreciated function
 	int	create_user_dir(string root, string username)
 	{
 		int			child_pid;
@@ -82,19 +82,8 @@ namespace HDE
 		string	content = get_content();
 		string	boundary, filename, path;
 		string	root; // root directory
-		string	username = extract_login_details(headers, socket).first; // warning might leak
 
-		root = "Users";
-		
-		// handle potential error
-		if (username.empty() == true)
-		{
-			cout << "Username not found!" << endl;
-			return ;
-		}
-
-		// create directory if needed
-		create_user_dir(root, username);
+		root = "root";
 
 		if (headers.find("POST") != string::npos)
 		{
@@ -128,7 +117,7 @@ namespace HDE
 					string fileContent = nextContent.substr(dataPos, boundaryPosInData - dataPos);
 
 					// write into file
-					filename = "./Users/" + username + '/' + filename;
+					filename = "./" + root + "/" + filename;
 					std::ofstream outFile(filename.c_str(), std::ios::binary);
 					outFile.write(fileContent.c_str(), fileContent.length());
 					outFile.close();
