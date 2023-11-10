@@ -91,6 +91,6 @@ namespace HDE
 
 	void	Server::handlePostResponse(string filename, int socket)
 	{
-		Server::handleGetResponse(filename, socket);
+		Server::handleGetResponse(filename, socket, "");
 	}
 }
