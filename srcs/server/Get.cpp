@@ -31,6 +31,7 @@ namespace HDE
 		string extension;
 		std::ifstream file;
 
+		// for redirects
 		if (return_value.empty() == false)
 		{
 			string response;
@@ -39,6 +40,7 @@ namespace HDE
 			sendData(socket, (void *)response.c_str(), response.size());
 		}
 
+		// for send file contents
 		extension = filename.substr(filename.find(".", 1));
 
 		response.append("HTTP/1.1 200 OK\r\n");
