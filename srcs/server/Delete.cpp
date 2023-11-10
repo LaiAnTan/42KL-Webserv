@@ -25,13 +25,13 @@ namespace HDE
 
 		cout << header << endl;
 
-		if (header_tokens.empty() == true || header_tokens[0] != "DELETE")
+		if (header_tokens.empty() == true)
 			return ;
 
 		// i hate hardcoding ???
 		root = "root";
-
 		path = root + header_tokens[1];
+
 		if (file_exists(path))
 		{
 			cout << "File exists" << endl;
@@ -40,13 +40,13 @@ namespace HDE
 		}
 
 		if (!file_exists(path))
-			createDeleteResponse(socket, true);
+			handleDeleteResponse(socket, true);
 		else
-			createDeleteResponse(socket, false);
+			handleDeleteResponse(socket, false);
 		return ;
 	}
 
-	void	Server::createDeleteResponse(int socket, bool is_deleted)
+	void	Server::handleDeleteResponse(int socket, bool is_deleted)
 	{
 		string	response; // response string to be sent to client
 

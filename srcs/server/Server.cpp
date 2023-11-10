@@ -96,9 +96,14 @@ namespace HDE
 
 	void Server::responder()
 	{
-		dataSet(this->newsocket);
-		dataGet(this->newsocket);
-		handleDeleteRequest(this->newsocket);
+		string	header = get_headers();
+
+		if (header.find("GET") != string::npos)
+			handleGetRequest(this->newsocket);
+		else if (header.find("POST") != string::npos)
+			handlePostRequest(this->newsocket);
+		else if (header.find("DELETE") != string::npos)
+			handleDeleteRequest(this->newsocket);
 	}
 
 	string Server::get_headers()

@@ -28,40 +28,34 @@ namespace HDE
 	class Server
 	{
 		private:
-			int newsocket;
 
-			string headers;
-			string content;
-			const conf::ServerConfig *config;
+			int							newsocket;
+			string						headers;
+			string						content;
+			const conf::ServerConfig	*config;
 
-			// kenapalah mereka di public
-
-			// tf is launch doing here?
-			// void launch();
-
-			// static std::vector<string> get_bufferVEC();
-			// static char	*get_bufferCHAR();
+			// function to send data (response) to client
+			int		sendData(int sckt, const void *data, int datalen);
 
 			// post
-			int		sendData(int sckt, const void *data, int datalen);
-			void	dataSet(int socket);
-			void	dataGet(int socket);
+			void	handlePostRequest(int socket);
+			void	handlePostResponse(int socket, string filename);
 
 			// get
-			// ...wtf
-			void	extractAndSend(string filename, int socket);
-			void	sendError(string type, int socket);
-			string	get_type(string extension);
-
-			void	icon(string type, int sock);
-			void	png(string type, int sock);
-			void	css(string type, int sock);
-			void	html(string type, int sock);
-			void	py(string type, int socket);
+			void	handleGetRequest(int socket);
+			void	handleGetResponse(string filename, int socket);
 
 			// delete
 			void	handleDeleteRequest(int socket);
-			void	createDeleteResponse(int socket, bool is_deleted);
+			void	handleDeleteResponse(int socket, bool is_deleted);
+
+			// helper
+			void	sendError(string type, int socket);
+			string	get_type(string extension);
+
+			// for cgi
+			void	py(string type, int socket);
+
 
 		public:
 			Server(const conf::ServerConfig *config, int client_fd);

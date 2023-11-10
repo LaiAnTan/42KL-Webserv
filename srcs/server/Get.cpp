@@ -25,7 +25,7 @@ namespace HDE
 		return "";
 	}
 
-	void Server::extractAndSend(string filename, int socket)
+	void Server::handleGetResponse(string filename, int socket)
 	{
 		string response;
 		string extension;
@@ -103,28 +103,26 @@ namespace HDE
 			std::cerr << "Error opening html file." << endl;
 	}
 
-	void Server::dataSet(int socket)
+	void Server::handleGetRequest(int socket)
 	{
 		string headers = HDE::Server::get_headers();
 		string content = HDE::Server::get_content();
-		string file = "./html/200.html", path;
+		string file, path;
 
 		file = "./html/404.html";
-		if (headers.find("GET") != string::npos)
-		{
-			path = headers.substr(headers.find("GET ") + 4);
-			path = "." + path.substr(0, path.find(" "));
-			if (path == "./")
-				file = "./html/index.html";
-			else if (access(path.c_str(), R_OK) == 0)
-				file = path;
-			else if (path.find(".html") != string::npos)
-				file = path;
-			else if (path.find("error.css") != string::npos)
-				file = "./html/component/error.css";
-			else if (path.find(".py") != string::npos)
-				file = path;
-		}
+		path = headers.substr(headers.find("GET ") + 4);
+		path = "." + path.substr(0, path.find(" "));
+
+		if (path == "./")
+			file = "./html/index.html";
+		else if (access(path.c_str(), R_OK) == 0)
+			file = path;
+		else if (path.find(".html") != string::npos)
+			file = path;
+		else if (path.find("error.css") != string::npos)
+			file = "./html/component/error.css";
+		else if (path.find(".py") != string::npos)
+			file = path;
 
 		cout << GREEN << "File: " << file << "	Path: " << path << RESET<< endl;
 		if (file.find(".py") != string::npos)
@@ -132,7 +130,7 @@ namespace HDE
 			this->py(".py", socket);
 			return;
 		}
-		this->extractAndSend(file, socket);
+		this->handleGetResponse(file, socket);
 	}
 
 	// CGI METHODS

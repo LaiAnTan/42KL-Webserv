@@ -7,9 +7,8 @@ using std::endl;
 namespace HDE
 {
 	// extracts login details from header, returns a pair
-	std::pair<string, string>	extract_login_details(string header, int socket)
+	std::pair<string, string>	extract_login_details(string header)
 	{
-		(void) socket;
 		size_t un_loc;
 		size_t pw_loc;
 		std::pair<string, string>	details;
@@ -30,9 +29,8 @@ namespace HDE
 		return (details);
 	}
 
-	void Server::dataGet(int socket)
+	void Server::handlePostRequest(int socket)
 	{
-		(void) socket;
 		string	root; // root directory
 		string	headers = get_headers();
 		string	content = get_content();
@@ -40,10 +38,6 @@ namespace HDE
 		size_t boundaryPos = headers.find("boundary=");
 
 		root = "root";
-
-		if (headers.find("POST") == string::npos)
-			return ;
-
 		path = headers.substr(headers.find("POST ") + 5);
 		path = path.substr(0, path.find(" "));
 		boundary = headers.substr(boundaryPos + 9);
@@ -80,6 +74,14 @@ namespace HDE
 			size_t nextBoundaryPos = nextContent.find("--" + boundary) + 1;
 			nextContent = nextContent.substr(nextBoundaryPos);
 		}
+		handlePostResponse(socket, filename);
 		return ;
+	}
+
+	void	Server::handlePostResponse(int socket, string filename)
+	{
+		string	data;
+
+		sendData(socket, (void *) data.c_str(), data.length());
 	}
 }
