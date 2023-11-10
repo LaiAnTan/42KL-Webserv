@@ -1,4 +1,4 @@
-# 42KL-MiniRT
+# 42KL-Webserv
 A C++ Webserver.
 
 ## Features
