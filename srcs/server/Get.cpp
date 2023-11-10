@@ -107,11 +107,48 @@ namespace HDE
 	{
 		string headers = HDE::Server::get_headers();
 		string content = HDE::Server::get_content();
-		string file, path;
+		string file = "./html/200.html", path, return_value;
 
 		file = "./html/404.html";
 		path = headers.substr(headers.find("GET ") + 4);
-		path = "." + path.substr(0, path.find(" "));
+		path = path.substr(0, path.find(" "));
+		cout << YELLOW << path << RESET << endl;
+		std::map<string, conf::ServerLocation>::const_iterator it = config->get_locations().begin();
+		std::map<string, conf::ServerLocation>::const_iterator end = config->get_locations().end();
+
+		for (; it != end; it++)
+		{	
+			if (strcmp(path.c_str(), it->first.c_str()) == 0)
+			{
+				conf::ServerLocation::rules_map::const_iterator rules_it = it->second.get_rules().begin();
+				conf::ServerLocation::rules_map::const_iterator rules_end = it->second.get_rules().end();
+				for (; rules_it != rules_end; rules_it++)
+				{
+					if (strcmp("return", rules_it->first.c_str()) == 0)
+					{
+						// cout << RED << rules_it->first << RESET << " ";
+						std::vector<string>::const_iterator return_it = rules_it->second.begin();
+						std::vector<string>::const_iterator return_end = rules_it->second.end();
+						for (; return_it != return_end; return_it++)
+						{
+							return_value = *return_it;
+							cout << YELLOW << return_value << RESET << endl;
+						}
+					}
+				}
+				break;
+			}
+		}
+
+		if (return_value.empty() == false)
+		{
+			string response;
+			response.append("HTTP/1.1 302 Found\r\n");
+			response.append("Location:" + return_value + "\r\n\r\n");
+			sendData(socket, (void *)response.c_str(), response.size());
+		}
+		return_value.clear();
+		path = "." + path;
 
 		if (path == "./")
 			file = "./html/index.html";
@@ -198,7 +235,7 @@ namespace HDE
 			string get = data("./html/file.html");
 			std::vector<char *> env_vec;
 			env_vec.push_back(strdup(string("CONTENT_TYPE=text/html").c_str()));
-			env_vec.push_back(strdup(string("CONTENT_LENGTH=" + get.length()).c_str()));
+			env_vec.push_back(strdup(("CONTENT_LENGTH=" + std::to_string(get.length())).c_str()));
 			env_vec.push_back(strdup(string("first_name=First").c_str()));
 			env_vec.push_back(strdup(string("last_name=Last").c_str()));
 			// env_vec.push_back(strdup(string("DATA=" + get).c_str()));

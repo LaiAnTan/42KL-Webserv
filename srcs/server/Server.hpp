@@ -39,7 +39,7 @@ namespace HDE
 
 			// post
 			void	handlePostRequest(int socket);
-			void	handlePostResponse(int socket);
+			void	handlePostResponse(string filename, int socket);
 
 			// get
 			void	handleGetRequest(int socket);

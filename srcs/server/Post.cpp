@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "../config/Config.hpp"
 #include <sys/stat.h>
 
 using std::cout;
@@ -35,7 +36,8 @@ namespace HDE
 		string	headers = get_headers();
 		string	content = get_content();
 		string	boundary, filename, path;
-		size_t boundaryPos = headers.find("boundary=");
+		size_t	boundaryPos = headers.find("boundary=");
+		string	respones_filename = "./html/200.html";
 
 		root = "root";
 		path = headers.substr(headers.find("POST ") + 5);
@@ -60,8 +62,17 @@ namespace HDE
 				cout << "Filename: " << "|" + filename + "|" << endl;
 
 				// extract content
+				cout << RED << nextContent << RESET << endl;
 				size_t dataPos = nextContent.find("\r\n\r\n") + 4;
 				size_t boundaryPosInData = nextContent.find("--" + boundary, dataPos);
+
+				// check if boundaryPosInData is npos
+				if (boundaryPosInData == string::npos)
+				{
+					cout << RED << "boundaryPosInData is npos" << RESET << endl;
+					respones_filename = "./html/400.html";
+					break;
+				}
 				string fileContent = nextContent.substr(dataPos, boundaryPosInData - dataPos);
 
 				// write into file
@@ -74,15 +85,12 @@ namespace HDE
 			size_t nextBoundaryPos = nextContent.find("--" + boundary) + 1;
 			nextContent = nextContent.substr(nextBoundaryPos);
 		}
-		handlePostResponse(socket);
+		handlePostResponse(respones_filename, socket);
 		return ;
 	}
 
-	void	Server::handlePostResponse(int socket)
+	void	Server::handlePostResponse(string filename, int socket)
 	{
-		string	response;
-		
-		response.append("HTTP/1.1 201 Created\r\n\r\n");
-		sendData(socket, (void *) response.c_str(), response.length());
+		Server::handleGetResponse(filename, socket);
 	}
 }

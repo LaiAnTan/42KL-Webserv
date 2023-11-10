@@ -126,7 +126,7 @@ namespace HDE
 		const unsigned char *pdata = (const unsigned char *) data;
 		int numSent;
 
-		cout << pdata << endl;
+		// cout << pdata << endl;
 		while (datalen > 0)
 		{
 			numSent = send(sckt, pdata, datalen, 0);
