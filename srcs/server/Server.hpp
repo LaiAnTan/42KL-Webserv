@@ -25,6 +25,12 @@ namespace conf
 
 namespace HDE
 {
+	enum ServerStatus {
+		NEW,
+		SENDING_DATA,
+		DONE
+	};
+
 	class Server
 	{
 		private:
@@ -34,29 +40,35 @@ namespace HDE
 			string						content;
 			const conf::ServerConfig	*config;
 
+			ServerStatus				status;
+			std::ifstream				file;
+			std::stringstream			chunk_to_send;
+
 			// function to send data (response) to client
 			int		sendData(int sckt, const void *data, int datalen);
 
 			// post
-			void	handlePostRequest(int socket);
-			void	handlePostResponse(int socket);
+			int	handlePostRequest();
+			int	handlePostResponse();
 
 			// get
-			void	handleGetRequest(int socket);
-			void	handleGetResponse(string filename, int socket);
+			int	handleGetRequest();
+			int	handleGetResponse(string filename);
 
 			// delete
-			void	handleDeleteRequest(int socket);
-			void	handleDeleteResponse(int socket, bool is_deleted);
+			int	handleDeleteRequest();
+			int	handleDeleteResponse(bool is_deleted);
 
 			// helper
-			void	sendError(string type, int socket);
+			int		sendError(string type);
 			string	get_type(string extension);
 			bool	file_exists(std::string path);
+			string	get_file_data(std::string filename);
 
 			// for cgi
-			void	py(string type, int socket);
+			int	py();
 
+			int	send_next_chunk();
 
 		public:
 			Server(const conf::ServerConfig *config, int client_fd);
@@ -64,12 +76,13 @@ namespace HDE
 
 			int accepter();
 			void handler();
-			void responder();
+			int responder();
 
 			string						get_headers();
 			string						get_content();
 			const conf::ServerConfig	*get_config();
 			int							get_socket();
+			ServerStatus				get_status();
 	};
 }
 

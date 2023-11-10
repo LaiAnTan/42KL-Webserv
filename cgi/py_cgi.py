@@ -11,9 +11,10 @@ content_type = os.environ.get('CONTENT_TYPE')
 content_len = os.environ.get('CONTENT_LENGTH')
 # data = os.environ.get('DATA')
 f = open("html/file.html", "r")
+counter = open("html/file.html", "r")
 
-print("Content-type: %s" % (content_type))
-print("Content-length: %s" % (content_len))
+print("Content-Type: %s" % (content_type))
+print("Content-Length: %s" % (sum(len(x) for x in counter.readlines())))
 print("\r\n")
 
 print(f.read())

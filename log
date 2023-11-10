@@ -1,0 +1,13 @@
+[1;33m[INFO] Added 3 doorbells!
+[1;36m[PROMPT] --------------------------
+Number of Connection Points    || 3
+Number of Serving Servers      || 0
+Total Number of Sockets Active || 3
+-------------------------------------
+PORTS IN USE
+-------------------------------------
+PORT 80
+PORT 6942
+PORT 81
+
+[1;36m[PROMPT-END] ----------------------

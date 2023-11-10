@@ -16,7 +16,7 @@ namespace HDE
 		return (stat(path.c_str(), &buffer) == 0);
 	}
 
-	void	Server::handleDeleteRequest(int socket)
+	int	Server::handleDeleteRequest()
 	{
 		std::string			root;
 		std::string			path;
@@ -26,7 +26,8 @@ namespace HDE
 		cout << header << endl;
 
 		if (header_tokens.empty() == true)
-			return ;
+			// return what bro??
+			return 0;
 
 		// i hate hardcoding ???
 		root = "root";
@@ -40,13 +41,12 @@ namespace HDE
 		}
 
 		if (!file_exists(path))
-			handleDeleteResponse(socket, true);
+			return handleDeleteResponse(true);
 		else
-			handleDeleteResponse(socket, false);
-		return ;
+			return handleDeleteResponse(false);
 	}
 
-	void	Server::handleDeleteResponse(int socket, bool is_deleted)
+	int	Server::handleDeleteResponse(bool is_deleted)
 	{
 		string	response; // response string to be sent to client
 
@@ -63,7 +63,6 @@ namespace HDE
 		else
 			response.append("HTTP/1.1 200 OK\r\n");
 
-		sendData(socket, (void *) response.c_str(), response.size());
-		return ;
+		return sendData(this->newsocket, (void *) response.c_str(), response.size());
 	}
 }

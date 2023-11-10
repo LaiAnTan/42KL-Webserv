@@ -24,6 +24,7 @@ namespace HDE
 	{
 		this->newsocket = client_fd;
 		this->config = config;
+		this->status = NEW;
 	}
 
 	Server::~Server()
@@ -37,21 +38,14 @@ namespace HDE
 
 	int Server::accepter()
 	{
-		// HUH?
-		// wrong place bro
-
-		// struct sockaddr_in address = get_socket()->get_address();
-		// int addrlen = sizeof(address);
-		// this->newsocket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t *)&addrlen);
-		// if (this->newsocket < 0)
-		// {
-		// 	std::cerr << "Accept failed" << endl;
-		// 	return;
-		// }
-
 		string request;
 		char buffer[BUFFER_SIZE];
 		int bytesRead;
+
+		// clear previous contents (what the fuck guys why wasnt this cleared?)
+		headers.clear();
+		content.clear();
+
 		while ((bytesRead = read(this->newsocket, buffer, sizeof(buffer))) > 0)
 		{
 			request.append(buffer, bytesRead);
@@ -91,19 +85,36 @@ namespace HDE
 	void Server::handler()
 	{
 		cout << this->headers << endl;
-		// cout << this->content << endl;
 	}
 
-	void Server::responder()
+	int Server::responder()
 	{
-		string	header = get_headers();
+		string	header;
+		int ret_value = 0;
 
-		if (header.find("GET") != string::npos)
-			handleGetRequest(this->newsocket);
-		else if (header.find("POST") != string::npos)
-			handlePostRequest(this->newsocket);
-		else if (header.find("DELETE") != string::npos)
-			handleDeleteRequest(this->newsocket);
+		switch (this->status)
+		{
+			case NEW:
+				header = get_headers();
+
+				if (header.find("GET") != string::npos)
+					ret_value = handleGetRequest();
+				else if (header.find("POST") != string::npos)
+					ret_value = handlePostRequest();
+				else if (header.find("DELETE") != string::npos)
+					ret_value = handleDeleteRequest();
+				break;
+			case SENDING_DATA:
+				ret_value = this->send_next_chunk();
+				break;
+			case DONE:
+				this->status = NEW;
+				break;
+			default:
+				// not handled LOL
+				break;
+		}
+		return ret_value;
 	}
 
 	string Server::get_headers()
@@ -116,6 +127,11 @@ namespace HDE
 		return (content);
 	}
 
+	ServerStatus Server::get_status()
+	{
+		return status;
+	}
+
 	const conf::ServerConfig *Server::get_config()
 	{
 		return (config);
@@ -126,7 +142,6 @@ namespace HDE
 		const unsigned char *pdata = (const unsigned char *) data;
 		int numSent;
 
-		cout << pdata << endl;
 		while (datalen > 0)
 		{
 			numSent = send(sckt, pdata, datalen, 0);

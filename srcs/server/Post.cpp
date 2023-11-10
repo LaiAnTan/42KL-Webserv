@@ -29,7 +29,7 @@ namespace HDE
 		return (details);
 	}
 
-	void Server::handlePostRequest(int socket)
+	int Server::handlePostRequest()
 	{
 		string	root; // root directory
 		string	headers = get_headers();
@@ -74,15 +74,14 @@ namespace HDE
 			size_t nextBoundaryPos = nextContent.find("--" + boundary) + 1;
 			nextContent = nextContent.substr(nextBoundaryPos);
 		}
-		handlePostResponse(socket);
-		return ;
+		return handlePostResponse();
 	}
 
-	void	Server::handlePostResponse(int socket)
+	int	Server::handlePostResponse()
 	{
 		string	response;
-		
+
 		response.append("HTTP/1.1 201 Created\r\n\r\n");
-		sendData(socket, (void *) response.c_str(), response.length());
+		return sendData(this->newsocket, (void *) response.c_str(), response.length());
 	}
 }

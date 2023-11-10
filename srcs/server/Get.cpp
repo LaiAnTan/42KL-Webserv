@@ -1,7 +1,9 @@
 # include "Server.hpp"
 # include "../config/Config.hpp"
 # include <string>
+# include <sstream>
 # include <map>
+# include <sys/stat.h>
 
 using std::cout;
 using std::endl;
@@ -25,50 +27,112 @@ namespace HDE
 		return "";
 	}
 
-	void Server::handleGetResponse(string filename, int socket)
+	int Server::send_next_chunk()
 	{
-		string response;
-		string extension;
-		std::ifstream file;
+		char			buffer[BUFFER_SIZE];
+		string				sending;
+		std::stringstream	chunk_segment;
+
+		if (this->file.is_open())
+		{
+			if (this->file.read(buffer, BUFFER_SIZE))
+				sending.append(buffer, sizeof(buffer));
+			if (this->file.eof())
+			{
+				sending.append(buffer, this->file.gcount());
+				this->file.close();
+			}
+		}
+
+		chunk_segment << std::hex << sending.length() << std::dec << "\r\n";
+		chunk_segment << sending << "\r\n";
+
+		cout << YELLOW << "[INFO] Sending Following Content\n" << chunk_segment.str() << RESET << endl; 
+
+		if (!sending.length())
+			this->status = DONE;
+		else
+			this->status = SENDING_DATA;
+		return this->sendData(this->newsocket, chunk_segment.str().c_str(), chunk_segment.str().length());
+	}
+
+	int Server::handleGetResponse(string filename)
+	{
+		string	header, extension;
+		std::stringstream	response;
+		int		ret_val;
 
 		extension = filename.substr(filename.find(".", 1));
 
-		response.append("HTTP/1.1 200 OK\r\n");
-		response.append("Connection: close\r\n");
-		response.append("Content-Type: ");
-		response.append(this->get_type(extension));
-		response.append("\r\n\r\n");
+		// handles header
+		header.append("HTTP/1.1 200 OK\r\n");
+		header.append("Connection: keep-alive\r\n");
+		header.append("Content-Type: ");
+		header.append(this->get_type(extension));
+		header.append("\r\n");
 
-		file.open(filename.c_str());
-		if (file.is_open())
+		// determine if chunkey is needed
+		struct stat st;
+
+		if (!stat(filename.c_str(), &st))
 		{
-			char buffer[BUFFER_SIZE];
-			// rest in peace if the image is 1gb large :D
-			while (file.read(buffer, sizeof(buffer)))
-				response.append(buffer, sizeof(buffer));
+			int size;
 
-			// william what the fuck does this do?
-			if (file.eof())
-				response.append(buffer, file.gcount());
+			size = st.st_size;
+			// size o file is less than buffer size, can just straight read
+			// everything
+			if (size < BUFFER_SIZE)
+			{
+				cout << YELLOW << "SENDING THE ENTIRE FILE AS ONE" << RESET << endl;
 
-			file.close();
+				response << header;
+				response << "Content-Length: " << size << "\r\n";
+				response << "\r\n";
+				response << get_file_data(filename.c_str());
 
-			int res = sendData(socket, (void *)response.c_str(), response.size());
-			if (res < 0)
-				std::cerr << "Error sending file " << filename << endl;
+				cout << YELLOW << "response sended: \n" << response.str() << endl;
+
+				ret_val = sendData(this->newsocket, (void *)response.str().c_str(), response.str().size());
+				if (ret_val < 0)
+					std::cerr << RED << "Error sending file " << filename << endl;
+				return ret_val < 0;
+			}
+			// did not manage to read everything
+			// time to chunky chunky
+			else
+			{
+				cout << YELLOW << "[INFO] Chunking" << RESET << endl;
+				// send the header stating its using chunkencoding blabla
+				header.append("Transfer-Encoding: chunked\r\n");
+				header.append("\r\n");
+
+				cout << "Sending Header First -- \n" << header << endl;
+				ret_val = sendData(this->newsocket, header.c_str(), header.length());
+				this->file.open(filename.c_str());
+				if (ret_val < 0)
+				{
+					std::cerr << RED << "Error sending header for chunking" << endl;
+					return 1;
+				}
+				return this->send_next_chunk();
+			}
 		}
 		else
-			std::cerr << "Error sending file " << filename << endl;
+		{
+			std::cerr << RED << "Error opening file " << filename << endl;
+			return sendError("404.html");
+		}
 	}
 
 	// fuck youuu
-	void Server::sendError(string type, int socket)
+	int Server::sendError(string type)
 	{
 		string code[] = {"400.html", "404.html", "405.html", "413.html", "500.html", "501.html", "505.html"};
 		string msg[] = {"Bad Request", "Not Found", "Method Not Allowed", "Payload Too Large", "Internal Server Error", "Not Implemented", "HTTP Version Not Supported"};
-		string str1, str2, response;
-		std::ifstream file;
+		string str1, str2, header, error_content;
+		std::stringstream	response;
 
+		std::ifstream file;
 		for (int i = 0; i < 7; i++)
 		{
 			if (type.find(code[i]) != string::npos)
@@ -82,8 +146,11 @@ namespace HDE
 		string find_code = "[CODE]";
 		string find_msg = "[MSG]";
 
+		file.open("./html/error.html");
 		if (file.is_open())
 		{
+			// get content
+			// and substitue the CODE and MSG in the error.html (why is this a thing?)
 			while (!file.eof())
 			{
 				string html;
@@ -92,27 +159,44 @@ namespace HDE
 					html.replace(html.find(find_code), find_code.length(), str1);
 				if (html.find(find_msg) != string::npos)
 					html.replace(html.find(find_msg), find_msg.length(), str2);
-				response.append(html);
+				error_content.append(html);
 			}
 			file.close();
-			int res = sendData(socket, (void *)response.c_str(), response.size());
+
+			// handles header
+
+			response << "HTTP/1.1 " << str1 << " " << str2 << "\r\n";
+			response << "Connection: keep-alive\r\n";
+			response << "Content-Type: text/html\r\n";
+			response << "Content-Length: " << error_content.length() << "\r\n";
+			response << "\r\n";
+			response << error_content;
+
+			cout << YELLOW << "[INFO] Sending Following Content\n" << response.str() << endl;
+
+			int res = sendData(this->newsocket, (void *)response.str().c_str(), response.str().size());
 			if (res < 0)
-				std::cerr << "Error sending html file." << endl;
+			{
+				std::cerr << RED << "Error sending error html file.\n" << strerror(errno) << RESET << endl;
+			}
+			return res < 0;
 		}
 		else
-			std::cerr << "Error opening html file." << endl;
+			std::cerr << RED << "Error opening error html file." << RESET << endl;
+		return 1;
 	}
 
-	void Server::handleGetRequest(int socket)
+	int Server::handleGetRequest()
 	{
 		string headers = HDE::Server::get_headers();
 		string content = HDE::Server::get_content();
 		string file, path;
 
-		file = "./html/404.html";
+		file = "404.html";
 		path = headers.substr(headers.find("GET ") + 4);
 		path = "." + path.substr(0, path.find(" "));
 
+		// jesus fucking christ bro what the fuck is this
 		if (path == "./")
 			file = "./html/index.html";
 		else if (access(path.c_str(), R_OK) == 0)
@@ -124,16 +208,22 @@ namespace HDE
 		else if (path.find(".py") != string::npos)
 			file = path;
 
+		this->status = DONE;
+
+		if (file == "404.html")
+			return this->sendError(file);
+
 		cout << GREEN << "File: " << file << "	Path: " << path << RESET<< endl;
 		if (file.find(".py") != string::npos)
 		{
-			this->py(".py", socket);
-			return;
+			return this->py();
 		}
-		this->handleGetResponse(file, socket);
+		return this->handleGetResponse(file);
 	}
 
 	// CGI METHODS
+
+	// guys, chances are cgi method will not be in one limbillion gb righttt?? right??? dont need chunkin for this RIGHT???
 	string find_bin()
 	{
 		char *value = getenv("PATH");
@@ -151,15 +241,15 @@ namespace HDE
 	}
 
 	// ?????
-	string data(string filename)
+	string Server::get_file_data(string filename)
 	{
 		string response;
 		std::ifstream file;
+		char img_buffer[BUFFER_SIZE];
 
 		file.open(filename.c_str());
 		if (file.is_open())
 		{
-			char img_buffer[BUFFER_SIZE];
 			while (file.read(img_buffer, sizeof(img_buffer)))
 				response.append(img_buffer, sizeof(img_buffer));
 			if (file.eof())
@@ -167,13 +257,12 @@ namespace HDE
 			file.close();
 		}
 		else
-			std::cerr << "Error opening png file." << endl;
+			std::cerr << RED << "[ERROR] Error opening file." << endl;
 		return (response);
 	}
 
-	void Server::py(string type, int socket)
+	int Server::py()
 	{
-		(void)type;
 		string exe_path = find_bin();	
 		std::map<string, string> cgi_vec = config->get_cgi();
 
@@ -183,8 +272,8 @@ namespace HDE
 		int pipe_fd[2];
 		if (pipe(pipe_fd) == -1)
 		{
-			std::cerr << "pipe failed" << std::endl;
-			return;
+			std::cerr << RED << "[ERROR] Pipe failed" << std::endl;
+			return 1;
 		}
 
 		int pid = fork();
@@ -195,10 +284,8 @@ namespace HDE
 			dup2(pipe_fd[1], 1);
 			close(pipe_fd[0]);
 
-			string get = data("./html/file.html");
 			std::vector<char *> env_vec;
 			env_vec.push_back(strdup(string("CONTENT_TYPE=text/html").c_str()));
-			env_vec.push_back(strdup(string("CONTENT_LENGTH=" + get.length()).c_str()));
 			env_vec.push_back(strdup(string("first_name=First").c_str()));
 			env_vec.push_back(strdup(string("last_name=Last").c_str()));
 			// env_vec.push_back(strdup(string("DATA=" + get).c_str()));
@@ -210,7 +297,10 @@ namespace HDE
 			exit(1);
 		}
 		else if (pid < 0)
+		{
 			std::cerr << "fork failed" << std::endl;
+			return 1;
+		}
 		else
 		{
 			close(pipe_fd[1]);
@@ -228,9 +318,10 @@ namespace HDE
 		string header;
 
 		header.append("HTTP/1.1 200 OK\r\n");
-		header.append("Connection: close\r\n");
+		header.append("Connection: keep-alive\r\n");
 		cout << RED << content << RESET << endl;
-		sendData(socket, (void *)header.c_str(), header.size());
-		sendData(socket, (void *)content.c_str(), content.size());
+		sendData(this->newsocket, (void *)header.c_str(), header.size());
+		sendData(this->newsocket, (void *)content.c_str(), content.size());
+		return 0;
 	}
 }
