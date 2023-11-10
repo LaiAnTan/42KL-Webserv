@@ -43,7 +43,7 @@ namespace HDE
 
 			// get
 			void	handleGetRequest(int socket);
-			void	handleGetResponse(string filename, int socket);
+			void	handleGetResponse(string filename, int socket, string return_value);
 
 			// delete
 			void	handleDeleteRequest(int socket);

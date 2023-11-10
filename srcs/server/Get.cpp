@@ -25,11 +25,19 @@ namespace HDE
 		return "";
 	}
 
-	void Server::handleGetResponse(string filename, int socket)
+	void Server::handleGetResponse(string filename, int socket, string return_value)
 	{
 		string response;
 		string extension;
 		std::ifstream file;
+
+		if (return_value.empty() == false)
+		{
+			string response;
+			response.append("HTTP/1.1 302 Found\r\n");
+			response.append("Location:" + return_value + "\r\n\r\n");
+			sendData(socket, (void *)response.c_str(), response.size());
+		}
 
 		extension = filename.substr(filename.find(".", 1));
 
@@ -140,14 +148,6 @@ namespace HDE
 			}
 		}
 
-		if (return_value.empty() == false)
-		{
-			string response;
-			response.append("HTTP/1.1 302 Found\r\n");
-			response.append("Location:" + return_value + "\r\n\r\n");
-			sendData(socket, (void *)response.c_str(), response.size());
-		}
-		return_value.clear();
 		path = "." + path;
 
 		if (path == "./")
@@ -167,7 +167,7 @@ namespace HDE
 			this->py(".py", socket);
 			return;
 		}
-		this->handleGetResponse(file, socket);
+		this->handleGetResponse(file, socket, return_value);
 	}
 
 	// CGI METHODS
