@@ -9,7 +9,7 @@ using std::cerr;
 
 namespace HDE
 {
-	bool file_exists(std::string path)
+	bool Server::file_exists(std::string path)
 	{
 		struct stat buffer;
 

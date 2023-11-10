@@ -39,7 +39,7 @@ namespace HDE
 
 			// post
 			void	handlePostRequest(int socket);
-			void	handlePostResponse(int socket, string filename);
+			void	handlePostResponse(int socket);
 
 			// get
 			void	handleGetRequest(int socket);
@@ -52,6 +52,7 @@ namespace HDE
 			// helper
 			void	sendError(string type, int socket);
 			string	get_type(string extension);
+			bool	file_exists(std::string path);
 
 			// for cgi
 			void	py(string type, int socket);

@@ -65,8 +65,8 @@ namespace HDE
 				string fileContent = nextContent.substr(dataPos, boundaryPosInData - dataPos);
 
 				// write into file
-				filename = "./" + root + "/" + filename;
-				std::ofstream outFile(filename.c_str(), std::ios::binary);
+				string	path = "./" + root + "/" + filename;
+				std::ofstream outFile(path.c_str(), std::ios::binary);
 				outFile.write(fileContent.c_str(), fileContent.length());
 				outFile.close();
 
@@ -74,14 +74,15 @@ namespace HDE
 			size_t nextBoundaryPos = nextContent.find("--" + boundary) + 1;
 			nextContent = nextContent.substr(nextBoundaryPos);
 		}
-		handlePostResponse(socket, filename);
+		handlePostResponse(socket);
 		return ;
 	}
 
-	void	Server::handlePostResponse(int socket, string filename)
+	void	Server::handlePostResponse(int socket)
 	{
-		string	data;
-
-		sendData(socket, (void *) data.c_str(), data.length());
+		string	response;
+		
+		response.append("HTTP/1.1 201 Created\r\n\r\n");
+		sendData(socket, (void *) response.c_str(), response.length());
 	}
 }
