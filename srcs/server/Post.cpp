@@ -81,7 +81,10 @@ namespace HDE
 	{
 		string	response;
 
-		response.append("HTTP/1.1 201 Created\r\n\r\n");
+		this->status = DONE;
+		response.append("HTTP/1.1 204 No Content\r\n\r\n");
+
+		cout << "Header Sent: \n" << response << endl;
 		return sendData(this->newsocket, (void *) response.c_str(), response.length());
 	}
 }
