@@ -77,7 +77,7 @@ namespace HDE
 						bytesRead = read(this->newsocket, buffer, sizeof(buffer));
 						if (bytesRead > 0)
 							content.append(buffer, bytesRead);
-						else
+						else if (bytesRead == 0 || bytesRead == -1)
 							break;
 					}
 				}
