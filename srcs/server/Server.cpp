@@ -64,11 +64,8 @@ namespace HDE
 		int bytesRead;
 
 		// clear previous contents (what the fuck guys why wasnt this cleared?)
-		if (this->status == NEW)
-		{
-			headers.clear();
-			content.clear();
-		}
+		headers.clear();
+		content.clear();
 		
 		// read header
 		while (headers.empty() == true)
@@ -79,19 +76,21 @@ namespace HDE
 			request.append(buffer, bytesRead);
 			size_t pos = request.find("\r\n\r\n");
 			if (pos != string::npos)
+			{
 				headers = request.substr(0, pos + 4);
+				if (pos + 5 < request.length())
+					content = request.substr(pos + 4); // retrieve any content that was accidentally extracted as well yes
+			}
 		}
+
+		cout << "Header Content - \n" << headers << endl << endl;
+		cout << "Content Content - \n" << content << endl;
 
 		// get content length
 		if (this->content_length == -1)
-			this->content_length = extract_content_length(headers);
-
-		// read once
-		// gotta move this into post
-		if (static_cast<long unsigned int>(this->content_length) > content.length())
 		{
-			bytesRead = read(this->newsocket, buffer, sizeof(buffer));
-			content.append(buffer);
+			this->content_length = extract_content_length(headers);
+			this->content_length -= this->content.length();
 		}
 
 		return headers.length() + content.length();
@@ -107,6 +106,7 @@ namespace HDE
 		string	header;
 		int ret_value = 0;
 
+		cout << "Server status --- " << this->status << endl;
 		switch (this->status)
 		{
 			case NEW:
@@ -121,6 +121,9 @@ namespace HDE
 				break;
 			case SENDING_DATA:
 				ret_value = this->send_next_chunk();
+				break;
+			case RECEIVING_DATA:
+				ret_value = this->import_read_data();
 				break;
 			case DONE:
 				this->status = NEW;

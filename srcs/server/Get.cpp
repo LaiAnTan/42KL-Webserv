@@ -49,7 +49,7 @@ namespace HDE
 
 		cout << YELLOW << "[INFO] Sending Following Content\n" << chunk_segment.str() << RESET << endl; 
 
-		if (!sending.length())
+		if (sending.length() == 0)
 			this->status = DONE;
 		else
 			this->status = SENDING_DATA;

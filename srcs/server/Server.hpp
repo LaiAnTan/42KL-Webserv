@@ -28,6 +28,7 @@ namespace HDE
 	enum ServerStatus {
 		NEW,
 		SENDING_DATA,
+		RECEIVING_DATA,
 		DONE
 	};
 
@@ -36,14 +37,19 @@ namespace HDE
 		private:
 
 			int							newsocket;
-			int							content_length;
 			string						headers;
 			string						content;
 			const conf::ServerConfig	*config;
 
+			// get chunking
 			ServerStatus				status;
 			std::ifstream				file;
 			std::stringstream			chunk_to_send;
+
+			// post chunking
+			int							content_length;
+			std::fstream				save_to;
+			string						boundary_string;
 
 			// function to send data (response) to client
 			int		sendData(int sckt, const void *data, int datalen);
@@ -70,6 +76,7 @@ namespace HDE
 			int	py();
 
 			int	send_next_chunk();
+			int import_read_data();
 
 		public:
 			Server(const conf::ServerConfig *config, int client_fd);

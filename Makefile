@@ -46,10 +46,10 @@ $(ODIR)/%.o: %.cpp | $(ODIR)
 	g++ $(CFLAGS) -c $< -o $@;
 
 clean :
-	rm -f $(NAME)
+	rm -rf $(ODIR)
 
 fclean : clean
-	rm -rf $(ODIR)
+	rm -f $(NAME)
 	rm -rf root
 
 re : fclean all

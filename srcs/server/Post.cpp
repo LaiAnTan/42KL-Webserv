@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "../config/Config.hpp"
 #include <sys/stat.h>
 
 using std::cout;
@@ -29,53 +30,173 @@ namespace HDE
 		return (details);
 	}
 
-	int Server::handlePostRequest()
+	int Server::import_read_data()
 	{
-		string	root; // root directory
+		int		bytesRead;
+		char	buffer[BUFFER_SIZE];
+		string	root = "root", filename;
+
+		// more of a failsafe then anything
+		if (this->content_length <= 0 and this->content.empty())
+		{
+			return handlePostResponse();
+		}
+		// the end boundary string is found
+		// and is located at the start of the buffer
+		// this means all content successfully extracted
+		if (this->content.find("--" + this->boundary_string + "--") == 0)
+		{
+			return handlePostResponse();
+		}
+
+		bytesRead = read(this->newsocket, buffer, sizeof(buffer));
+		if (bytesRead < 0)
+		{
+			std::cerr << RED << "Error when reading content" << endl;
+			return 1;
+		}
+		this->content_length -= bytesRead;
+		this->content.append(buffer, bytesRead);
+
+
+		if (this->content.find("--" + this->boundary_string) != string::npos)
+		{
+			int boundary_pos = this->content.find("--" + this->boundary_string);
+
+			// extract all previous data and put them into the old file
+			string	previous_data = this->content.substr(0, boundary_pos);
+			if (not previous_data.empty() && save_to.is_open())
+			{
+				save_to.write(previous_data.c_str(), previous_data.length());
+				save_to.close();
+			}
+			this->content = this->content.substr(boundary_pos);
+
+			// open another file
+			// extract filename
+			size_t	filenamePos = this->content.find("filename=");
+
+			// if filename isnt read yet, just call this function again
+			if (filenamePos == string::npos)
+				return 0;
+
+			filename = this->content.substr(filenamePos + 10);
+			size_t	filenameEnd = filename.find("\r\n");
+
+			// if filename is chopped, just recall the function again
+			if (filenameEnd == string::npos)
+				return 0;
+
+			filename = filename.substr(0, filename.find("\""));
+			cout << "Filename: " << "|" + filename + "|" << endl;
+
+			string	path = "./" + root + "/" + filename;
+			cout << "Path name == " << path << endl;
+			save_to.open(path.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
+			cout << "File is open ==> " << save_to.is_open() << endl;
+
+			// once done, jump to content
+			// jesus christ william this better be correct
+			size_t	dataPos = this->content.find("\r\n\r\n") + 4;
+			this->content = this->content.substr(dataPos);
+
+			// DO NOT put data into the new file YET, as there MAY BE potential boundary strings
+			return 0;
+		}
+		// there might be a potential boundary string
+		// check for potential boundary strings
+		else if (this->content.rfind("\r\n--") != string::npos)
+		{
+			int	delimiter_pos = this->content.rfind("\r\n--");
+
+			string	full_delimiter = this->boundary_string + "\r\n";
+
+			if (full_delimiter.find(this->content.substr(delimiter_pos)) != string::npos)
+			{
+				// may or may not be a delimiter string, do not put this in just in case
+
+				// just call this function again to read more data and determine next move
+				return 0;
+			}
+		}
+		// no potential boundary strings, no boundary strings found, nothing
+		// save to just dump data
+		else
+		{
+			cout << YELLOW << "Dumping Data" << endl << endl;
+			this->save_to.write(this->content.c_str(), this->content.length());
+			this->content.clear();
+			return 0;
+		}
+		return 0;
+	}
+
+	int	Server::handlePostRequest()
+	{
+		string	root = "root";
 		string	headers = get_headers();
 		string	content = get_content();
 		string	boundary, filename, path;
-		size_t boundaryPos = headers.find("boundary=");
-
-		root = "root";
+		size_t	boundaryPos = headers.find("boundary=");
+		
 		path = headers.substr(headers.find("POST ") + 5);
 		path = path.substr(0, path.find(" "));
-		boundary = headers.substr(boundaryPos + 9);
-		boundary = boundary.substr(0, boundary.find("\r"));
 
-		size_t nextBoundaryPos = content.find(boundary) + 1;
-		string nextContent = content.substr(nextBoundaryPos);
-		string endBoundary = boundary + "--";
+		this->boundary_string = headers.substr(boundaryPos + 9);
+		this->boundary_string = boundary_string.substr(0, boundary_string.find("\r"));
 
-		while (true)
-		{
-			if (strncmp(nextContent.c_str(), ("-" + endBoundary).c_str(), endBoundary.size()) == 0)
-				break;
-			if (nextContent.find("filename=") != string::npos)
-			{
-				// extract filename
-				size_t filenamePos = nextContent.find("filename=");
-				filename = nextContent.substr(filenamePos + 10);
-				filename = filename.substr(0, filename.find("\""));
-				cout << "Filename: " << "|" + filename + "|" << endl;
-
-				// extract content
-				size_t dataPos = nextContent.find("\r\n\r\n") + 4;
-				size_t boundaryPosInData = nextContent.find("--" + boundary, dataPos);
-				string fileContent = nextContent.substr(dataPos, boundaryPosInData - dataPos);
-
-				// write into file
-				string	path = "./" + root + "/" + filename;
-				std::ofstream outFile(path.c_str(), std::ios::binary);
-				outFile.write(fileContent.c_str(), fileContent.length());
-				outFile.close();
-
-			}
-			size_t nextBoundaryPos = nextContent.find("--" + boundary) + 1;
-			nextContent = nextContent.substr(nextBoundaryPos);
-		}
-		return handlePostResponse();
+		this->status = RECEIVING_DATA;
+		cout << YELLOW << "Handling Post Request" << endl;
+		return import_read_data();
 	}
+
+	// int Server::handlePostRequest()
+	// {
+	// 	string	root; // root directory
+	// 	string	headers = get_headers();
+	// 	string	content = get_content();
+	// 	string	boundary, filename, path;
+	// 	size_t boundaryPos = headers.find("boundary=");
+
+	// 	root = "root";
+	// 	path = headers.substr(headers.find("POST ") + 5);
+	// 	path = path.substr(0, path.find(" "));
+	// 	boundary = headers.substr(boundaryPos + 9);
+	// 	boundary = boundary.substr(0, boundary.find("\r"));
+
+	// 	size_t nextBoundaryPos = content.find(boundary) + 1;
+	// 	string nextContent = content.substr(nextBoundaryPos);
+	// 	string endBoundary = boundary + "--";
+
+	// 	while (true)
+	// 	{
+	// 		if (strncmp(nextContent.c_str(), ("-" + endBoundary).c_str(), endBoundary.size()) == 0)
+	// 			break;
+	// 		if (nextContent.find("filename=") != string::npos)
+	// 		{
+	// 			// extract filename
+	// 			size_t filenamePos = nextContent.find("filename=");
+	// 			filename = nextContent.substr(filenamePos + 10);
+	// 			filename = filename.substr(0, filename.find("\""));
+	// 			cout << "Filename: " << "|" + filename + "|" << endl;
+
+	// 			// extract content
+	// 			size_t dataPos = nextContent.find("\r\n\r\n") + 4;
+	// 			size_t boundaryPosInData = nextContent.find("--" + boundary, dataPos);
+	// 			string fileContent = nextContent.substr(dataPos, boundaryPosInData - dataPos);
+
+	// 			// write into file
+	// 			string	path = "./" + root + "/" + filename;
+	// 			std::ofstream outFile(path.c_str(), std::ios::binary);
+	// 			outFile.write(fileContent.c_str(), fileContent.length());
+	// 			outFile.close();
+
+	// 		}
+	// 		size_t nextBoundaryPos = nextContent.find("--" + boundary) + 1;
+	// 		nextContent = nextContent.substr(nextBoundaryPos);
+	// 	}
+	// 	return handlePostResponse();
+	// }
 
 	int	Server::handlePostResponse()
 	{
