@@ -25,8 +25,10 @@ namespace conf
 
 namespace HDE
 {
+
 	enum ServerStatus {
 		NEW,
+		READING_DATA,
 		SENDING_DATA,
 		DONE
 	};
@@ -39,6 +41,7 @@ namespace HDE
 			int							content_length;
 			string						headers;
 			string						content;
+			string						curr_post_file_path;
 			const conf::ServerConfig	*config;
 
 			ServerStatus				status;

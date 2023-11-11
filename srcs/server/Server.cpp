@@ -46,6 +46,7 @@ namespace HDE
 		this->config = config;
 		this->status = NEW;
 		this->content_length = -1;
+		this->curr_post_file_path = "";
 	}
 
 	Server::~Server()
@@ -63,23 +64,24 @@ namespace HDE
 		char buffer[BUFFER_SIZE];
 		int bytesRead;
 
-		// clear previous contents (what the fuck guys why wasnt this cleared?)
+		// clear previous contents and read full header
 		if (this->status == NEW)
 		{
 			headers.clear();
 			content.clear();
-		}
-		
-		// read header
-		while (headers.empty() == true)
-		{
-			bytesRead = read(this->newsocket, buffer, sizeof(buffer));
-			if (bytesRead == -1 || bytesRead == 0)
-				break;
-			request.append(buffer, bytesRead);
-			size_t pos = request.find("\r\n\r\n");
-			if (pos != string::npos)
-				headers = request.substr(0, pos + 4);
+			// read the whole header
+			while (headers.empty() == true)
+			{
+				bytesRead = read(this->newsocket, buffer, sizeof(buffer));
+				if (bytesRead == -1 || bytesRead == 0)
+					break;
+				request.append(buffer, bytesRead);
+				size_t pos = request.find("\r\n\r\n");
+				if (pos != string::npos)
+					headers = request.substr(0, pos + 4);
+			}
+			cout << "Done reading header" << endl;
+			this->status = READING_DATA;
 		}
 
 		// get content length
@@ -87,7 +89,6 @@ namespace HDE
 			this->content_length = extract_content_length(headers);
 
 		// read once
-		// gotta move this into post
 		if (static_cast<long unsigned int>(this->content_length) > content.length())
 		{
 			bytesRead = read(this->newsocket, buffer, sizeof(buffer));
@@ -109,7 +110,7 @@ namespace HDE
 
 		switch (this->status)
 		{
-			case NEW:
+			case READING_DATA:
 				header = get_headers();
 
 				if (header.find("GET") != string::npos)
