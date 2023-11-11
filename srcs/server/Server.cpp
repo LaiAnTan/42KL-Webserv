@@ -64,8 +64,11 @@ namespace HDE
 		int bytesRead;
 
 		// clear previous contents (what the fuck guys why wasnt this cleared?)
-		headers.clear();
-		content.clear();
+		if (this->status == NEW)
+		{
+			headers.clear();
+			content.clear();
+		}
 		
 		// read header
 		while (headers.empty() == true)
@@ -84,7 +87,8 @@ namespace HDE
 			this->content_length = extract_content_length(headers);
 
 		// read once
-		if (this->content_length > BUFFER_SIZE)
+		// gotta move this into post
+		if (static_cast<long unsigned int>(this->content_length) > content.length())
 		{
 			bytesRead = read(this->newsocket, buffer, sizeof(buffer));
 			content.append(buffer);
