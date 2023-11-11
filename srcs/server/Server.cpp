@@ -144,7 +144,7 @@ namespace HDE
 
 		while (datalen > 0)
 		{
-			numSent = send(sckt, pdata, datalen, 0);
+			numSent = send(sckt, pdata, datalen, MSG_NOSIGNAL); // can do MSG_NOSIGNAL
 			if (numSent == -1)
 				return -1;
 			pdata += numSent;
