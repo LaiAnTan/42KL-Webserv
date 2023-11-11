@@ -20,11 +20,32 @@ using std::cout;
 
 namespace HDE
 {
+	int	extract_content_length(string header)
+	{
+		std::stringstream	ss;
+		int					content_length = 0;
+		string				content_length_header_identifier = "Content-Length: ";
+		size_t				start_index = header.find(content_length_header_identifier);
+		size_t				end_index;
+		size_t				end_of_line_index;
+
+		if (start_index != std::string::npos)
+		{
+			end_index = start_index + content_length_header_identifier.length();
+			end_of_line_index= header.find("\r\n", end_index);
+
+			ss << header.substr(end_index, end_of_line_index - end_index);
+			ss >> content_length;
+		}
+		return (content_length);
+	}
+
 	Server::Server(const conf::ServerConfig *config, int client_fd)
 	{
 		this->newsocket = client_fd;
 		this->config = config;
 		this->status = NEW;
+		this->content_length = -1;
 	}
 
 	Server::~Server()
@@ -45,40 +66,30 @@ namespace HDE
 		// clear previous contents (what the fuck guys why wasnt this cleared?)
 		headers.clear();
 		content.clear();
-
-		while ((bytesRead = read(this->newsocket, buffer, sizeof(buffer))) > 0)
+		
+		// read header
+		while (headers.empty() == true)
 		{
+			bytesRead = read(this->newsocket, buffer, sizeof(buffer));
+			if (bytesRead == -1 || bytesRead == 0)
+				break;
 			request.append(buffer, bytesRead);
 			size_t pos = request.find("\r\n\r\n");
 			if (pos != string::npos)
-			{
 				headers = request.substr(0, pos + 4);
-				// cout << "Received Headers:\n" << headers << endl;
-				content = request.substr(pos + 4);
-				// If Content-Length header is present, continue reading until the specified length
-				string contentLengthHeader = "Content-Length: ";
-				size_t contentLengthPos = headers.find(contentLengthHeader);
-				if (contentLengthPos != std::string::npos)
-				{
-					size_t endOfContent = contentLengthPos + contentLengthHeader.length();
-					size_t endOfLine = headers.find("\r\n", endOfContent);
-					std::stringstream ss;
-					ss << headers.substr(endOfContent, endOfLine - endOfContent);
-					size_t contentLength;
-					ss >> contentLength;
-					while (content.size() < contentLength)
-					{
-						bytesRead = read(this->newsocket, buffer, sizeof(buffer));
-						if (bytesRead > 0)
-							content.append(buffer, bytesRead);
-						else
-							break;
-					}
-				}
-				// cout << "Received Content:\n" << content << endl;
-				break;
-			}
 		}
+
+		// get content length
+		if (this->content_length == -1)
+			this->content_length = extract_content_length(headers);
+
+		// read once
+		if (this->content_length > BUFFER_SIZE)
+		{
+			bytesRead = read(this->newsocket, buffer, sizeof(buffer));
+			content.append(buffer);
+		}
+
 		return headers.length() + content.length();
 	}
 
@@ -135,6 +146,11 @@ namespace HDE
 	const conf::ServerConfig *Server::get_config()
 	{
 		return (config);
+	}
+
+	int	Server::get_content_length()
+	{
+		return (content_length);
 	}
 
 	int Server::sendData(int sckt, const void *data, int datalen)

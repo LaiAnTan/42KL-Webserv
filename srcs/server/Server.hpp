@@ -36,6 +36,7 @@ namespace HDE
 		private:
 
 			int							newsocket;
+			int							content_length;
 			string						headers;
 			string						content;
 			const conf::ServerConfig	*config;
@@ -82,6 +83,7 @@ namespace HDE
 			string						get_content();
 			const conf::ServerConfig	*get_config();
 			int							get_socket();
+			int							get_content_length();
 			ServerStatus				get_status();
 	};
 }
