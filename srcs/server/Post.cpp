@@ -116,18 +116,14 @@ namespace HDE
 		// position of end boundary (looks like "--boundary_string--")
 		size_t	boundary_end_index = content.find("--" + boundary_string + "--");
 
+		// content type check is to ensure "filename=" before is not split up after chunking
 		size_t	content_type_index = content.find("Content-Type:");
 
 		size_t	data_start_index;
 
-		bool	clear_content; // bool to see if we should write into a file
-
-		clear_content = false;
-
 		// we handle stuff here
-		if (boundary_index != string::npos && content_type_index != string::npos) // content type check is to ensure "filename=" before is not split up after chunking
+		if (boundary_index != string::npos && content_type_index != string::npos)
 		{
-			clear_content = true;
 			// if we see a filename it will become the next file to write to the next time the function is called
 			filename_index = content.find("filename=", boundary_index);
 			if (filename_index != string::npos)
@@ -139,16 +135,13 @@ namespace HDE
 		}
 		else if (boundary_end_index != string::npos)
 		{
-			clear_content = true;
 			this->status = DONE;
-
 			file_content = content.substr(0, boundary_end_index - 4); // end before \r\n\r\n
 		}
 		else
 			file_content = content;
 
-		if (clear_content == true)
-			content.clear();
+		content.clear();
 			
 		writeIntoFile(file_content, this->curr_post_file_path);
 

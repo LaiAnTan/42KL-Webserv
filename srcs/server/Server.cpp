@@ -89,13 +89,13 @@ namespace HDE
 			this->content_length = extract_content_length(headers);
 
 		// read once
-		if (static_cast<long unsigned int>(this->content_length) > content.length())
+		if (this->content_length && static_cast<long unsigned int>(this->content_length) > content.length())
 		{
 			bytesRead = read(this->newsocket, buffer, sizeof(buffer));
 			content.append(buffer);
 		}
 
-		return headers.length() + content.length();
+		return (bytesRead);
 	}
 
 	void Server::handler()
@@ -156,6 +156,11 @@ namespace HDE
 	int	Server::get_content_length()
 	{
 		return (content_length);
+	}
+
+	void	Server::set_status(ServerStatus status)
+	{
+		this->status = status;
 	}
 
 	int Server::sendData(int sckt, const void *data, int datalen)

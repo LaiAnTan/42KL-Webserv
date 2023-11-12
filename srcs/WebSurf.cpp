@@ -125,7 +125,10 @@ namespace HDE
 							cout << GREEN << "[RESPONDER-END] -------------------" << endl;
 
 							if (current->get_status() == DONE || ret_value)
+							{
+								current->set_status(NEW);
 								pfds[x].events = POLLIN;
+							}
 						}
 						else
 						{
