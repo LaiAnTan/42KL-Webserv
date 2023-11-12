@@ -78,7 +78,7 @@ namespace HDE
 			if (pos != string::npos)
 			{
 				headers = request.substr(0, pos + 4);
-				if (pos + 5 < request.length())
+				if (pos + 4 < request.length())
 					content = request.substr(pos + 4); // retrieve any content that was accidentally extracted as well yes
 			}
 		}
