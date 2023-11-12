@@ -88,14 +88,8 @@ namespace HDE
 			if (this->content_length == -1)
 				this->content_length = extract_content_length(headers);
 		}
-		
-		// read once
-		if (this->content_length && static_cast<long unsigned int>(this->content_length) > content.length())
-		{
-			bytesRead = read(this->newsocket, buffer, sizeof(buffer));
-			content.append(buffer);
-		}
-		cout << "read length = " << headers.length() + content.length() << endl;
+		if (this->status == READING_DATA)
+			bytesRead = readOnce();
 
 		return (bytesRead);
 	}
@@ -148,11 +142,6 @@ namespace HDE
 	ServerStatus Server::get_status()
 	{
 		return status;
-	}
-
-	void	Server::set_status(ServerStatus new_status)
-	{
-		this->status = new_status;
 	}
 
 	const conf::ServerConfig *Server::get_config()

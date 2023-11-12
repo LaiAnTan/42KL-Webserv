@@ -132,18 +132,18 @@ namespace HDE
 			data_start_index = content.find("\r\n\r\n", content_type_index);
 			if (data_start_index != string::npos)
 				file_content = content.substr(data_start_index + 4, content.length()); // start after \r\n\r\n
+
+			content.clear();
+			writeIntoFile(file_content, this->curr_post_file_path);
 		}
 		else if (boundary_end_index != string::npos)
 		{
 			this->status = DONE;
 			file_content = content.substr(0, boundary_end_index - 4); // end before \r\n\r\n
-		}
-		else
-			file_content = content;
 
-		content.clear();
-			
-		writeIntoFile(file_content, this->curr_post_file_path);
+			content.clear();
+			writeIntoFile(file_content, this->curr_post_file_path);
+		}
 
 		if (next_file_path.empty() == false)
 			this->curr_post_file_path = next_file_path;
@@ -164,5 +164,21 @@ namespace HDE
 
 		cout << "Header Sent: \n" << response << endl;
 		return (sendData(this->newsocket, (void *) response.c_str(), response.length()));
+	}
+
+	// for content
+	int	Server::readOnce()
+	{
+		int		bytes_read;
+		char	buffer[BUFFER_SIZE];
+
+		bytes_read = read(this->newsocket, buffer, sizeof(buffer));
+		if (bytes_read == -1 || bytes_read == 0)
+			return (-1);
+		content.append(buffer);
+
+		cout << "read once called" << endl;
+
+		return (bytes_read);
 	}
 }

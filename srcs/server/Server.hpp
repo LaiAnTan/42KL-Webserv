@@ -69,6 +69,8 @@ namespace HDE
 			bool	file_exists(std::string path);
 			string	get_file_data(std::string filename);
 
+			int		readOnce();
+
 			// for cgi
 			int	py();
 
