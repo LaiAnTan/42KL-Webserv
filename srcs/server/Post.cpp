@@ -72,6 +72,11 @@ namespace HDE
 			}
 			this->content = this->content.substr(boundary_pos);
 
+			// find the \r\n\r\n seperator between header and content
+			// if dont have, just call function again 
+			if (this->content.find("\r\n\r\n") == string::npos)
+				return 0;
+
 			// open another file
 			// extract filename
 			size_t	filenamePos = this->content.find("filename=");
