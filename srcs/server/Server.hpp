@@ -88,6 +88,7 @@ namespace HDE
 			int							get_socket();
 			int							get_content_length();
 			ServerStatus				get_status();
+			void						set_status(ServerStatus new_status);
 	};
 }
 

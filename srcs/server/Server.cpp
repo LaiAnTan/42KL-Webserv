@@ -69,6 +69,7 @@ namespace HDE
 		{
 			headers.clear();
 			content.clear();
+
 			// read the whole header
 			while (headers.empty() == true)
 			{
@@ -82,18 +83,19 @@ namespace HDE
 			}
 			cout << "Done reading header" << endl;
 			this->status = READING_DATA;
-		}
 
-		// get content length
-		if (this->content_length == -1)
-			this->content_length = extract_content_length(headers);
+			// get content length
+			if (this->content_length == -1)
+				this->content_length = extract_content_length(headers);
 
-		// read once
-		if (static_cast<long unsigned int>(this->content_length) > content.length())
-		{
-			bytesRead = read(this->newsocket, buffer, sizeof(buffer));
-			content.append(buffer);
+			// read once
+			if (static_cast<long unsigned int>(this->content_length) > content.length())
+			{
+				bytesRead = read(this->newsocket, buffer, sizeof(buffer));
+				content.append(buffer);
+			}
 		}
+		cout << "read length = " << headers.length() + content.length() << endl;
 
 		return headers.length() + content.length();
 	}
@@ -146,6 +148,11 @@ namespace HDE
 	ServerStatus Server::get_status()
 	{
 		return status;
+	}
+
+	void	Server::set_status(ServerStatus new_status)
+	{
+		this->status = new_status;
 	}
 
 	const conf::ServerConfig *Server::get_config()
