@@ -114,9 +114,7 @@ namespace HDE
 		{
 			int	delimiter_pos = this->content.rfind("\r\n--");
 
-			string	full_delimiter = this->boundary_string + "\r\n";
-
-			if (full_delimiter.find(this->content.substr(delimiter_pos)) != string::npos)
+			if (this->boundary_string.find(this->content.substr(delimiter_pos)) != string::npos)
 			{
 				// may or may not be a delimiter string, do not put this in just in case
 
