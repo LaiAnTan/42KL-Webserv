@@ -82,13 +82,11 @@ namespace HDE
 					content = request.substr(pos + 4); // retrieve any content that was accidentally extracted as well yes
 			}
 		}
-		
+
+		// why would you check if content_length == -1 peko
 		// get content length
-		if (this->content_length == -1)
-		{
-			this->content_length = extract_content_length(headers);
-			this->content_length -= this->content.length();
-		}
+		this->content_length = extract_content_length(headers);
+		this->content_length -= this->content.length();
 
 		return headers.length() + content.length();
 	}

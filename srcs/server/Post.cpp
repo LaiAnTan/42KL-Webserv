@@ -37,7 +37,7 @@ namespace HDE
 		string	root = "root", filename;
 
 		// more of a failsafe then anything
-		if (this->content_length <= 0 and this->content.empty())
+		if (this->content_length <= 0 && this->content.empty())
 		{
 			return handlePostResponse();
 		}
@@ -57,7 +57,6 @@ namespace HDE
 		}
 		this->content_length -= bytesRead;
 		this->content.append(buffer, bytesRead);
-
 
 		if (this->content.find("--" + this->boundary_string) != string::npos)
 		{
@@ -96,9 +95,7 @@ namespace HDE
 			cout << "Filename: " << "|" + filename + "|" << endl;
 
 			string	path = "./" + root + "/" + filename;
-			cout << "Path name == " << path << endl;
 			save_to.open(path.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
-			cout << "File is open ==> " << save_to.is_open() << endl;
 
 			// once done, jump to content
 			// jesus christ william this better be correct
