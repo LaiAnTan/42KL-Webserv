@@ -82,10 +82,7 @@ namespace HDE
 					content = request.substr(pos + 4); // retrieve any content that was accidentally extracted as well yes
 			}
 		}
-
-		cout << "Header Content - \n" << headers << endl << endl;
-		cout << "Content Content - \n" << content << endl;
-
+		
 		// get content length
 		if (this->content_length == -1)
 		{
