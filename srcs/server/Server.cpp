@@ -147,6 +147,11 @@ namespace HDE
 		return status;
 	}
 
+	void	Server::set_status(ServerStatus new_status)
+	{
+		this->status = new_status;
+	}
+
 	const conf::ServerConfig *Server::get_config()
 	{
 		return (config);
