@@ -14,7 +14,7 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 
-const int BUFFER_SIZE = 5024;
+const int BUFFER_SIZE = 1024;
 
 using std::string;
 

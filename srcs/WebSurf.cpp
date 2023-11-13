@@ -98,11 +98,11 @@ namespace HDE
 					// connected clients
 					else
 					{
+						current = servers[pfds[x].fd];
 						if (pfds[x].revents & POLLIN)
 						{
 							cout << BLUE << "[NOTICE] Socket at " << pfds[x].fd << " is receiving data" << endl;
 							cout << RESET;
-							current = servers[pfds[x].fd];
 							// if read returns zero, socket has disconnected, remove the server
 							if (!current->accepter())
 								remove_server(pfds[x].fd);
@@ -124,7 +124,15 @@ namespace HDE
 							ret_value = current->responder();
 							cout << GREEN << "[RESPONDER-END] -------------------" << endl;
 
-							if (current->get_status() == DONE || ret_value){
+							// something went wrong and it isn't a 404
+							if (ret_value)
+							{
+								cerr << RED << "[ERROR] Severe Error at Server fd " << pfds[x].fd << " , disconnecting server" << endl;
+								cerr << RED << "Reason: " << strerror(errno) << endl;
+								remove_server(pfds[x].fd);
+							}
+							else if (current->get_status() == DONE)
+							{
 								current->set_status(NEW);
 								pfds[x].events = POLLIN;
 							}

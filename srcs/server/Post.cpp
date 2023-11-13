@@ -37,9 +37,12 @@ namespace HDE
 		string	root = "root", filename;
 
 		// more of a failsafe then anything
+		// failsafe my fucking ass, if this happens its an error
+		// this means THERES NO END BOUNDARY STRING
 		if (this->content_length <= 0 && this->content.empty())
 		{
-			return handlePostResponse();
+			errno = EUCLEAN; // custom errno num hehe
+			return 1;
 		}
 		// the end boundary string is found
 		// and is located at the start of the buffer
