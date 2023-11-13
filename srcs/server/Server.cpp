@@ -79,24 +79,28 @@ namespace HDE
 				request.append(buffer, bytesRead);
 				size_t pos = request.find("\r\n\r\n");
 				if (pos != string::npos)
+				{
 					headers = request.substr(0, pos + 4);
+					content = request.substr(pos + 4);
+				}
 			}
 			cout << "Done reading header" << endl;
 			this->status = READING_DATA;
 
 			// get content length
 			if (this->content_length == -1)
-				this->content_length = extract_content_length(headers);
+				this->content_length = extract_content_length(headers) - content.length(); // content length left
 		}
-		if (this->status == READING_DATA)
-			bytesRead = readOnce();
 
 		return (bytesRead);
 	}
 
 	void Server::handler()
 	{
+		cout << "Header:" << endl;
 		cout << this->headers << endl;
+		cout << "Content:" << endl;
+		cout << this->content << endl;
 	}
 
 	int Server::responder()

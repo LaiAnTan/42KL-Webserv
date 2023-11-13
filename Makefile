@@ -29,7 +29,7 @@ SERVER_O := $(addprefix $(ODIR)/,$(notdir $(SERVER_C:.cpp=.o)))
 SOCKET_O := $(addprefix $(ODIR)/,$(notdir $(SOCKET_C:.cpp=.o)))
 
 # imagine using CFLAGS
-CFLAGS := -Wall -Wextra -Werror -std=c++98
+# CFLAGS := -Wall -Wextra -Werror -std=c++98
 
 vpath %.cpp $(SRCS) $(SRCS_CDIR) $(CONFIG_CDIR) $(UTIL_CDIR) $(SERVER_CDIR) $(SOCKET_CDIR)
 
