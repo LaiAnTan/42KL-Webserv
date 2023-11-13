@@ -98,6 +98,7 @@ namespace HDE
 					// connected clients
 					else
 					{
+						current = servers[pfds[x].fd];
 						if (pfds[x].revents & POLLIN)
 						{
 							cout << BLUE << "[NOTICE] Socket at " << pfds[x].fd << " is receiving data" << endl;

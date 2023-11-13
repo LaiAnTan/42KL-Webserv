@@ -90,9 +90,11 @@ namespace HDE
 			// get content length
 			if (this->content_length == -1)
 				this->content_length = extract_content_length(headers) - content.length(); // content length left
+
+			return (bytesRead);
 		}
 
-		return (bytesRead);
+		return (0);
 	}
 
 	void Server::handler()
