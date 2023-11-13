@@ -92,11 +92,6 @@ namespace HDE
 		return headers.length() + content.length();
 	}
 
-	void Server::handler()
-	{
-		// cout << this->headers << endl;
-	}
-
 	int Server::responder()
 	{
 		string	header;

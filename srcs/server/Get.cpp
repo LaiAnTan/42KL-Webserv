@@ -63,9 +63,9 @@ namespace HDE
 		int		ret_val;
 
 		// for redirects
-		cout << "Redirection Url = " << redirect_url << endl;
 		if (not redirect_url.empty())
 		{
+			cout << "Redirection Url = " << redirect_url << endl;
 			string response;
 			response.append("HTTP/1.1 302 Found\r\n");
 			response.append("Location:" + redirect_url + "\r\n\r\n");
