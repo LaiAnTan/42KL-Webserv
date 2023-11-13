@@ -24,6 +24,7 @@ namespace HDE
 		std::vector<string>	header_tokens = util::split(header, string(" "));
 
 		cout << header << endl;
+		this->status = DONE;
 
 		if (header_tokens.empty() == true)
 			// return what bro??

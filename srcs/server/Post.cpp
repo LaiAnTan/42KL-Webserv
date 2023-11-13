@@ -40,6 +40,7 @@ namespace HDE
 		// more of a failsafe then anything
 		// failsafe my fucking ass, if this happens its an error
 		// this means THERES NO END BOUNDARY STRING
+		cout << "Length = " << this->content_length << endl;
 		if (this->content_length <= 0 && this->content.empty())
 		{
 			errno = EUCLEAN; // custom errno num hehe
@@ -151,6 +152,11 @@ namespace HDE
 
 		this->status = RECEIVING_DATA;
 		cout << YELLOW << "Handling Post Request" << endl;
+
+		// wow nothing is posted
+		if (this->content_length == 0)
+			return handlePostResponse();
+
 		return import_read_data();
 	}
 

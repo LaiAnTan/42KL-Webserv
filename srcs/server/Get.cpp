@@ -192,6 +192,8 @@ namespace HDE
 		return 1;
 	}
 
+	// int Server:: 
+
 	int Server::handleGetRequest()
 	{
 		string headers = HDE::Server::get_headers();
