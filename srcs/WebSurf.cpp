@@ -9,6 +9,7 @@ namespace HDE
 		this->ng_config = config;
 		this->server_count = 0;
 		this->doorbell_count = 0;
+		this->total_count = 0;
 
 		init_doorbells();
 	}
@@ -40,19 +41,15 @@ namespace HDE
 		// barebone poll inplementation
 		// will implement errors later
 		int	ret_value;
-		int	total_fds;
 		int	run_server = true;
 		Server	*current;
 
 		while (run_server)
 		{
-			total_fds = doorbell_count + server_count;
-
-
 			cout << CYAN << "[PROMPT] --------------------------" << endl;
 			cout << "Number of Connection Points    || " << doorbell_count << endl;
 			cout << "Number of Serving Servers      || " << server_count << endl;
-			cout << "Total Number of Sockets Active || " << total_fds << endl;
+			cout << "Total Number of Sockets Active || " << this->total_count << endl;
 			cout << "-------------------------------------" << endl;
 			cout << "PORTS IN USE" << endl;
 			cout << "-------------------------------------" << endl;
@@ -62,7 +59,7 @@ namespace HDE
 			cout << CYAN << "[PROMPT-END] ----------------------" << endl;
 			cout << RESET;
 
-			ret_value = poll(&pfds[0], total_fds, WebSurf::timeout);
+			ret_value = poll(&pfds[0], this->total_count, WebSurf::timeout);
 			if (ret_value < 0)
 			{
 				cerr << RED << "[ERROR] Something Went wrong with poll" << endl;
@@ -75,7 +72,12 @@ namespace HDE
 			}
 			else
 			{
-				for (int x = 0; x < total_fds; ++x)
+				cout << "List of client ports: " << endl;
+				for (int x = doorbell_count; x < this->total_count; ++x)
+					cout << pfds[x].fd << ", ";
+				cout << endl;
+
+				for (int x = 0; x < this->total_count; ++x)
 				{
 					if (pfds[x].revents == 0)
 						continue;
@@ -99,13 +101,20 @@ namespace HDE
 					else
 					{
 						current = servers[pfds[x].fd];
+						cout << endl << MAGENTA << "Checking Socket " << pfds[x].fd << endl;
 						if (pfds[x].revents & POLLIN)
 						{
 							cout << BLUE << "[NOTICE] Socket at " << pfds[x].fd << " is receiving data" << endl;
 							cout << RESET;
 							// if read returns zero, socket has disconnected, remove the server
-							if (!current->accepter())
-								remove_server(pfds[x].fd);
+							if (current->accepter() <= 0)
+							{
+								if (current->accepter() == 0)
+									cout << YELLOW << "[INFO] Socket at " << pfds[x].fd << " has disconnected" << endl;
+								else 
+									cerr << RED << "[ERROR] Socket " << pfds[x].fd << " : An error had occured" << endl;
+								remove_server(pfds[x].fd, &x);
+							}
 							else
 								pfds[x].events = POLLOUT;
 						}
@@ -129,7 +138,7 @@ namespace HDE
 							{
 								cerr << RED << "[ERROR] Severe Error at Server fd " << pfds[x].fd << " , disconnecting server" << endl;
 								cerr << RED << "Reason: " << strerror(errno) << endl;
-								remove_server(pfds[x].fd);
+								remove_server(pfds[x].fd, &x);
 							}
 							else if (current->get_status() == DONE)
 							{
@@ -142,7 +151,7 @@ namespace HDE
 							cerr << RED << "[ERROR] Error at Server fd " << pfds[x].fd << endl;
 							if (pfds[x].revents & POLLHUP)
 								cout << YELLOW << "[INFO] Client Has Hung Up on server" << endl;
-							remove_server(pfds[x].fd);
+							remove_server(pfds[x].fd, &x);
 						}
 					}
 				}
@@ -150,7 +159,7 @@ namespace HDE
 		}
 	}
 
-	bool	WebSurf::remove_server(int server_fd)
+	bool	WebSurf::remove_server(int server_fd, int *counter)
 	{
 		// close fd connection
 		cout << BLUE << "[NOTICE] Closing connection to file descriptor " << server_fd << endl;
@@ -171,6 +180,9 @@ namespace HDE
 		this->servers.erase(server_fd);
 
 		--this->server_count;
+		--this->total_count;
+		(*counter) = (*counter) - 1;
+
 		return true;
 	}
 
@@ -190,6 +202,8 @@ namespace HDE
 
 		cout << BLUE << "[NOTICE] Added socket fd " << fd << endl;
 		++this->server_count;
+		++this->total_count;
+
 		return true;
 	}
 
@@ -216,6 +230,7 @@ namespace HDE
 			doorbells.insert(doorbell_node(fd, new_doorbell));
 
 			++this->doorbell_count;
+			++this->total_count;
 		}
 		return true;
 	}

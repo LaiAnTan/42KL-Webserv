@@ -94,7 +94,7 @@ namespace HDE
 
 	void Server::handler()
 	{
-		cout << this->headers << endl;
+		// cout << this->headers << endl;
 	}
 
 	int Server::responder()
@@ -102,7 +102,7 @@ namespace HDE
 		string	header;
 		int ret_value = 0;
 
-		cout << "Server status --- " << this->status << endl;
+		// cout << "Server status --- " << this->status << endl;
 		switch (this->status)
 		{
 			case NEW:

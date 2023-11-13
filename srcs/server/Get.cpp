@@ -90,7 +90,7 @@ namespace HDE
 				response << "\r\n";
 				response << get_file_data(filename.c_str());
 
-				cout << YELLOW << "response sended: \n" << response.str() << endl;
+				// cout << YELLOW << "response sended: \n" << response.str() << endl;
 
 				ret_val = sendData(this->newsocket, (void *)response.str().c_str(), response.str().size());
 				if (ret_val < 0)

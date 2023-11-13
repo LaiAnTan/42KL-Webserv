@@ -40,15 +40,17 @@ namespace HDE
 			pollfd_list		pfds;
 
 			doorbell_list	doorbells;
-			int	doorbell_count;
+			int				doorbell_count;
 
 			server_list		servers; 
-			int	server_count;
+			int				server_count;
+
+			int				total_count;
 
 			void	init_doorbells();
 
 			bool	add_doorbell(const conf::ServerConfig *config);
-			bool	remove_server(int server_fd);
+			bool	remove_server(int server_fd, int *counter);
 			bool	add_server(ServerListener *doorbell);
 		public:
 			WebSurf(const conf::Config *config);
