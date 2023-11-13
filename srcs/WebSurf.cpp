@@ -72,10 +72,10 @@ namespace HDE
 			}
 			else
 			{
-				cout << "List of client ports: " << endl;
-				for (int x = doorbell_count; x < this->total_count; ++x)
-					cout << pfds[x].fd << ", ";
-				cout << endl;
+				// cout << "List of client ports: " << endl;
+				// for (int x = doorbell_count; x < this->total_count; ++x)
+				// 	cout << pfds[x].fd << ", ";
+				// cout << endl;
 
 				for (int x = 0; x < this->total_count; ++x)
 				{

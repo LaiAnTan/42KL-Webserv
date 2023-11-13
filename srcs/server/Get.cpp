@@ -56,12 +56,23 @@ namespace HDE
 		return this->sendData(this->newsocket, chunk_segment.str().c_str(), chunk_segment.str().length());
 	}
 
-	int Server::handleGetResponse(string filename)
+	int Server::handleGetResponse(string filename, string redirect_url)
 	{
 		string	header, extension;
 		std::stringstream	response;
 		int		ret_val;
 
+		// for redirects
+		cout << "Redirection Url = " << redirect_url << endl;
+		if (not redirect_url.empty())
+		{
+			string response;
+			response.append("HTTP/1.1 302 Found\r\n");
+			response.append("Location:" + redirect_url + "\r\n\r\n");
+			return sendData(this->newsocket, (void *)response.c_str(), response.size());
+		}
+
+		// for send file contents
 		extension = filename.substr(filename.find(".", 1));
 
 		// handles header
@@ -185,11 +196,49 @@ namespace HDE
 	{
 		string headers = HDE::Server::get_headers();
 		string content = HDE::Server::get_content();
-		string file, path;
+		string file = "./html/200.html", path, redirect_url;
 
 		file = "404.html";
 		path = headers.substr(headers.find("GET ") + 4);
-		path = "." + path.substr(0, path.find(" "));
+		path = path.substr(0, path.find(" "));
+		cout << YELLOW << path << RESET << endl;
+		std::map<string, conf::ServerLocation>::const_iterator it = config->get_locations().begin();
+		std::map<string, conf::ServerLocation>::const_iterator end = config->get_locations().end();
+
+		this->status = DONE;
+
+		// bro i will skin u alive bro u hear me bro?
+
+		// this handles redirection url
+		for (; it != end; it++)
+		{
+			if (strcmp(path.c_str(), it->first.c_str()) == 0)
+			{
+				conf::ServerLocation::rules_map::const_iterator rules_it = it->second.get_rules().begin();
+				conf::ServerLocation::rules_map::const_iterator rules_end = it->second.get_rules().end();
+				for (; rules_it != rules_end; rules_it++)
+				{
+					if (strcmp("return", rules_it->first.c_str()) == 0)
+					{
+						// cout << RED << rules_it->first << RESET << " ";
+						std::vector<string>::const_iterator return_it = rules_it->second.begin();
+						std::vector<string>::const_iterator return_end = rules_it->second.end();
+						for (; return_it != return_end; return_it++)
+						{
+							redirect_url = *return_it;
+							cout << YELLOW << redirect_url << RESET << endl;
+						}
+					}
+				}
+				break;
+			}
+		}
+		// temp
+		// will make a function for this later
+		if (not redirect_url.empty())
+			return this->handleGetResponse(file, redirect_url);
+
+		path = "." + path;
 
 		// jesus fucking christ bro what the fuck is this
 		if (path == "./")
@@ -203,8 +252,6 @@ namespace HDE
 		else if (path.find(".py") != string::npos)
 			file = path;
 
-		this->status = DONE;
-
 		if (file == "404.html")
 			return this->sendError(file);
 
@@ -213,7 +260,7 @@ namespace HDE
 		{
 			return this->py();
 		}
-		return this->handleGetResponse(file);
+		return this->handleGetResponse(file, redirect_url);
 	}
 
 	// CGI METHODS

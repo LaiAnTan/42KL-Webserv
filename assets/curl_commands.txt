@@ -1,0 +1,11 @@
+#for checking no end post Request
+!remove the end boundary
+
+curl -X POST -H "Content-Type: multipart/form-data; boundary=---WebKitFormBoundary9RS8AOoKzONRhPx5" \
+     --data-binary $'---WebKitFormBoundary9RS8AOoKzONRhPx5\r\nContent-Disposition: form-data; name="files[]"; filename="test.txt"\r\nContent-Type: text/plain\r\n\r\ntest1\ntest2\ntest3\r\n------WebKitFormBoundary9RS8AOoKzONRhPx5--\r\n' \
+     http://localhost:80
+
+
+#for delete request after successful upload
+
+curl -X DELETE http://localhost:80/<filename>

@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "../config/Config.hpp"
+#include "../config/Config.hpp"
 #include <sys/stat.h>
 
 using std::cout;

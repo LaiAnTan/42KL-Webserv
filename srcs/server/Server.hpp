@@ -60,7 +60,7 @@ namespace HDE
 
 			// get
 			int	handleGetRequest();
-			int	handleGetResponse(string filename);
+			int	handleGetResponse(string filename, string redirect_url);
 
 			// delete
 			int	handleDeleteRequest();
