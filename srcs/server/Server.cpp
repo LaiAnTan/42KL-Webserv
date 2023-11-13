@@ -99,8 +99,8 @@ namespace HDE
 	{
 		cout << "Header:" << endl;
 		cout << this->headers << endl;
-		cout << "Content:" << endl;
-		cout << this->content << endl;
+		// cout << "Content:" << endl;
+		// cout << this->content << endl;
 	}
 
 	int Server::responder()
