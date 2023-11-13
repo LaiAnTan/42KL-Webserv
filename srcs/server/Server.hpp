@@ -58,6 +58,8 @@ namespace HDE
 			int	handlePostRequest();
 			int	handlePostResponse();
 
+			int redirectClient(string path);
+
 			// get
 			int	handleGetRequest();
 			int	handleGetResponse(string filename, string redirect_url);

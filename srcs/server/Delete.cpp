@@ -23,12 +23,12 @@ namespace HDE
 		std::string			header = get_headers();
 		std::vector<string>	header_tokens = util::split(header, string(" "));
 
-		cout << header << endl;
-		this->status = DONE;
+		// cout << header << endl;
 
 		if (header_tokens.empty() == true)
 			// return what bro??
-			return 0;
+			// return error brooo why header_token will empty
+			return 1;
 
 		// i hate hardcoding ???
 		root = "root";
@@ -65,6 +65,7 @@ namespace HDE
 			response.append("HTTP/1.1 204 No Content\r\n");
 
 		cout << "Header Sent: \n" << response << endl;
+		this->status = DONE;
 		return sendData(this->newsocket, (void *) response.c_str(), response.size());
 	}
 }

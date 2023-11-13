@@ -192,26 +192,13 @@ namespace HDE
 		return 1;
 	}
 
-	// int Server:: 
-
-	int Server::handleGetRequest()
+	int Server::redirectClient(string path)
 	{
-		string headers = HDE::Server::get_headers();
-		string content = HDE::Server::get_content();
-		string file = "./html/200.html", path, redirect_url;
-
-		file = "404.html";
-		path = headers.substr(headers.find("GET ") + 4);
-		path = path.substr(0, path.find(" "));
-		cout << YELLOW << path << RESET << endl;
 		std::map<string, conf::ServerLocation>::const_iterator it = config->get_locations().begin();
 		std::map<string, conf::ServerLocation>::const_iterator end = config->get_locations().end();
 
-		this->status = DONE;
+		string	redirect_url;
 
-		// bro i will skin u alive bro u hear me bro?
-
-		// this handles redirection url
 		for (; it != end; it++)
 		{
 			if (strcmp(path.c_str(), it->first.c_str()) == 0)
@@ -235,10 +222,30 @@ namespace HDE
 				break;
 			}
 		}
-		// temp
-		// will make a function for this later
 		if (not redirect_url.empty())
-			return this->handleGetResponse(file, redirect_url);
+			return this->handleGetResponse("", redirect_url);
+		else
+			return -1;
+	}
+
+	int Server::handleGetRequest()
+	{
+		string headers = HDE::Server::get_headers();
+		string content = HDE::Server::get_content();
+		string file = "./html/200.html", path, redirect_url;
+
+		file = "404.html";
+		path = headers.substr(headers.find("GET ") + 4);
+		path = path.substr(0, path.find(" "));
+		cout << YELLOW << path << RESET << endl;
+
+		int ret_val;
+
+		this->status = DONE;
+
+		// -1 means it isnt a redirection
+		if ((ret_val = this->redirectClient(path)) != -1)
+			return ret_val;
 
 		path = "." + path;
 
@@ -363,7 +370,7 @@ namespace HDE
 
 		header.append("HTTP/1.1 200 OK\r\n");
 		header.append("Connection: keep-alive\r\n");
-		cout << RED << content << RESET << endl;
+		// cout << RED << content << RESET << endl;
 		sendData(this->newsocket, (void *)header.c_str(), header.size());
 		sendData(this->newsocket, (void *)content.c_str(), content.size());
 		return 0;
