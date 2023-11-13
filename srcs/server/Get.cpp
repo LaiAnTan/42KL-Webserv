@@ -242,7 +242,7 @@ namespace HDE
 
 		// jesus fucking christ bro what the fuck is this
 		if (path == "./")
-			file = "./html/index.html";
+			file = "./html/" + config->get_index();
 		else if (access(path.c_str(), R_OK) == 0)
 			file = path;
 		else if (path.find(".html") != string::npos)
