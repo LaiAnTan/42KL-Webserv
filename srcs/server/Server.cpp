@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include <sys/socket.h>
+#include "../config/Config.hpp"
 /*
 AF_INET: IPv4
 SOCK_STREAM: TCP. Is a connection-based protocol. The connection is established 
@@ -169,7 +170,10 @@ namespace HDE
 		{
 			numSent = send(sckt, pdata, datalen, MSG_NOSIGNAL); // can do MSG_NOSIGNAL
 			if (numSent == -1)
+			{
+				std::cerr << RED << "Error Sending Data" << endl;
 				return -1;
+			}
 			pdata += numSent;
 			datalen -= numSent;
 		}

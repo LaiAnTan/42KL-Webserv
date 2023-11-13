@@ -174,12 +174,7 @@ namespace HDE
 
 			cout << YELLOW << "[INFO] Sending Following Content\n" << response.str() << endl;
 
-			int res = sendData(this->newsocket, (void *)response.str().c_str(), response.str().size());
-			if (res < 0)
-			{
-				std::cerr << RED << "Error sending error html file.\n" << strerror(errno) << RESET << endl;
-			}
-			return res < 0;
+			return sendData(this->newsocket, (void *)response.str().c_str(), response.str().size());
 		}
 		else
 			std::cerr << RED << "Error opening error html file." << RESET << endl;

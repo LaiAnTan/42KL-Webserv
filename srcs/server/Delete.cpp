@@ -61,7 +61,7 @@ namespace HDE
 		if (is_deleted == false)
 			response.append("HTTP/1.1 202 Accepted\r\n");
 		else
-			response.append("HTTP/1.1 204 OK\r\n");
+			response.append("HTTP/1.1 204 No Content\r\n");
 
 		cout << "Header Sent: \n" << response << endl;
 		return sendData(this->newsocket, (void *) response.c_str(), response.size());
