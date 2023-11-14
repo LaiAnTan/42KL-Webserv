@@ -47,8 +47,8 @@ namespace HDE
 		while (run_server)
 		{
 			cout << CYAN << "[PROMPT] --------------------------" << endl;
-			cout << "Number of Connection Points    || " << doorbell_count << endl;
-			cout << "Number of Serving Servers      || " << server_count << endl;
+			cout << "Number of Connection Points    || " << this->doorbell_count << endl;
+			cout << "Number of Serving Servers      || " << this->server_count << endl;
 			cout << "Total Number of Sockets Active || " << this->total_count << endl;
 			cout << "-------------------------------------" << endl;
 			cout << "PORTS IN USE" << endl;
