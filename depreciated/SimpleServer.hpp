@@ -3,7 +3,6 @@
 
 #include <unistd.h>
 #include <iostream>
-#include "../hdenetworking.hpp"
 
 namespace HDE
 {
@@ -12,7 +11,6 @@ namespace HDE
 	private:
 		ListeningSocket *socket;
 		virtual void accepter() = 0;
-		virtual void handler() = 0;
 		virtual void responder() = 0;
 	public:
 		SimpleServer(int domain, int service, int protocol, int port, u_long interface, int backlog);

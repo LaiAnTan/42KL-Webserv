@@ -101,7 +101,7 @@ namespace HDE
 					else
 					{
 						current = servers[pfds[x].fd];
-						cout << endl << MAGENTA << "Checking Socket " << pfds[x].fd << endl;
+						cout << endl << MAGENTA << "[NOTICE] Checking Socket " << pfds[x].fd << endl;
 						if (pfds[x].revents & POLLIN)
 						{
 							cout << BLUE << "[NOTICE] Socket at " << pfds[x].fd << " is receiving data" << endl;
@@ -122,11 +122,6 @@ namespace HDE
 						{
 							cout << BLUE << "[NOTICE] Socket at " << pfds[x].fd << " is sending data" << endl;
 							cout << RESET;
-
-							cout << CYAN << "[HANDLER] --------------------------" << endl;
-							cout << "WHAT WAS READ" << RESET << endl;
-							current->handler();
-							cout << CYAN << "[HANDLER-END] ----------------------" << endl;
 
 							cout << GREEN << "[RESPONDER] -----------------------" << endl;
 							cout << RESET;

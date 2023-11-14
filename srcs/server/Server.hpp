@@ -85,7 +85,6 @@ namespace HDE
 			~Server();
 
 			int accepter();
-			void handler();
 			int responder();
 
 			string						get_headers();
