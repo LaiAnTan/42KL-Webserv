@@ -163,7 +163,7 @@ namespace HDE
 
 		while (datalen > 0)
 		{
-			numSent = send(sckt, pdata, datalen, MSG_NOSIGNAL); // can do MSG_NOSIGNAL
+			numSent = send(sckt, pdata, datalen, 0); // can do MSG_NOSIGNAL
 			if (numSent == -1)
 			{
 				std::cerr << RED << "Error Sending Data" << endl;

@@ -43,7 +43,6 @@ namespace HDE
 		cout << "Length = " << this->content_length << endl;
 		if (this->content_length <= 0 && this->content.empty())
 		{
-			errno = EUCLEAN; // custom errno num hehe
 			return 1;
 		}
 		// the end boundary string is found

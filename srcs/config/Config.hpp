@@ -39,6 +39,7 @@ namespace conf
 			ServerLocation(std::ifstream *file);
 			ServerLocation(const ServerLocation &L);
 			ServerLocation &operator = (const ServerLocation &L);
+			ServerLocation();
 			~ServerLocation();
 
 			//getter

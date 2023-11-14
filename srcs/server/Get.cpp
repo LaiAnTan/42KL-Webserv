@@ -194,38 +194,62 @@ namespace HDE
 
 	int Server::redirectClient(string path)
 	{
-		std::map<string, conf::ServerLocation>::const_iterator it = config->get_locations().begin();
-		std::map<string, conf::ServerLocation>::const_iterator end = config->get_locations().end();
-
 		string	redirect_url;
+		string	root_index;
 
-		for (; it != end; it++)
+		std::map<string, conf::ServerLocation> location = config->get_locations();
+
+		if (location.find(path) != location.end())
 		{
-			if (strcmp(path.c_str(), it->first.c_str()) == 0)
+			conf::ServerLocation::rules_map rules = location[path].get_rules();
+			if (rules.find("return") != rules.end())
 			{
-				conf::ServerLocation::rules_map::const_iterator rules_it = it->second.get_rules().begin();
-				conf::ServerLocation::rules_map::const_iterator rules_end = it->second.get_rules().end();
-				for (; rules_it != rules_end; rules_it++)
+				std::vector<string>::const_iterator return_it = rules["return"].begin();
+				std::vector<string>::const_iterator return_end = rules["return"].end();
+
+				for (; return_it != return_end; return_it++)
 				{
-					if (strcmp("return", rules_it->first.c_str()) == 0)
-					{
-						// cout << RED << rules_it->first << RESET << " ";
-						std::vector<string>::const_iterator return_it = rules_it->second.begin();
-						std::vector<string>::const_iterator return_end = rules_it->second.end();
-						for (; return_it != return_end; return_it++)
-						{
-							redirect_url = *return_it;
-							cout << YELLOW << redirect_url << RESET << endl;
-						}
-					}
+					redirect_url = *return_it;
+					cout << YELLOW << *return_it << RESET << endl;
 				}
-				break;
 			}
+			else if (rules.find("index") != rules.end())
+			{
+				std::vector<string>::const_iterator index_it = rules["index"].begin();
+				std::vector<string>::const_iterator index_end = rules["index"].end();
+				std::vector<string>::const_iterator root_it = rules["root"].begin();
+				std::vector<string>::const_iterator root_end = rules["root"].end();
+				string root, index;
+				
+				for (; root_it != root_end; root_it++)
+					root = *root_it;
+				for (; index_it != index_end; index_it++)
+					index = *index_it;
+				root_index = "." + root + "/" + index;
+			}
+			else if (rules.find("alias") != rules.end())
+			{
+				cout << "found" << endl;
+				std::vector<string>::const_iterator alias_it = rules["alias"].begin();
+				std::vector<string>::const_iterator alias_end = rules["alias"].end();
+
+				for (; alias_it != alias_end; alias_it++)
+				{
+					redirect_url = *alias_it;
+					cout << YELLOW << *alias_it << RESET << endl;
+				}
+			}
+			else
+				cout << "not found" << endl;
+
 		}
 		if (not redirect_url.empty())
 			return this->handleGetResponse("", redirect_url);
+		else if (not root_index.empty())
+			return this->handleGetResponse(root_index, "");
 		else
 			return -1;
+
 	}
 
 	int Server::handleGetRequest()
@@ -243,7 +267,7 @@ namespace HDE
 
 		this->status = DONE;
 
-		// -1 means it isnt a redirection
+		// -1 means it isnt a redirection 
 		if ((ret_val = this->redirectClient(path)) != -1)
 			return ret_val;
 
@@ -256,8 +280,8 @@ namespace HDE
 			file = path;
 		else if (path.find(".html") != string::npos)
 			file = path;
-		else if (path.find("error.css") != string::npos)
-			file = "./html/component/error.css";
+		// else if (path.find("error.css") != string::npos)
+		// 	file = "./html/component/error.css";
 		else if (path.find(".py") != string::npos)
 			file = path;
 
@@ -265,6 +289,8 @@ namespace HDE
 			return this->sendError(file);
 
 		cout << GREEN << "File: " << file << "	Path: " << path << RESET<< endl;
+
+
 		if (file.find(".py") != string::npos)
 		{
 			return this->py();

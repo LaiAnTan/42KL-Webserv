@@ -2,6 +2,9 @@
 
 namespace conf
 {
+	ServerLocation::ServerLocation()
+	{}
+
 	ServerLocation::ServerLocation(std::ifstream *file)
 	{
 		string text, var1, var2, key, value;
