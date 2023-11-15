@@ -12,9 +12,11 @@
 #include <sstream>
 #include <map>
 #include <vector>
+#include <set>
 #include <fstream>
 #include <exception>
 #include "../server/Server.hpp"
+#include "validateKeywords.tpp"
 
 # define RESET		"\033[0m"
 # define BLACK		"\033[1;30m"
@@ -35,7 +37,9 @@ namespace conf
 	class ServerLocation
 	{
 		public:
+
 			typedef std::map<string, std::vector<string> > rules_map;
+
 			ServerLocation(std::ifstream *file);
 			ServerLocation(const ServerLocation &L);
 			ServerLocation &operator = (const ServerLocation &L);
@@ -44,7 +48,9 @@ namespace conf
 
 			//getter
 			const std::map<string, std::vector<string> > &get_rules() const;
+
 		private:
+			std::set<string>						valid_keywords;
 			std::map<string, std::vector<string> >	rules;
 	};
 
@@ -95,6 +101,7 @@ namespace conf
 			std::vector<string>						allowed_method;
 			// stuff
 
+			std::set<string>					valid_keywords;
 			std::map<string, ServerLocation>	locations;
 
 	};
@@ -132,6 +139,14 @@ namespace conf
 		private:
 			const char* message;
 	};
+
+	class InvalidKeywordException: public std::exception
+	{
+		public:
+			const char* what() const throw();
+	};
+
+	template <typename T, typename U> bool	validateKeywords(std::set<std::string> keywords, std::map<T, U>	&map);
 }
 
 #endif

@@ -63,4 +63,9 @@ namespace conf
 			outs << *it << endl;
 		return (outs);
 	}
+
+	const char* conf::InvalidKeywordException::what() const throw()
+	{
+		return ("InvalidKeywordException: Invalid Keyword found in config file");
+	}
 }

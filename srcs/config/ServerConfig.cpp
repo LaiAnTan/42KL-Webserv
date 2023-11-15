@@ -180,8 +180,11 @@ namespace conf
 			&conf::ServerConfig::set_error, &conf::ServerConfig::set_cgi, &conf::ServerConfig::set_methods};
 		string arr[] = {"listen", "root", "index", "server_name", \
 			"client_max_body_size", "error_page", "cgi_script", "allowed_methods"};
+
 		while (std::getline(*file, text))
 		{
+			if (text[0] == '}')
+				break;
 			if (text.find('#') == std::string::npos)
 			{
 				i = 0;
@@ -189,17 +192,15 @@ namespace conf
 					i++;
 				if (i < 8)
 					(this->*funct[i])(text);
+				else if (text.find("location /") != std::string::npos)
+					location_name(text, file);
+				else if (text.empty() == false)
+					throw (conf::InvalidKeywordException());
 				if (this->server_name.empty())
 					this->server_name = "localhost";
-				if (text.find("location /") != std::string::npos)
-				{
-					location_name(text, file);	
-				}
 			}
-			if (text[0] == '}')
-				break;
-		}
 
+		}
 	}
 
 	ServerConfig::ServerConfig(const ServerConfig &server_config)

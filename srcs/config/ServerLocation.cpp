@@ -1,4 +1,5 @@
 #include "Config.hpp"
+#include <set>
 
 namespace conf
 {
@@ -9,6 +10,13 @@ namespace conf
 	{
 		string text, var1, var2, key, value;
 		std::vector<string> tmp, value_vec;
+
+		valid_keywords.insert("root");
+		valid_keywords.insert("index");
+		valid_keywords.insert("allowed_methods");
+		valid_keywords.insert("client_max_body_size");
+		valid_keywords.insert("autoindex");
+		valid_keywords.insert("return");
 
 		while (std::getline(*file, text))
 		{
@@ -45,6 +53,8 @@ namespace conf
 				tmp.clear();
 			}
 		}
+		if (conf::validateKeywords(valid_keywords, rules) == false)
+			throw (conf::InvalidKeywordException());
 	}
 
 	ServerLocation::ServerLocation(const ServerLocation &L)
@@ -62,7 +72,8 @@ namespace conf
 	}
 
 	ServerLocation::~ServerLocation()
-	{}
+	{
+	}
 
 	const std::map<string, std::vector<string> > &ServerLocation::get_rules() const
 	{

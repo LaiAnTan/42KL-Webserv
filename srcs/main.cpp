@@ -8,7 +8,7 @@ int main(int ac, char **av)
 		try
 		{
 			conf::Config	configuration(file);
-			// cout << configuration << endl;
+			cout << configuration << endl;
 			HDE::WebSurf		server(&configuration);
 			server.run_servers();
 			// HDE::Server		server(&configuration);

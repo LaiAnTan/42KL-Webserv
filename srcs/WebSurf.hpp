@@ -52,6 +52,7 @@ namespace HDE
 			bool	add_doorbell(const conf::ServerConfig *config);
 			bool	remove_server(int server_fd, int *counter);
 			bool	add_server(ServerListener *doorbell);
+
 		public:
 			WebSurf(const conf::Config *config);
 			~WebSurf();
