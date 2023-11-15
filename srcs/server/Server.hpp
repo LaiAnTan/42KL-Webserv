@@ -41,6 +41,14 @@ namespace HDE
 			string						content;
 			const conf::ServerConfig	*config;
 
+			// header details
+			// we would NOT have this problem IF SOMEONE COMPILED THE HEADER BEFOREHAND
+			string											method;
+			string											path;
+
+			void	parse_header();
+			int		check_valid_method();
+
 			// get chunking
 			ServerStatus				status;
 			std::ifstream				file;
@@ -58,7 +66,8 @@ namespace HDE
 			int	handlePostRequest();
 			int	handlePostResponse();
 
-			int redirectClient(string path);
+			int			redirectClient();
+			string		config_path();
 
 			// get
 			int	handleGetRequest();
@@ -73,6 +82,7 @@ namespace HDE
 			string	get_type(string extension);
 			bool	file_exists(std::string path);
 			string	get_file_data(std::string filename);
+			void	empty_socket();
 
 			// for cgi
 			int	py();

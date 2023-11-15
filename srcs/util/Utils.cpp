@@ -2,7 +2,7 @@
 
 namespace util
 {
-	std::vector<std::string>	split(std::string &str, std::string	delim)
+	std::vector<std::string>	split(std::string str, std::string	delim)
 	{
 		size_t 						pos = str.find(delim);
 		std::vector<std::string>	tokens;
