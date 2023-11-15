@@ -35,7 +35,7 @@ namespace HDE
 			typedef	doorbell_list::iterator				doorbell_iter;
 			typedef	std::pair<int, ServerListener *>	doorbell_node;
 
-			static	int timeout;
+			static int		timeout;
 
 			pollfd_list		pfds;
 

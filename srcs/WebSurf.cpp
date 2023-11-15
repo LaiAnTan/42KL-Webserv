@@ -40,7 +40,7 @@ namespace HDE
 		// amen
 		// barebone poll inplementation
 		// will implement errors later
-		int	ret_value;
+		int	ret_value = 0;
 		int	run_server = true;
 		Server	*current;
 

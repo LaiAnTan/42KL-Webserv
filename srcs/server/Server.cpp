@@ -1,6 +1,8 @@
 #include "Server.hpp"
 #include <sys/socket.h>
 #include "../config/Config.hpp"
+#include "../util/Utils.hpp"
+
 /*
 AF_INET: IPv4
 SOCK_STREAM: TCP. Is a connection-based protocol. The connection is established 
@@ -92,23 +94,96 @@ namespace HDE
 		return headers.length() + content.length();
 	}
 
+	void	Server::parse_header()
+	{
+		string						header = get_headers();
+		string						first_row = util::split(header, "\r\n")[0];
+		std::vector<std::string>	first_row_info = util::split(first_row, " ");
+
+		// cout << first_row << endl;
+		// cout << first_row_info[0] << endl;
+
+		this->method = first_row_info[0];
+		this->path = first_row_info[1];
+	}
+
+	typedef	int (Server::*function_ptr) ();
+
+	int	Server::check_valid_method()
+	{
+		// general server allowed methods
+		std::vector<string>						server_methods = config->get_methods();
+
+		// specific location allowed methods
+		std::map<string, conf::ServerLocation>	location = config->get_locations();
+		conf::ServerLocation::rules_map			location_rules;
+		std::vector<string>						location_methods;
+
+		if (location.find(this->path) != location.end())
+		{
+			location_rules = location[this->path].get_rules();
+
+			if (location_rules.find("allowed_methods") != location_rules.end())
+				location_methods = location_rules["allowed_methods"];
+			else
+				// since dont have specific, use the server wide one
+				// technically, this can go below the else statement
+				// but the code would look absolutely horrendous
+				location_methods = server_methods;
+		}
+		else
+		{
+			// i honestly do not know what to do with this
+			// probably use the default one ig
+			location_methods = server_methods;
+		}
+
+		// check if method is allowed
+		// where the fuck is auto when u need it
+		std::vector<string>::iterator	method_start = location_methods.begin();
+		for (; method_start != location_methods.end(); ++method_start)
+		{
+			// all good!
+			// ps - return -25 since if it isnt found, sendError will be sent instead
+			// and sendError has a return value of 0 and 1
+			// sorry bout that :(
+			if (*(method_start) == this->method){
+				return -25;
+			}
+		}
+		// nope nope this method is NOT allowed
+		// return sendError
+		return sendError("405.html");
+	}
+
 	int Server::responder()
 	{
 		string	header;
-		int ret_value = 0;
+		int		ret_value = 1;
 
+		// you know these could have been in a abstract class riiiight?
+		function_ptr	function_list[3] = {&Server::handleGetRequest, &Server::handlePostRequest, &Server::handleDeleteRequest};
+		string			method_list[3] = {"GET", "POST", "DELETE"};
 		// cout << "Server status --- " << this->status << endl;
 		switch (this->status)
 		{
 			case NEW:
 				header = get_headers();
+				this->parse_header();
 
-				if (header.find("GET") != string::npos)
-					ret_value = handleGetRequest();
-				else if (header.find("POST") != string::npos)
-					ret_value = handlePostRequest();
-				else if (header.find("DELETE") != string::npos)
-					ret_value = handleDeleteRequest();
+				// check if method is valid
+				ret_value = this->check_valid_method();
+				if (ret_value != -25)
+					break;
+
+				// switch does not work on string
+				// this is one way of finding out
+				for (int x = 0; x < 3; ++x)
+				{
+					if (this->method == method_list[x]){
+						ret_value = (this->*function_list[x])();
+					}
+				}
 				break;
 			case SENDING_DATA:
 				ret_value = this->send_next_chunk();
@@ -117,6 +192,18 @@ namespace HDE
 				ret_value = this->import_read_data();
 				break;
 			case DONE:
+				// which reminds me, we should empty the socket 
+				// after everything is done
+
+				// because acceptor will only read the header, not the
+				// content
+
+				// content will be left in the socket
+				// at least i think it will, not sure
+
+				// actually ukw, lets see if this is the case anot
+				// this->empty_socket();
+
 				this->status = NEW;
 				break;
 			default:

@@ -47,7 +47,7 @@ namespace HDE
 		chunk_segment << std::hex << sending.length() << std::dec << "\r\n";
 		chunk_segment << sending << "\r\n";
 
-		cout << YELLOW << "[INFO] Sending Following Content\n" << chunk_segment.str() << RESET << endl; 
+		// cout << YELLOW << "[INFO] Sending Following Content\n" << chunk_segment.str() << RESET << endl; 
 
 		if (sending.length() == 0)
 			this->status = DONE;
@@ -58,7 +58,7 @@ namespace HDE
 
 	int Server::handleGetResponse(string filename, string redirect_url)
 	{
-		string	header, extension;
+		string				header, extension, mime_type;
 		std::stringstream	response;
 		int		ret_val;
 
@@ -72,15 +72,22 @@ namespace HDE
 			return sendData(this->newsocket, (void *)response.c_str(), response.size());
 		}
 
-		// for send file contents
-		extension = filename.substr(filename.find(".", 1));
-
 		// handles header
 		header.append("HTTP/1.1 200 OK\r\n");
 		header.append("Connection: keep-alive\r\n");
-		header.append("Content-Type: ");
-		header.append(this->get_type(extension));
-		header.append("\r\n");
+
+		// for send file contents
+		if (filename.find(".", 1) != string::npos)
+			extension = filename.substr(filename.find(".", 1));
+		else
+			extension = "";
+		// https://stackoverflow.com/questions/1176022/unknown-file-type-mime
+		mime_type = this->get_type(extension);
+		if (mime_type != ""){
+			header.append("Content-Type: ");
+			header.append(mime_type);
+			header.append("\r\n");
+		}
 
 		// determine if chunkey is needed
 		struct stat st;
@@ -138,6 +145,8 @@ namespace HDE
 	// fuck youuu
 	int Server::sendError(string type)
 	{
+		this->status = DONE;
+
 		string code[] = {"400.html", "404.html", "405.html", "413.html", "500.html", "501.html", "505.html"};
 		string msg[] = {"Bad Request", "Not Found", "Method Not Allowed", "Payload Too Large", "Internal Server Error", "Not Implemented", "HTTP Version Not Supported"};
 		string str1, str2, header, error_content;
@@ -157,6 +166,7 @@ namespace HDE
 		string find_code = "[CODE]";
 		string find_msg = "[MSG]";
 
+		// why is this hardcoded?
 		file.open("./html/error.html");
 		if (file.is_open())
 		{
@@ -175,7 +185,6 @@ namespace HDE
 			file.close();
 
 			// handles header
-
 			response << "HTTP/1.1 " << str1 << " " << str2 << "\r\n";
 			response << "Connection: keep-alive\r\n";
 			response << "Content-Type: text/html\r\n";
@@ -183,7 +192,7 @@ namespace HDE
 			response << "\r\n";
 			response << error_content;
 
-			cout << YELLOW << "[INFO] Sending Following Content\n" << response.str() << endl;
+			// cout << YELLOW << "[INFO] Sending Following Content\n" << response.str() << endl;
 
 			return sendData(this->newsocket, (void *)response.str().c_str(), response.str().size());
 		}
@@ -192,14 +201,12 @@ namespace HDE
 		return 1;
 	}
 
-	int Server::redirectClient(string path)
+	int Server::redirectClient()
 	{
-		string	redirect_url;
-		string	root_index;
+		string									redirect_url, root_index;
+		std::map<string, conf::ServerLocation>	location = config->get_locations();
 
-		std::map<string, conf::ServerLocation> location = config->get_locations();
-
-		if (location.find(path) != location.end())
+		if (location.find(this->path) != location.end())
 		{
 			conf::ServerLocation::rules_map rules = location[path].get_rules();
 			if (rules.find("return") != rules.end())
@@ -210,24 +217,55 @@ namespace HDE
 				for (; return_it != return_end; return_it++)
 				{
 					redirect_url = *return_it;
-					cout << YELLOW << *return_it << RESET << endl;
+					cout << YELLOW << "[INFO] Redirecting User to " << *return_it << RESET << endl;
 				}
 			}
-			else if (rules.find("index") != rules.end())
+
+		}
+		if (not redirect_url.empty())
+			return this->handleGetResponse("", redirect_url);
+		else
+			return -1;
+	}
+
+	string	Server::config_path()
+	{
+		string									root_index, root = "", index = "";
+		std::map<string, conf::ServerLocation>	location = config->get_locations();
+
+		if (location.find(this->path) != location.end())
+		{
+			conf::ServerLocation::rules_map rules = location[path].get_rules();
+			if (rules.find("root") != rules.end())
+			{
+				std::vector<string>::const_iterator root_it = rules["root"].begin();
+				std::vector<string>::const_iterator root_end = rules["root"].end();
+
+				for (; root_it != root_end; root_it++)
+					root = *root_it;
+			}
+			else
+			{
+				// use default Server root
+				root = config->get_root();
+			}
+
+			// index file
+			if (rules.find("index") != rules.end())
 			{
 				std::vector<string>::const_iterator index_it = rules["index"].begin();
 				std::vector<string>::const_iterator index_end = rules["index"].end();
-				std::vector<string>::const_iterator root_it = rules["root"].begin();
-				std::vector<string>::const_iterator root_end = rules["root"].end();
-				string root, index;
-				
-				for (; root_it != root_end; root_it++)
-					root = *root_it;
+
 				for (; index_it != index_end; index_it++)
 					index = *index_it;
-				root_index = "." + root + "/" + index;
 			}
-			else if (rules.find("alias") != rules.end())
+			else
+			{
+				// use default index (index.html)
+				index = "index.html";
+			}
+
+			if (rules.find("alias") != rules.end())
 			{
 				cout << "found" << endl;
 				std::vector<string>::const_iterator alias_it = rules["alias"].begin();
@@ -235,30 +273,23 @@ namespace HDE
 
 				for (; alias_it != alias_end; alias_it++)
 				{
-					redirect_url = *alias_it;
+					root_index = *alias_it;
 					cout << YELLOW << *alias_it << RESET << endl;
 				}
 			}
-			else
-				cout << "not found" << endl;
-
 		}
-		if (not redirect_url.empty())
-			return this->handleGetResponse("", redirect_url);
-		else if (not root_index.empty())
-			return this->handleGetResponse(root_index, "");
-		else
-			return -1;
 
+		root_index = root + this->path + index;
+		cout << "Path To File: " << root_index << endl;
+		return root_index;
 	}
 
 	int Server::handleGetRequest()
 	{
 		string headers = HDE::Server::get_headers();
 		string content = HDE::Server::get_content();
-		string file = "./html/200.html", path, redirect_url;
+		string path, redirect_url;
 
-		file = "404.html";
 		path = headers.substr(headers.find("GET ") + 4);
 		path = path.substr(0, path.find(" "));
 		cout << YELLOW << path << RESET << endl;
@@ -268,34 +299,24 @@ namespace HDE
 		this->status = DONE;
 
 		// -1 means it isnt a redirection 
-		if ((ret_val = this->redirectClient(path)) != -1)
+		if ((ret_val = this->redirectClient()) != -1)
 			return ret_val;
 
+		// build path based on config file
+		path = config_path();
 		path = "." + path;
 
-		// jesus fucking christ bro what the fuck is this
-		if (path == "./")
-			file = "./html/" + config->get_index();
-		else if (access(path.c_str(), R_OK) == 0)
-			file = path;
-		else if (path.find(".html") != string::npos)
-			file = path;
-		// else if (path.find("error.css") != string::npos)
-		// 	file = "./html/component/error.css";
-		else if (path.find(".py") != string::npos)
-			file = path;
-
-		if (file == "404.html")
-			return this->sendError(file);
-
-		cout << GREEN << "File: " << file << "	Path: " << path << RESET<< endl;
-
-
-		if (file.find(".py") != string::npos)
-		{
+		// check if it is a python file (check extension)
+		if (path.find(".py") != string::npos)
 			return this->py();
-		}
-		return this->handleGetResponse(file, redirect_url);
+
+		struct stat stats;
+
+		// check if it exist			// check if it is a regular file
+		if (stat(path.c_str(), &stats) || !S_ISREG(stats.st_mode))
+			return this->sendError("404.html");
+		cout << GREEN << "Path: " << path << RESET<< endl;
+		return this->handleGetResponse(path, redirect_url);
 	}
 
 	// CGI METHODS
