@@ -111,8 +111,10 @@ namespace HDE
 							{
 								if (current->accepter() == 0)
 									cout << YELLOW << "[INFO] Socket at " << pfds[x].fd << " has disconnected" << endl;
-								else 
+								else {
 									cerr << RED << "[ERROR] Socket " << pfds[x].fd << " : An error had occured" << endl;
+									cerr << RED << "Reason: " << strerror(errno) << endl;
+								}
 								remove_server(pfds[x].fd, &x);
 							}
 							else
@@ -123,10 +125,10 @@ namespace HDE
 							cout << BLUE << "[NOTICE] Socket at " << pfds[x].fd << " is sending data" << endl;
 							cout << RESET;
 
-							cout << GREEN << "[RESPONDER] -----------------------" << endl;
+							cout << GREEN << "[RESPONDER] -----------------------" << RESET << endl;
 							cout << RESET;
 							ret_value = current->responder();
-							cout << GREEN << "[RESPONDER-END] -------------------" << endl;
+							cout << GREEN << "[RESPONDER-END] -------------------" << RESET << endl;
 
 							// something went wrong and it isn't a 404
 							if (ret_value)
@@ -135,9 +137,9 @@ namespace HDE
 								cerr << RED << "Reason: " << strerror(errno) << endl;
 								remove_server(pfds[x].fd, &x);
 							}
-							else if (current->get_status() == DONE)
+							else if (current->get_status() == NEW)
 							{
-								current->set_status(NEW);
+								cout << "Set Back To Pollin" << endl;
 								pfds[x].events = POLLIN;
 							}
 						}

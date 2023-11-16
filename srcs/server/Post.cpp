@@ -42,15 +42,16 @@ namespace HDE
 		// this means THERES NO END BOUNDARY STRING
 		cout << "Length = " << this->content_length << endl;
 		if (this->content_length <= 0 && this->content.empty())
-		{
 			return 1;
-		}
 		// the end boundary string is found
 		// and is located at the start of the buffer
 		// this means all content successfully extracted
+
+		// also, anything after the end boundary string is ignored
 		if (this->content.find("--" + this->boundary_string + "--") == 0)
 		{
-			return handlePostResponse();
+			this->status = CLEARING_SOCKET;
+			return 0;
 		}
 
 		bytesRead = read(this->newsocket, buffer, sizeof(buffer));
@@ -138,8 +139,6 @@ namespace HDE
 	int	Server::handlePostRequest()
 	{
 		string	root = "root";
-		string	headers = get_headers();
-		string	content = get_content();
 		string	boundary, filename, path;
 		size_t	boundaryPos = headers.find("boundary=");
 		
@@ -149,14 +148,44 @@ namespace HDE
 		this->boundary_string = headers.substr(boundaryPos + 9);
 		this->boundary_string = boundary_string.substr(0, boundary_string.find("\r"));
 
-		this->status = RECEIVING_DATA;
 		cout << YELLOW << "Handling Post Request" << endl;
 
-		// wow nothing is posted
-		if (this->content_length == 0)
-			return handlePostResponse();
+		// handle client_max_body_size
 
-		return import_read_data();
+		double		limit;
+		double		converted;
+		string		client_max_body_size;
+		string		suffix;
+
+		client_max_body_size = config->get_client_max();
+		suffix = client_max_body_size.substr(client_max_body_size.size() - 2);
+
+		if (not (suffix == "KB" || suffix == "MB" || suffix == "GB"))
+		{
+			if (client_max_body_size.substr(client_max_body_size.size() - 1) == "B")
+				suffix = client_max_body_size.substr(client_max_body_size.size() - 1);
+			else
+				throw (conf::InvalidSuffixException()); // i do love crashing my server whenever the config suffix is wrong
+		}
+		
+		limit = std::strtof(client_max_body_size.substr(0, client_max_body_size.find(suffix)).c_str(), NULL);
+		converted = convert_content_length(suffix);
+
+		if (converted > limit)
+		{
+			cout << "Over the limit " << converted << " > " << limit << endl;
+			this->error_code = "413";
+			this->status = CLEARING_SOCKET; // clear socket to send error message
+		}
+		else
+		{
+			this->status = SAVE_CHUNK;
+			// wow nothing is posted
+			if (this->content_length == 0){
+				this->status = SENDING_RESPONSE;
+			}
+		}
+		return 0;
 	}
 
 	int	Server::handlePostResponse()

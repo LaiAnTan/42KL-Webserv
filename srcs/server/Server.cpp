@@ -70,8 +70,33 @@ namespace HDE
 	{
 		this->newsocket = client_fd;
 		this->config = config;
+
+		this->reset();
+	}
+
+	// curse ass shit
+	void	Server::reset()
+	{
+		this->headers = "";
+		this->content = "";
+
 		this->status = NEW;
 		this->content_length = -1;
+
+		this->method = "";
+		this->path = "";
+
+		this->error_code = "";
+		this->filename = "";
+		this->redirect_url = "";
+
+		chunk_to_send.clear();
+		file.close();
+		this->no_clear_socket = false;
+		save_to.close();
+		this->boundary_string = "";
+
+		this->is_deleted = false;
 	}
 
 	Server::~Server()
@@ -85,12 +110,8 @@ namespace HDE
 
 	int Server::accepter()
 	{
-		double				limit;
-		double				converted;
 		int					bytesRead;
 		char				buffer[BUFFER_SIZE];
-		string				client_max_body_size;
-		string				suffix;
 		string				request;
 
 		// clear previous contents (what the fuck guys why wasnt this cleared?)
@@ -117,29 +138,6 @@ namespace HDE
 		// get content length
 		this->content_length = extract_content_length(headers);
 		this->content_length -= this->content.length();
-		
-		// handle client_max_body_size
-		client_max_body_size = config->get_client_max();
-		suffix = client_max_body_size.substr(client_max_body_size.size() - 2);
-
-		if (not (suffix == "KB" || suffix == "MB" || suffix == "GB"))
-		{
-			if (client_max_body_size.substr(client_max_body_size.size() - 1) == "B")
-				suffix = client_max_body_size.substr(client_max_body_size.size() - 1);
-			else
-				throw (conf::InvalidSuffixException());
-		}
-		
-		limit = std::strtof(client_max_body_size.substr(0, client_max_body_size.find(suffix)).c_str(), NULL);
-
-		converted = convert_content_length(suffix);
-
-		if (converted > limit)
-		{
-			// do something here
-			cout << "Over the limit" << endl;
-			return sendError("413");
-		}
 
 		return headers.length() + content.length();
 	}
@@ -150,8 +148,8 @@ namespace HDE
 		string						first_row = util::split(header, "\r\n")[0];
 		std::vector<std::string>	first_row_info = util::split(first_row, " ");
 
-		// cout << first_row << endl;
-		// cout << first_row_info[0] << endl;
+		cout << first_row << endl;
+		cout << first_row_info[0] << endl;
 
 		this->method = first_row_info[0];
 		this->path = first_row_info[1];
@@ -194,73 +192,109 @@ namespace HDE
 		for (; method_start != location_methods.end(); ++method_start)
 		{
 			// all good!
-			// ps - return -25 since if it isnt found, sendError will be sent instead
-			// and sendError has a return value of 0 and 1
-			// sorry bout that :(
+			cout << *(method_start) << endl;
+			cout << this->method << endl;
 			if (*(method_start) == this->method){
-				return -25;
+				return 1;
 			}
 		}
 		// nope nope this method is NOT allowed
 		// return sendError
-		return sendError("405");
+		cout << YELLOW << "[INFO] Can't do that [" << this->method << "]" << endl;
+		this->error_code = "405";
+		return 0;
 	}
 
 	int Server::responder()
 	{
-		string	header;
-		int		ret_value = 1;
+		int		ret_value = 0;
 
 		// you know these could have been in a abstract class riiiight?
-		function_ptr	function_list[3] = {&Server::handleGetRequest, &Server::handlePostRequest, &Server::handleDeleteRequest};
+		function_ptr	request_list[3] = {&Server::handleGetRequest, &Server::handlePostRequest, &Server::handleDeleteRequest};
+		// HAH I KNEW THIS WILL COME BACK AND BITE ME IN THE ASS
+		function_ptr	response_list[3] = {&Server::handleGetResponse, &Server::handlePostResponse, &Server::handleDeleteResponse};
+
 		string			method_list[3] = {"GET", "POST", "DELETE"};
 		// cout << "Server status --- " << this->status << endl;
 		switch (this->status)
 		{
 			case NEW:
-				header = get_headers();
 				this->parse_header();
-
-				// check if method is valid
-				ret_value = this->check_valid_method();
-				if (ret_value != -25)
-					break;
-
+				this->status = HANDLING_DATA;
+				if (!this->check_valid_method())
+					this->status = SEND_ERROR;
+				break;
+			case HANDLING_DATA:
 				// switch does not work on string
 				// this is one way of finding out
+				cout << "Handling Header" << endl;
+				this->status = CLEARING_SOCKET;
 				for (int x = 0; x < 3; ++x)
 				{
 					if (this->method == method_list[x]){
-						ret_value = (this->*function_list[x])();
+						ret_value = (this->*request_list[x])();
 					}
 				}
 				break;
-			case SENDING_DATA:
+			case SENDING_RESPONSE: 
+				// MAKE SURE SOCKET IS CLEARED BEFORE SENDING OVER STUFF
+				cout << "Sending HTTP response" << endl;
+				this->status = DONE;
+				for (int x = 0; x < 3; ++x)
+				{
+					if (this->method == method_list[x]){
+						ret_value = (this->*response_list[x])();
+					}
+				}
+				break;
+			case SEND_ERROR:
+				cout << "Sending Error Code" << endl;
+				ret_value = this->sendError(this->error_code);
+				break;
+			case SEND_CHUNK:
+				cout << "Sending Next Chunk" << endl;
 				ret_value = this->send_next_chunk();
 				break;
-			case RECEIVING_DATA:
+			case SAVE_CHUNK:
+				cout << "Saving Incoming Chunk" << endl;
 				ret_value = this->import_read_data();
 				break;
 			case DONE:
-				// which reminds me, we should empty the socket 
-				// after everything is done
-
-				// because acceptor will only read the header, not the
-				// content
-
-				// content will be left in the socket
-				// at least i think it will, not sure
-
-				// actually ukw, lets see if this is the case anot
-				// this->empty_socket();
-
+				this->reset();
 				this->status = NEW;
+				break;
+			case CLEARING_SOCKET:
+				cout << "Flushing Socket" << endl;
+				if (this->clear_read_end())
+				{
+					// socket is cleared, clear to send data
+					this->status = SENDING_RESPONSE;
+					if (not error_code.empty())
+						this->status = SEND_ERROR;
+				}
 				break;
 			default:
 				// not handled LOL
 				break;
 		}
 		return ret_value;
+	}
+
+	// flush socket for next input
+	int Server::clear_read_end()
+	{
+		// not sure if this will slow down anot
+		// should be fine
+
+		char	discard[BUFFER_SIZE];
+		int		actual_read;
+
+		if (this->content_length <= 0)
+			return 1;
+
+		actual_read = read(this->newsocket, discard, BUFFER_SIZE);
+		this->content_length -= actual_read;
+		return 0;
 	}
 
 	string Server::get_headers()

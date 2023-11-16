@@ -41,23 +41,22 @@ namespace HDE
 			std::remove(path.c_str());
 		}
 
-		if (!file_exists(path))
-			return handleDeleteResponse(true);
-		else
-			return handleDeleteResponse(false);
+		this->is_deleted = !file_exists(path);
+		this->status = CLEARING_SOCKET;
+		return 0;
 	}
 
-	int	Server::handleDeleteResponse(bool is_deleted)
+	int	Server::handleDeleteResponse()
 	{
 		string	response; // response string to be sent to client
-
 		/*
 		codes:
 		- 202 Accepted- accepted but havent delete
 		- 200 OK - accepted and deleted, response contains content
 		- 204 No Content - accepted and deleted, response dont have content
 		(stay on same page)
-		*/ 
+		*/
+		this->status = DONE;
 
 		if (is_deleted == false)
 			response.append("HTTP/1.1 202 Accepted\r\n");
@@ -65,7 +64,6 @@ namespace HDE
 			response.append("HTTP/1.1 204 No Content\r\n");
 
 		cout << "Header Sent: \n" << response << endl;
-		this->status = DONE;
 		return sendData(this->newsocket, (void *) response.c_str(), response.size());
 	}
 }

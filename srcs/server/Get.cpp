@@ -52,15 +52,21 @@ namespace HDE
 		if (sending.length() == 0)
 			this->status = DONE;
 		else
-			this->status = SENDING_DATA;
+			this->status = SEND_CHUNK;
 		return this->sendData(this->newsocket, chunk_segment.str().c_str(), chunk_segment.str().length());
 	}
 
-	int Server::handleGetResponse(string filename, string redirect_url)
+	int Server::handleGetResponse()
 	{
 		string				header, extension, mime_type;
 		std::stringstream	response;
 		int		ret_val;
+
+		this->status = DONE;
+
+		// check if it is a python file (check extension) (epic cgi handlin)
+		if (path.find(".py") != string::npos)
+			return this->py();
 
 		// for redirects
 		if (not redirect_url.empty())
@@ -91,54 +97,45 @@ namespace HDE
 
 		// determine if chunkey is needed
 		struct stat st;
+		stat(filename.c_str(), &st);
+		int size = st.st_size;
 
-		if (!stat(filename.c_str(), &st))
+		// size o file is less than buffer size, can just straight read
+		// everything
+		if (size < BUFFER_SIZE)
 		{
-			int size;
+			cout << YELLOW << "SENDING THE ENTIRE FILE AS ONE" << RESET << endl;
 
-			size = st.st_size;
-			// size o file is less than buffer size, can just straight read
-			// everything
-			if (size < BUFFER_SIZE)
-			{
-				cout << YELLOW << "SENDING THE ENTIRE FILE AS ONE" << RESET << endl;
+			response << header;
+			response << "Content-Length: " << size << "\r\n";
+			response << "\r\n";
+			response << get_file_data(filename.c_str());
 
-				response << header;
-				response << "Content-Length: " << size << "\r\n";
-				response << "\r\n";
-				response << get_file_data(filename.c_str());
+			// cout << YELLOW << "response sended: \n" << response.str() << endl;
 
-				// cout << YELLOW << "response sended: \n" << response.str() << endl;
-
-				ret_val = sendData(this->newsocket, (void *)response.str().c_str(), response.str().size());
-				if (ret_val < 0)
-					std::cerr << RED << "Error sending file " << filename << endl;
-				return ret_val < 0;
-			}
-			// did not manage to read everything
-			// time to chunky chunky
-			else
-			{
-				cout << YELLOW << "[INFO] Chunking" << RESET << endl;
-				// send the header stating its using chunkencoding blabla
-				header.append("Transfer-Encoding: chunked\r\n");
-				header.append("\r\n");
-
-				cout << "Sending Header First -- \n" << header << endl;
-				ret_val = sendData(this->newsocket, header.c_str(), header.length());
-				this->file.open(filename.c_str());
-				if (ret_val < 0)
-				{
-					std::cerr << RED << "Error sending header for chunking" << endl;
-					return 1;
-				}
-				return this->send_next_chunk();
-			}
+			ret_val = sendData(this->newsocket, (void *)response.str().c_str(), response.str().size());
+			if (ret_val < 0)
+				std::cerr << RED << "Error sending file " << filename << endl;
+			return ret_val < 0;
 		}
+		// did not manage to read everything
+		// time to chunky chunky
 		else
 		{
-			std::cerr << RED << "Error opening file " << filename << endl;
-			return sendError("404");
+			cout << YELLOW << "[INFO] Chunking" << RESET << endl;
+			// send the header stating its using chunkencoding blabla
+			header.append("Transfer-Encoding: chunked\r\n");
+			header.append("\r\n");
+
+			cout << "Sending Header First -- \n" << header << endl;
+			ret_val = sendData(this->newsocket, header.c_str(), header.length());
+			this->file.open(filename.c_str());
+			if (ret_val < 0)
+			{
+				std::cerr << RED << "Error sending header for chunking" << endl;
+				return 1;
+			}
+			return this->send_next_chunk();
 		}
 	}
 
@@ -146,9 +143,22 @@ namespace HDE
 	{
 		this->status = DONE;
 
+		string				code[] = {"400", "404", "405", "413", "500", "501", "505"};
+		string				msg[] = {"Bad Request", "Not Found", "Method Not Allowed", "Payload Too Large", "Internal Server Error", "Not Implemented", "HTTP Version Not Supported"};
+
 		std::ifstream									file;
-		string											filename, error_content;
+		string											filename, error_content, error_description;
+		bool											found;
 		const std::map<string, std::vector<string> >	error_map = config->get_error();
+
+		for (int i = 0; i < 7; i++)
+		{
+			if (error_code.find(code[i]) != string::npos){
+				error_description = msg[i];
+				found = true;
+				break;
+			}
+		}
 
 		if( !error_map.empty() &&
 			error_map.find(error_code) != error_map.end())
@@ -166,15 +176,8 @@ namespace HDE
 
 		// default error html
 		// send this if there is no specific html stated in config
-
-		// please shift code and msg in the constructor
-		// what the fuck is this doing here
-		string				code[] = {"400", "404", "405", "413", "500", "501", "505"};
-		string				msg[] = {"Bad Request", "Not Found", "Method Not Allowed", "Payload Too Large", "Internal Server Error", "Not Implemented", "HTTP Version Not Supported"};
-
-		string				error_description, header;
+		string				header;
 		std::stringstream	response;
-		bool				found;
 		string				find_code = "[CODE]";
 		string				find_msg = "[MSG]";
 
@@ -182,14 +185,6 @@ namespace HDE
 		{
 			cout << YELLOW << "[INFO] Opening default error file" << endl;
 
-			for (int i = 0; i < 7; i++)
-			{
-				if (error_code.find(code[i]) != string::npos){
-					error_description = msg[i];
-					found = true;
-					break;
-				}
-			}
 			if (not found)
 			{
 				cout << RED << "[ERROR] Invalid Code" << endl;
@@ -257,7 +252,10 @@ namespace HDE
 
 		}
 		if (not redirect_url.empty())
-			return this->handleGetResponse("", redirect_url);
+		{
+			this->redirect_url = redirect_url;
+			return 0;
+		}
 		else
 			return -1;
 	}
@@ -339,32 +337,32 @@ namespace HDE
 		string content = HDE::Server::get_content();
 		string path, redirect_url;
 
+		this->filename = "";
+		this->redirect_url = "";
+
 		path = headers.substr(headers.find("GET ") + 4);
 		path = path.substr(0, path.find(" "));
 		cout << YELLOW << path << RESET << endl;
 
-		int ret_val;
-
-		this->status = DONE;
+		// it is a python file, time for cgi
+		// you know, we should check if the python file freaking exist..
+		if (path.find(".py") != string::npos)
+			return 0;
 
 		// -1 means it isnt a redirection 
-		if ((ret_val = this->redirectClient()) != -1)
-			return ret_val;
+		if (this->redirectClient() != -1)
+			return 0;
 
 		// build path based on config file
 		path = config_path();
-
-		// check if it is a python file (check extension)
-		if (path.find(".py") != string::npos)
-			return this->py();
+		cout << GREEN << "Path: " << path << RESET << endl;
+		this->filename = path;
 
 		struct stat stats;
-
 		// check if it exist			// check if it is a regular file
 		if (stat(path.c_str(), &stats) || !S_ISREG(stats.st_mode))
-			return this->sendError("404");
-		cout << GREEN << "Path: " << path << RESET<< endl;
-		return this->handleGetResponse(path, redirect_url);
+			this->error_code = "404";
+		return 0;
 	}
 
 	// CGI METHODS
