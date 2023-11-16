@@ -138,67 +138,93 @@ namespace HDE
 		else
 		{
 			std::cerr << RED << "Error opening file " << filename << endl;
-			return sendError("404.html");
+			return sendError("404");
 		}
 	}
 
-	// fuck youuu
-	int Server::sendError(string type)
+	int Server::sendError(string error_code)
 	{
 		this->status = DONE;
 
-		string code[] = {"400.html", "404.html", "405.html", "413.html", "500.html", "501.html", "505.html"};
-		string msg[] = {"Bad Request", "Not Found", "Method Not Allowed", "Payload Too Large", "Internal Server Error", "Not Implemented", "HTTP Version Not Supported"};
-		string str1, str2, header, error_content;
-		std::stringstream	response;
-
 		std::ifstream file;
-		for (int i = 0; i < 7; i++)
+		string	filename, error_content;
+
+		const std::map<string, std::vector<string> >	error_map = config->get_error();
+		if( !error_map.empty() &&
+			error_map.find(error_code) != error_map.end())
 		{
-			if (type.find(code[i]) != string::npos)
-			{
-				str1 = code[i].substr(0, code[i].length() - 5);;
-				str2 = msg[i];
-				type = "./html/error.html";
-			}
+			// fucking const qualifierrrr
+			// also can we even have multiple error files?
+			// no idea how to handle that EHH just grab the first
+			filename = *(error_map.at(error_code).begin());
+			file.open(filename);
+			if (file.is_open())
+				error_content.append(get_file_data(filename));
 		}
 
+		// default error html
+		// send this if there is no specific html stated in config
+
+		// please shift code and msg in the constructor
+		// what the fuck is this doing here
+		string				code[] = {"400", "404", "405", "413", "500", "501", "505"};
+		string				msg[] = {"Bad Request", "Not Found", "Method Not Allowed", "Payload Too Large", "Internal Server Error", "Not Implemented", "HTTP Version Not Supported"};
+
+		string				str1, str2, header;
+		std::stringstream	response;
 		string find_code = "[CODE]";
 		string find_msg = "[MSG]";
 
-		// why is this hardcoded?
-		file.open("./html/error.html");
-		if (file.is_open())
+		if (!file.is_open())
 		{
+			for (int i = 0; i < 7; i++)
+			{
+				if (error_code.find(code[i]) != string::npos)
+				{
+					str1 = code[i];
+					str2 = msg[i];
+				}
+				else
+				{
+					cout << "Invalid code" << endl;
+					// not sure what to do if invalid code :P
+					return 1;
+				}
+			}
+
+			cout << YELLOW << "Error file not generated or cant be opened\nOpening default error file" << endl;
+			file.open("./default_error/error.html");
+
 			// get content
 			// and substitue the CODE and MSG in the error.html (why is this a thing?)
-			while (!file.eof())
+			if (file.is_open())
 			{
-				string html;
-				std::getline(file, html);
-				if (html.find(find_code) != string::npos)
-					html.replace(html.find(find_code), find_code.length(), str1);
-				if (html.find(find_msg) != string::npos)
-					html.replace(html.find(find_msg), find_msg.length(), str2);
-				error_content.append(html);
+				while (!file.eof())
+				{
+					string html;
+					std::getline(file, html);
+					if (html.find(find_code) != string::npos)
+						html.replace(html.find(find_code), find_code.length(), str1);
+					if (html.find(find_msg) != string::npos)
+						html.replace(html.find(find_msg), find_msg.length(), str2);
+					error_content.append(html);
+				}
+				file.close();
 			}
-			file.close();
-
-			// handles header
-			response << "HTTP/1.1 " << str1 << " " << str2 << "\r\n";
-			response << "Connection: keep-alive\r\n";
-			response << "Content-Type: text/html\r\n";
-			response << "Content-Length: " << error_content.length() << "\r\n";
-			response << "\r\n";
-			response << error_content;
-
-			// cout << YELLOW << "[INFO] Sending Following Content\n" << response.str() << endl;
-
-			return sendData(this->newsocket, (void *)response.str().c_str(), response.str().size());
+			else
+				std::cerr << "[ERROR] Oh great, even the default one cant open" << endl;
 		}
-		else
-			std::cerr << RED << "Error opening error html file." << RESET << endl;
-		return 1;
+		// handles header
+		response << "HTTP/1.1 " << str1 << " " << str2 << "\r\n";
+		response << "Connection: keep-alive\r\n";
+		response << "Content-Type: text/html\r\n";
+		response << "Content-Length: " << error_content.length() << "\r\n";
+		response << "\r\n";
+		response << error_content;
+
+		// cout << YELLOW << "[INFO] Sending Following Content\n" << response.str() << endl;
+
+		return sendData(this->newsocket, (void *)response.str().c_str(), response.str().size());
 	}
 
 	int Server::redirectClient()
@@ -233,6 +259,7 @@ namespace HDE
 		string									root_index, root = "", index = "";
 		std::map<string, conf::ServerLocation>	location = config->get_locations();
 
+		// specific checks
 		if (location.find(this->path) != location.end())
 		{
 			conf::ServerLocation::rules_map rules = location[path].get_rules();
@@ -245,10 +272,7 @@ namespace HDE
 					root = *root_it;
 			}
 			else
-			{
-				// use default Server root
-				root = config->get_root();
-			}
+				root = config->get_root(); // use default Server root
 
 			// index file
 			if (rules.find("index") != rules.end())
@@ -260,10 +284,7 @@ namespace HDE
 					index = *index_it;
 			}
 			else
-			{
-				// use default index (index.html)
-				index = "index.html";
-			}
+				index = "index.html"; // use default index (index.html)
 
 			if (rules.find("alias") != rules.end())
 			{
@@ -275,6 +296,26 @@ namespace HDE
 				{
 					root_index = *alias_it;
 					cout << YELLOW << *alias_it << RESET << endl;
+				}
+			}
+		}
+		// if specific checks dh, start to check relative checks (/x/)
+		// not implemented yet, so just use / punya root
+		else
+		{
+			cout << "Using / location info" << endl;
+			root = config->get_root();
+			if (location.find("/") != location.end())
+			{
+				conf::ServerLocation::rules_map rules = location["/"].get_rules();
+
+				if (location["/"].get_rules().find("root") != location["/"].get_rules().end())
+				{
+					std::vector<string>::const_iterator root_it = rules["root"].begin();
+					std::vector<string>::const_iterator root_end = rules["root"].end();
+
+					for (; root_it != root_end; root_it++)
+						root = *root_it;
 				}
 			}
 		}
@@ -314,7 +355,7 @@ namespace HDE
 
 		// check if it exist			// check if it is a regular file
 		if (stat(path.c_str(), &stats) || !S_ISREG(stats.st_mode))
-			return this->sendError("404.html");
+			return this->sendError("404");
 		cout << GREEN << "Path: " << path << RESET<< endl;
 		return this->handleGetResponse(path, redirect_url);
 	}
@@ -338,7 +379,6 @@ namespace HDE
 		return (path);
 	}
 
-	// ?????
 	string Server::get_file_data(string filename)
 	{
 		string response;

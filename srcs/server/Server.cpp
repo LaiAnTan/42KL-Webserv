@@ -203,7 +203,7 @@ namespace HDE
 		}
 		// nope nope this method is NOT allowed
 		// return sendError
-		return sendError("405.html");
+		return sendError("405");
 	}
 
 	int Server::responder()
