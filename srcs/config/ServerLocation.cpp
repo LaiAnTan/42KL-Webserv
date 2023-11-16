@@ -8,6 +8,8 @@ namespace conf
 
 	ServerLocation::ServerLocation(std::ifstream *file)
 	{
+		size_t		semicolon_pos;
+		size_t		comment_pos;
 		string text, var1, var2, key, value;
 		std::vector<string> tmp, value_vec;
 
@@ -22,38 +24,37 @@ namespace conf
 		{
 			if (text[1] == '}')
 				break;
-			if (text.find('#') == std::string::npos)
+			if ((comment_pos = text.find('#')) != std::string::npos) // remove comments
+				text.resize(comment_pos);
+			if (text.find_first_not_of(" \t\n\v\f\r") == std::string::npos) // handle blank lines
+				continue;
+			else if ((semicolon_pos = text.find(";")) == string::npos)
+				throw (conf::MissingSemicolonException());
+			text.resize(semicolon_pos);
+			std::stringstream ss(text);
+			if (text.find("return") == std::string::npos)
 			{
-				if (text.empty())
+				while (std::getline(ss, key, '	'))
+				{
+					if (key.empty())
 						continue;
-				else if (text.at(text.size() - 1) != ';')
-					throw (conf::MissingSemicolonException());
-				text.resize(text.size() - 1);
-				std::stringstream ss(text);
-				if (text.find("return") == std::string::npos)
-				{
-					while (std::getline(ss, key, '	'))
-					{
-						if (key.empty())
-							continue;
-						else
-							tmp.push_back(key);
-					}
+					else
+						tmp.push_back(key);
 				}
-				else
-				{
-					std::istringstream iss(text);
-					iss >> var1 >> var2;
-					tmp.push_back(var1);
-					tmp.push_back(var2);
-				}
-				std::stringstream v(tmp[1]);
-				while (std::getline(v, value, ' '))
-					value_vec.push_back(value);
-				this->rules[tmp[0]] = value_vec;
-				value_vec.clear();
-				tmp.clear();
 			}
+			else
+			{
+				std::istringstream iss(text);
+				iss >> var1 >> var2;
+				tmp.push_back(var1);
+				tmp.push_back(var2);
+			}
+			std::stringstream v(tmp[1]);
+			while (std::getline(v, value, ' '))
+				value_vec.push_back(value);
+			this->rules[tmp[0]] = value_vec;
+			value_vec.clear();
+			tmp.clear();
 		}
 		if (conf::validateKeywords(valid_keywords, rules) == false)
 			throw (conf::InvalidKeywordException());

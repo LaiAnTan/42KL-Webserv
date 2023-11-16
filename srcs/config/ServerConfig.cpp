@@ -7,8 +7,7 @@ namespace conf
 		string res, word;
 
 		size_t listenPos = text.find("listen");
-    	size_t semicolonPos = text.find(";", listenPos);
-		res = text.substr(listenPos + 7, semicolonPos - listenPos - 7);
+		res = text.substr(listenPos + 7);
 		std::stringstream ss(res);
 		while (std::getline(ss, word, ' '))
 			this->port.push_back(word);
@@ -18,8 +17,7 @@ namespace conf
 	{
 		// cout << "---root---" << endl;
 		size_t rootPos = text.find("root");
-    	size_t semicolonPos = text.find(";", rootPos);
-		string res = text.substr(rootPos + 5, semicolonPos - rootPos - 5);
+		string res = text.substr(rootPos + 5);
 		this->root = res;
 		// cout << "(" << this->root << ")" << endl;
 	}
@@ -28,8 +26,7 @@ namespace conf
 	{
 		// cout << "---index---" << endl;
 		size_t indexPos = text.find("index");
-    	size_t semicolonPos = text.find(";", indexPos);
-		string res = text.substr(indexPos + 6, semicolonPos - indexPos - 6);
+		string res = text.substr(indexPos + 6);
 		this->index = res;
 		// cout << "(" << this->index << ")" << endl;
 	}
@@ -38,8 +35,7 @@ namespace conf
 	{
 		// cout << "---server_name---" << endl;
 		size_t serverPos = text.find("server_name");
-    	size_t semicolonPos = text.find(";", serverPos);
-		string res = text.substr(serverPos + 12, semicolonPos - serverPos - 12);
+		string res = text.substr(serverPos + 12);
 		this->server_name = res;
 		// cout << "(" << this->server_name << ")" << endl;
 	}
@@ -48,8 +44,7 @@ namespace conf
 	{
 		// cout << "---client_max---" << endl;
 		size_t clientPos = text.find("client_max_body_size");
-    	size_t semicolonPos = text.find(";", clientPos);
-		string res = text.substr(clientPos + 21, semicolonPos - clientPos - 21);
+		string res = text.substr(clientPos + 21);
 
 		string suffix = res.substr(res.size() - 2);
 
@@ -79,8 +74,7 @@ namespace conf
 		std::vector<string> error_html;
 
 		size_t errorPos = text.find("error_page");
-    	size_t semicolonPos = text.find(";", errorPos);
-		string res = text.substr(errorPos + 11, semicolonPos - errorPos - 11);
+		string res = text.substr(errorPos + 11);
 		std::stringstream ss(res);
 		while (std::getline(ss, var1, '	'))
 		{
@@ -108,8 +102,7 @@ namespace conf
 		string var1, var2;
 
 		size_t cgiPos = text.find("cgi_script");
-    	size_t semicolonPos = text.find(";", cgiPos);
-		string res = text.substr(cgiPos + 11, semicolonPos - cgiPos - 11);
+		string res = text.substr(cgiPos + 11);
 		std::istringstream iss(res);
 		iss >> var1 >> var2;
 		this->cgi[var1] = var2;
@@ -119,8 +112,7 @@ namespace conf
 	{
 		string	var1;
 		size_t methods = text.find("allowed_methods");
-    	size_t semicolonPos = text.find(";", methods);
-		string res = text.substr(methods + 16, semicolonPos - methods - 16);
+		string res = text.substr(methods + 16);
 		std::stringstream ss(res);
 		while (std::getline(ss, var1, ' '))
 		{
@@ -191,9 +183,11 @@ namespace conf
 
 	ServerConfig::ServerConfig(std::ifstream *file)
 	{
-		string text;
-		int i;
-		void (ServerConfig::*funct[])(string text) = {&conf::ServerConfig::set_port, \
+		int		i;
+		size_t	semicolon_pos;
+		size_t	comment_pos;
+		string	text;
+		void	(ServerConfig::*funct[])(string text) = {&conf::ServerConfig::set_port, \
 			&conf::ServerConfig::set_root, &conf::ServerConfig::set_index, \
 			&conf::ServerConfig::set_server_name, &conf::ServerConfig::set_client_max, \
 			&conf::ServerConfig::set_error, &conf::ServerConfig::set_cgi, &conf::ServerConfig::set_methods};
@@ -204,25 +198,27 @@ namespace conf
 		{
 			if (text[0] == '}')
 				break;
-			if (text.find('#') == std::string::npos)
+			if ((comment_pos = text.find('#')) != std::string::npos) // remove comments
+				text.resize(comment_pos);
+			
+			if (text.find_first_not_of(" \t\n\v\f\r") == std::string::npos) // handle blank lines
+				continue;
+			i = 0;
+			while (i < 8 && text.find(arr[i]) == std::string::npos)
+				i++;
+			if (i < 8)
 			{
-				i = 0;
-				while (i < 8 && text.find(arr[i]) == std::string::npos)
-					i++;
-				if (i < 8)
-				{
-					if (text.at(text.size() - 1) != ';')
-						throw (conf::MissingSemicolonException());
-					(this->*funct[i])(text);
-				}
-				else if (text.find("location /") != std::string::npos)
-					location_name(text, file);
-				else if (text.empty() == false)
-					throw (conf::InvalidKeywordException());
-				if (this->server_name.empty())
-					this->server_name = "localhost";
+				if ((semicolon_pos = text.find(";")) == string::npos)
+					throw (conf::MissingSemicolonException());
+				text.resize(semicolon_pos);
+				(this->*funct[i])(text);
 			}
-
+			else if (text.find("location /") != std::string::npos)
+				location_name(text, file);
+			else if (text.empty() == false)
+				throw (conf::InvalidKeywordException());
+			if (this->server_name.empty())
+				this->server_name = "localhost";
 		}
 	}
 
