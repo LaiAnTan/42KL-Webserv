@@ -73,4 +73,14 @@ namespace conf
 	{
 		return ("MissingSemicolonException: Missing Semicolon in config file");
 	}
+
+	const char* conf::InvalidSuffixException::what() const throw()
+	{
+		return ("InvalidSuffixException: Invalid Suffix in client_max_body_size");
+	}
+
+	const char* conf::InvalidValueException::what() const throw()
+	{
+		return ("InvalidValueException: Invalid Value in client_max_body_size");
+	}
 }

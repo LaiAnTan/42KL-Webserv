@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <ctime>
 #include <fcntl.h>
+#include <algorithm>
 #include <sys/wait.h>
 
 const int BUFFER_SIZE = 5024;
@@ -82,13 +83,15 @@ namespace HDE
 			string	get_type(string extension);
 			bool	file_exists(std::string path);
 			string	get_file_data(std::string filename);
-			void	empty_socket();
 
 			// for cgi
 			int	py();
 
 			int	send_next_chunk();
 			int import_read_data();
+
+			// helper 2
+			double	convert_content_length(string suffix);// converts content length to the specified suffix
 
 		public:
 			Server(const conf::ServerConfig *config, int client_fd);
