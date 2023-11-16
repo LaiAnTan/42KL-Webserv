@@ -3,15 +3,125 @@
 
 namespace conf
 {
+	void ServerLocation::set_root(string text)
+	{
+		// cout << "---root---" << endl;
+		std::vector<string>		tokens;
+
+		tokens = util::split_many_delims(text, " \t");
+		
+		if (tokens.size() != 2 || tokens[0] != "root")
+			throw (conf::TooManyValuesException());
+
+		this->root = tokens[1];
+	}
+
+	void	ServerLocation::set_index(string text)
+	{
+		// cout << "---index---" << endl;
+		std::vector<string>		tokens;
+
+		tokens = util::split_many_delims(text, " \t");
+
+		if (tokens.size() != 2 || tokens[0] != "index")
+			throw (conf::TooManyValuesException());
+
+		this->index = tokens[1];
+	}
+
+	void	ServerLocation::set_autoindex(string text)
+	{
+		// cout << "---autoindex---" << endl;
+		std::vector<string>		tokens;
+
+		tokens = util::split_many_delims(text, " \t");
+
+		if (tokens.size() != 2 || tokens[0] != "autoindex")
+			throw (conf::TooManyValuesException());
+
+		this->autoindex = tokens[1];
+	}
+
+	void	ServerLocation::set_client_max_body_size(string text)
+	{
+		// cout << "---client_max_body_size---" << endl;
+		std::vector<string>		tokens;
+
+		tokens = util::split_many_delims(text, " \t");
+
+		if (tokens.size() != 2 || tokens[0] != "client_max_body_size")
+			throw (conf::TooManyValuesException());
+
+		this->client_max_body_size = tokens[1];
+	}
+
+	void	ServerLocation::set_return_path(string text)
+	{
+		// cout << "---return_path---" << endl;
+		std::vector<string>		tokens;
+
+		tokens = util::split_many_delims(text, " \t");
+
+		if (tokens.size() != 2 || tokens[0] != "return")
+			throw (conf::TooManyValuesException());
+
+		this->return_path = tokens[1];
+	}
+
+	void	ServerLocation::set_allowed_method(string text)
+	{
+		// cout << "---allowed_method---" << endl;
+		std::vector<string>		tokens;
+
+		tokens = util::split_many_delims(text, " \t");
+
+		if (tokens.size() < 2 || tokens[0] != "allowed_methods")
+			throw (conf::TooManyValuesException());
+
+		tokens.erase(tokens.begin());
+		this->allowed_method = tokens;
+	}
+
+	string	ServerLocation::get_root() const
+	{
+		return (this->root);
+	}
+
+	string	ServerLocation::get_index() const
+	{
+		return (this->index);
+	}
+
+	string	ServerLocation::get_autoindex() const
+	{
+		return (this->autoindex);
+	}
+
+	string	ServerLocation::get_client_max_body_size() const
+	{
+		return (this->client_max_body_size);
+	}
+
+	string	ServerLocation::get_return_path() const
+	{
+		return (this->return_path);
+	}
+
+	const std::vector<string>	&ServerLocation::get_allowed_method() const
+	{
+		return (this->allowed_method);
+	}
+
 	ServerLocation::ServerLocation()
 	{}
 
 	ServerLocation::ServerLocation(std::ifstream *file)
 	{
+		int i;		
 		size_t		semicolon_pos;
 		size_t		comment_pos;
 		string text, var1, var2, key, value;
-		std::vector<string> tmp, value_vec;
+		// std::vector<string> tmp, value_vec;
 
 		valid_keywords.insert("root");
 		valid_keywords.insert("index");
@@ -19,6 +129,18 @@ namespace conf
 		valid_keywords.insert("client_max_body_size");
 		valid_keywords.insert("autoindex");
 		valid_keywords.insert("return");
+
+		void (ServerLocation::*funct[])(string text) = {
+			&ServerLocation::set_root,
+			&ServerLocation::set_autoindex,
+			&ServerLocation::set_allowed_method,
+			&ServerLocation::set_client_max_body_size,
+			&ServerLocation::set_index,
+			&ServerLocation::set_return_path
+		};
+
+		string arr[] = {"root", "autoindex", "allowed_methods", \
+			"client_max_body_size", "index", "return"};
 
 		while (std::getline(*file, text))
 		{
@@ -30,35 +152,21 @@ namespace conf
 				continue;
 			else if ((semicolon_pos = text.find(";")) == string::npos)
 				throw (conf::MissingSemicolonException());
-			text.resize(semicolon_pos);
-			std::stringstream ss(text);
-			if (text.find("return") == std::string::npos)
+			i = 0;
+			while (i < 6 && text.find(arr[i]) == std::string::npos)
+				i++;
+			if (i < 6)
 			{
-				while (std::getline(ss, key, '	'))
-				{
-					if (key.empty())
-						continue;
-					else
-						tmp.push_back(key);
-				}
+				if ((semicolon_pos = text.find(";")) == string::npos)
+					throw (conf::MissingSemicolonException());
+				text.resize(semicolon_pos);
+				(this->*funct[i])(text);
 			}
-			else
-			{
-				std::istringstream iss(text);
-				iss >> var1 >> var2;
-				tmp.push_back(var1);
-				tmp.push_back(var2);
-			}
-			std::stringstream v(tmp[1]);
-			while (std::getline(v, value, ' '))
-				value_vec.push_back(value);
-			this->rules[tmp[0]] = value_vec;
-			value_vec.clear();
-			tmp.clear();
 		}
 		if (conf::validateKeywords(valid_keywords, rules) == false)
 			throw (conf::InvalidKeywordException());
 	}
+
 
 	ServerLocation::ServerLocation(const ServerLocation &L)
 	{
@@ -69,6 +177,12 @@ namespace conf
 	{
 		if (this != &L)
 		{
+			this->root = L.root;
+			this->index = L.index;
+			this->autoindex = L.autoindex;
+			this->client_max_body_size = L.client_max_body_size;
+			this->return_path = L.return_path;
+			this->allowed_method = L.allowed_method;
 			this->rules = L.rules;
 		}
 		return (*this);
@@ -85,19 +199,23 @@ namespace conf
 
 	std::ostream &operator << (std::ostream &outs, const ServerLocation &server_location)
 	{
-
-		string	values;	
-		ServerLocation::rules_map::iterator rules_it;
-		ServerLocation::rules_map rules_map = server_location.get_rules();
-		for (rules_it = rules_map.begin(); rules_it != rules_map.end(); rules_it++)
+		if(!server_location.get_root().empty())
+			outs << YELLOW "Root : " RESET << server_location.get_root() << endl;
+		if (!server_location.get_index().empty())
+			outs << YELLOW "Index : " RESET << server_location.get_index() << endl;
+		if (!server_location.get_autoindex().empty())
+			outs << YELLOW "Autoindex : " RESET << server_location.get_autoindex() << endl;
+		if (!server_location.get_client_max_body_size().empty())
+			outs << YELLOW "Client_max_body_size : " RESET << server_location.get_client_max_body_size() << endl;
+		if (!server_location.get_return_path().empty())
+			outs << YELLOW "Return : " RESET << server_location.get_return_path() << endl;
+		if (!server_location.get_allowed_method().empty())
 		{
-			outs << BLUE "Key : |" RESET << std::left << std::setw(15) << rules_it->first;
-			std::vector<string>::iterator value_it;
-			std::vector<string> value_vec = rules_it->second;
-			outs << BLUE "|	" RESET;
-			outs << RED << "Value : " RESET << std::left;
-			for (value_it = value_vec.begin(); value_it != value_vec.end(); value_it++)
-				outs << *value_it << " ";
+			outs << YELLOW "Allowed Methods : " RESET;
+			std::vector<string> allowed_methods = server_location.get_allowed_method();
+			std::vector<string>::iterator it, end = allowed_methods.end();
+			for (it = allowed_methods.begin(); it != end; ++it)
+				outs << *it << " ";
 			outs << endl;
 		}
 		return (outs);
