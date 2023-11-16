@@ -134,7 +134,6 @@ namespace HDE
 			}
 		}
 
-		// why would you check if content_length == -1 peko
 		// get content length
 		this->content_length = extract_content_length(headers);
 		this->content_length -= this->content.length();

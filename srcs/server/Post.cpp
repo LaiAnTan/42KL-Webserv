@@ -157,14 +157,24 @@ namespace HDE
 		string		client_max_body_size;
 		string		suffix;
 
-		client_max_body_size = config->get_client_max();
+		// ???
+		try
+		{
+			client_max_body_size = get_config()->get_locations().at(path).get_rules().at("max_client_body_size")[0];
+		}
+		catch (const std::out_of_range& e)
+		{
+			client_max_body_size = config->get_client_max();
+		}
+		// only specific checks, relative implement soon
+
 		suffix = client_max_body_size.substr(client_max_body_size.size() - 2);
 
 		if (not (suffix == "KB" || suffix == "MB" || suffix == "GB"))
 		{
 			if (client_max_body_size.substr(client_max_body_size.size() - 1) == "B")
 				suffix = client_max_body_size.substr(client_max_body_size.size() - 1);
-			else
+			else // will never happen hopefully
 				throw (conf::InvalidSuffixException()); // i do love crashing my server whenever the config suffix is wrong
 		}
 		
