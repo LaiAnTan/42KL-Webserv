@@ -146,10 +146,10 @@ namespace HDE
 	{
 		this->status = DONE;
 
-		std::ifstream file;
-		string	filename, error_content;
-
+		std::ifstream									file;
+		string											filename, error_content;
 		const std::map<string, std::vector<string> >	error_map = config->get_error();
+
 		if( !error_map.empty() &&
 			error_map.find(error_code) != error_map.end())
 		{
@@ -157,9 +157,11 @@ namespace HDE
 			// also can we even have multiple error files?
 			// no idea how to handle that EHH just grab the first
 			filename = *(error_map.at(error_code).begin());
-			file.open(filename);
+			file.open(filename.c_str());
 			if (file.is_open())
 				error_content.append(get_file_data(filename));
+			else
+				cout << RED << "[ERROR] Config Error - File cannot be opened" << endl;
 		}
 
 		// default error html
@@ -170,52 +172,58 @@ namespace HDE
 		string				code[] = {"400", "404", "405", "413", "500", "501", "505"};
 		string				msg[] = {"Bad Request", "Not Found", "Method Not Allowed", "Payload Too Large", "Internal Server Error", "Not Implemented", "HTTP Version Not Supported"};
 
-		string				str1, str2, header;
+		string				error_description, header;
 		std::stringstream	response;
-		string find_code = "[CODE]";
-		string find_msg = "[MSG]";
+		bool				found;
+		string				find_code = "[CODE]";
+		string				find_msg = "[MSG]";
 
 		if (!file.is_open())
 		{
+			cout << YELLOW << "[INFO] Opening default error file" << endl;
+
 			for (int i = 0; i < 7; i++)
 			{
-				if (error_code.find(code[i]) != string::npos)
-				{
-					str1 = code[i];
-					str2 = msg[i];
-				}
-				else
-				{
-					cout << "Invalid code" << endl;
-					// not sure what to do if invalid code :P
-					return 1;
+				if (error_code.find(code[i]) != string::npos){
+					error_description = msg[i];
+					found = true;
+					break;
 				}
 			}
-
-			cout << YELLOW << "Error file not generated or cant be opened\nOpening default error file" << endl;
-			file.open("./default_error/error.html");
-
-			// get content
-			// and substitue the CODE and MSG in the error.html (why is this a thing?)
-			if (file.is_open())
+			if (not found)
 			{
-				while (!file.eof())
-				{
-					string html;
-					std::getline(file, html);
-					if (html.find(find_code) != string::npos)
-						html.replace(html.find(find_code), find_code.length(), str1);
-					if (html.find(find_msg) != string::npos)
-						html.replace(html.find(find_msg), find_msg.length(), str2);
-					error_content.append(html);
-				}
-				file.close();
+				cout << RED << "[ERROR] Invalid Code" << endl;
+				// mhm, no idea what to do if invalid code
+				error_content.append(get_file_data("./default_error/bad_error.html"));
+				error_content.replace(error_content.find("[CODE]"), 6, error_code);
 			}
 			else
-				std::cerr << "[ERROR] Oh great, even the default one cant open" << endl;
+			{
+				file.open("./default_error/error.html");
+				// get content
+				// and substitue the CODE and MSG in the error.html (why is this a thing?)
+				if (file.is_open())
+				{
+					while (!file.eof())
+					{
+						string html;
+						std::getline(file, html);
+						if (html.find(find_code) != string::npos)
+							html.replace(html.find(find_code), find_code.length(), error_code);
+						if (html.find(find_msg) != string::npos)
+							html.replace(html.find(find_msg), find_msg.length(), error_description);
+						error_content.append(html);
+					}
+					file.close();
+				}
+				else
+					std::cerr << "[ERROR] Oh great, even the default one cant open" << endl;
+			}
 		}
+		else
+			file.close();
 		// handles header
-		response << "HTTP/1.1 " << str1 << " " << str2 << "\r\n";
+		response << "HTTP/1.1 " << error_code << " " << error_description << "\r\n";
 		response << "Connection: keep-alive\r\n";
 		response << "Content-Type: text/html\r\n";
 		response << "Content-Length: " << error_content.length() << "\r\n";
@@ -345,7 +353,6 @@ namespace HDE
 
 		// build path based on config file
 		path = config_path();
-		path = "." + path;
 
 		// check if it is a python file (check extension)
 		if (path.find(".py") != string::npos)
@@ -362,7 +369,7 @@ namespace HDE
 
 	// CGI METHODS
 
-	// guys, chances are cgi method will not be in one limbillion gb righttt?? right??? dont need chunkin for this RIGHT???
+	// guys, chances are cgi generated files will not be in one limbillion gb righttt?? right??? dont need chunkin for this RIGHT???
 	string find_bin()
 	{
 		char *value = getenv("PATH");
