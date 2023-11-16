@@ -87,7 +87,7 @@ namespace HDE
 		this->path = "";
 
 		this->error_code = "";
-		this->filename = "";
+		this->real_filepath = "";
 		this->redirect_url = "";
 
 		chunk_to_send.clear();
@@ -211,7 +211,7 @@ namespace HDE
 
 		// you know these could have been in a abstract class riiiight?
 		function_ptr	request_list[3] = {&Server::handleGetRequest, &Server::handlePostRequest, &Server::handleDeleteRequest};
-		// HAH I KNEW THIS WILL COME BACK AND BITE ME IN THE ASS
+		// HAH I KNEW THIS WILL COME BACK AND SHOOT ME IN THE FOOT
 		function_ptr	response_list[3] = {&Server::handleGetResponse, &Server::handlePostResponse, &Server::handleDeleteResponse};
 
 		string			method_list[3] = {"GET", "POST", "DELETE"};
@@ -222,7 +222,7 @@ namespace HDE
 				this->parse_header();
 				this->status = HANDLING_DATA;
 				if (!this->check_valid_method())
-					this->status = SEND_ERROR;
+					this->status = CLEARING_SOCKET;
 				break;
 			case HANDLING_DATA:
 				// switch does not work on string
@@ -249,6 +249,7 @@ namespace HDE
 				break;
 			case SEND_ERROR:
 				cout << "Sending Error Code" << endl;
+				this->status = DONE;
 				ret_value = this->sendError(this->error_code);
 				break;
 			case SEND_CHUNK:

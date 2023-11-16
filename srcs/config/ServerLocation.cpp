@@ -19,6 +19,7 @@ namespace conf
 		valid_keywords.insert("client_max_body_size");
 		valid_keywords.insert("autoindex");
 		valid_keywords.insert("return");
+		valid_keywords.insert("alias");
 
 		while (std::getline(*file, text))
 		{

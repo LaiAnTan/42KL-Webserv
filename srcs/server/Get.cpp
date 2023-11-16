@@ -65,8 +65,10 @@ namespace HDE
 		this->status = DONE;
 
 		// check if it is a python file (check extension) (epic cgi handlin)
-		if (path.find(".py") != string::npos)
+
+		if (real_filepath.find(".py") != string::npos){
 			return this->py();
+		}
 
 		// for redirects
 		if (not redirect_url.empty())
@@ -83,8 +85,8 @@ namespace HDE
 		header.append("Connection: keep-alive\r\n");
 
 		// for send file contents
-		if (filename.find(".", 1) != string::npos)
-			extension = filename.substr(filename.find(".", 1));
+		if (real_filepath.find(".", 1) != string::npos)
+			extension = real_filepath.substr(real_filepath.find(".", 1));
 		else
 			extension = "";
 		// https://stackoverflow.com/questions/1176022/unknown-file-type-mime
@@ -97,7 +99,7 @@ namespace HDE
 
 		// determine if chunkey is needed
 		struct stat st;
-		stat(filename.c_str(), &st);
+		stat(real_filepath.c_str(), &st);
 		int size = st.st_size;
 
 		// size o file is less than buffer size, can just straight read
@@ -109,13 +111,13 @@ namespace HDE
 			response << header;
 			response << "Content-Length: " << size << "\r\n";
 			response << "\r\n";
-			response << get_file_data(filename.c_str());
+			response << get_file_data(real_filepath.c_str());
 
 			// cout << YELLOW << "response sended: \n" << response.str() << endl;
 
 			ret_val = sendData(this->newsocket, (void *)response.str().c_str(), response.str().size());
 			if (ret_val < 0)
-				std::cerr << RED << "Error sending file " << filename << endl;
+				std::cerr << RED << "Error sending file " << real_filepath << endl;
 			return ret_val < 0;
 		}
 		// did not manage to read everything
@@ -129,7 +131,7 @@ namespace HDE
 
 			cout << "Sending Header First -- \n" << header << endl;
 			ret_val = sendData(this->newsocket, header.c_str(), header.length());
-			this->file.open(filename.c_str());
+			this->file.open(real_filepath.c_str());
 			if (ret_val < 0)
 			{
 				std::cerr << RED << "Error sending header for chunking" << endl;
@@ -221,8 +223,6 @@ namespace HDE
 		response << "\r\n";
 		response << error_content;
 
-		// cout << YELLOW << "[INFO] Sending Following Content\n" << response.str() << endl;
-
 		return sendData(this->newsocket, (void *)response.str().c_str(), response.str().size());
 	}
 
@@ -265,15 +265,32 @@ namespace HDE
 		if (location.find(this->path) != location.end())
 		{
 			conf::ServerLocation::rules_map rules = location[path].get_rules();
+
+			if (rules.find("alias") != rules.end())
+			{
+				cout << "found" << endl;
+				std::vector<string>::const_iterator alias_it = rules["alias"].begin();
+				std::vector<string>::const_iterator alias_end = rules["alias"].end();
+
+				for (; alias_it != alias_end; alias_it++)
+				{
+					this->path = *alias_it;
+					cout << YELLOW << *alias_it << RESET << endl;
+				}
+			}
+
 			if (rules.find("root") != rules.end())
 			{
 				std::vector<string>::const_iterator root_it = rules["root"].begin();
 				std::vector<string>::const_iterator root_end = rules["root"].end();
 
+				if (rules.find("alias") != rules.end())
+					cout << RED << "[WARNING] both alias and root was found" << endl;
+
 				for (; root_it != root_end; root_it++)
 					root = *root_it;
 			}
-			else
+			else if (rules.find("alias") == rules.end()) // no alias used, use default root config
 				root = config->get_root(); // use default Server root
 
 			// index file
@@ -284,22 +301,10 @@ namespace HDE
 
 				for (; index_it != index_end; index_it++)
 					index = *index_it;
+				index = "/" + index;
 			}
 			else
-				index = "index.html"; // use default index (index.html)
-
-			if (rules.find("alias") != rules.end())
-			{
-				cout << "found" << endl;
-				std::vector<string>::const_iterator alias_it = rules["alias"].begin();
-				std::vector<string>::const_iterator alias_end = rules["alias"].end();
-
-				for (; alias_it != alias_end; alias_it++)
-				{
-					root_index = *alias_it;
-					cout << YELLOW << *alias_it << RESET << endl;
-				}
-			}
+				index = "/index.html"; // use default index (index.html)
 		}
 		// if specific checks dh, start to check relative checks (/x/)
 		// not implemented yet, so just use / punya root
@@ -322,6 +327,9 @@ namespace HDE
 			}
 		}
 
+		// https://www.digitalocean.com/community/tutorials/nginx-location-directive
+		// 2. NGINX location matching exact URL
+		// basically that, but no =
 		root_index = root + this->path + index;
 		cout << "Path To File: " << root_index << endl;
 		return root_index;
@@ -333,17 +341,9 @@ namespace HDE
 		string content = HDE::Server::get_content();
 		string path, redirect_url;
 
-		this->filename = "";
-		this->redirect_url = "";
-
 		path = headers.substr(headers.find("GET ") + 4);
 		path = path.substr(0, path.find(" "));
 		cout << YELLOW << path << RESET << endl;
-
-		// it is a python file, time for cgi
-		// you know, we should check if the python file freaking exist..
-		if (path.find(".py") != string::npos)
-			return 0;
 
 		// -1 means it isnt a redirection 
 		if (this->redirectClient() != -1)
@@ -351,8 +351,13 @@ namespace HDE
 
 		// build path based on config file
 		path = config_path();
+		this->real_filepath = path;
+
+		// it is a python file, time for cgi
+		if (path.find(".py") != string::npos)
+			return 0;
+
 		cout << GREEN << "Path: " << path << RESET << endl;
-		this->filename = path;
 
 		struct stat stats;
 		// check if it exist			// check if it is a regular file
@@ -404,7 +409,6 @@ namespace HDE
 	{
 		string exe_path = find_bin();	
 		std::map<string, string> cgi_vec = config->get_cgi();
-
 		int stdout_fd = dup(1), stdin_fd = dup(0);
 		string content;
 

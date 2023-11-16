@@ -65,7 +65,7 @@ namespace HDE
 			string						error_code;
 
 			// get 
-			string						filename;
+			string						real_filepath;
 			string						redirect_url;
 
 			// chunking
