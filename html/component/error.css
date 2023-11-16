@@ -6,6 +6,14 @@ h2 {
     opacity: 0.4;
 }
 
+h3 {
+    font-family: 'JetBrains Mono', sans-serif;
+    color: #ffffff;
+    text-align: center;
+    font-size: 25px;
+    opacity: 0.4;
+}
+
 body {
     background-color: #000000;
     background-repeat: no-repeat;
