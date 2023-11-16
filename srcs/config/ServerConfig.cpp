@@ -183,6 +183,7 @@ namespace conf
 
 		while (std::getline(*file, text))
 		{
+			cout << text << endl;
 			if (text[0] == '}')
 				break;
 			if (text.find('#') == std::string::npos)
@@ -191,7 +192,11 @@ namespace conf
 				while (i < 8 && text.find(arr[i]) == std::string::npos)
 					i++;
 				if (i < 8)
+				{
+					if (text.at(text.size() - 1) != ';')
+						throw (conf::MissingSemicolonException());
 					(this->*funct[i])(text);
+				}
 				else if (text.find("location /") != std::string::npos)
 					location_name(text, file);
 				else if (text.empty() == false)

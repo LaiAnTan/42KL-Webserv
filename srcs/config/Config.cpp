@@ -68,4 +68,9 @@ namespace conf
 	{
 		return ("InvalidKeywordException: Invalid Keyword found in config file");
 	}
+
+	const char* conf::MissingSemicolonException::what() const throw()
+	{
+		return ("MissingSemicolonException: Missing Semicolon in config file");
+	}
 }

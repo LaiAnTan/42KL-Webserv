@@ -26,6 +26,8 @@ namespace conf
 			{
 				if (text.empty())
 						continue;
+				else if (text.at(text.size() - 1) != ';')
+					throw (conf::MissingSemicolonException());
 				text.resize(text.size() - 1);
 				std::stringstream ss(text);
 				if (text.find("return") == std::string::npos)
