@@ -83,4 +83,9 @@ namespace conf
 	{
 		return ("InvalidValueException: Invalid Value in client_max_body_size");
 	}
+
+	const char* conf::TooManyValuesException::what() const throw()
+	{
+		return ("TooManyValuesException: Too many values");
+	}
 }

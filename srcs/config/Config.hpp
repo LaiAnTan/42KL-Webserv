@@ -17,6 +17,7 @@
 #include <exception>
 #include "../server/Server.hpp"
 #include "validateKeywords.tpp"
+#include "../util/Utils.hpp"
 
 # define RESET		"\033[0m"
 # define BLACK		"\033[1;30m"
@@ -164,7 +165,14 @@ namespace conf
 			const char* what() const throw();
 	};
 
+	class TooManyValuesException: public std::exception
+	{
+		public:
+			const char* what() const throw();
+	};
+
 	template <typename T, typename U> bool	validateKeywords(std::set<std::string> keywords, std::map<T, U>	&map);
 }
 
 #endif
+
