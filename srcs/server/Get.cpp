@@ -157,7 +157,7 @@ namespace HDE
 			// also can we even have multiple error files?
 			// no idea how to handle that EHH just grab the first
 			filename = *(error_map.at(error_code).begin());
-			file.open(filename);
+			file.open(filename.c_str());
 			if (file.is_open())
 				error_content.append(get_file_data(filename));
 		}
