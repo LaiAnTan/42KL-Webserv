@@ -146,17 +146,13 @@ namespace HDE
 	{
 		this->status = DONE;
 
-		std::ifstream									file;
-		string											filename, error_content;
-		const std::map<string, std::vector<string> >	error_map = config->get_error();
+		std::ifstream					file;
+		string							filename, error_content;
+		const std::map<string, string>	error_map = config->get_error();
 
-		if( !error_map.empty() &&
-			error_map.find(error_code) != error_map.end())
+		if(!error_map.empty() && error_map.find(error_code) != error_map.end())
 		{
-			// fucking const qualifierrrr
-			// also can we even have multiple error files?
-			// no idea how to handle that EHH just grab the first
-			filename = *(error_map.at(error_code).begin());
+			filename = error_map.at(error_code);
 			file.open(filename.c_str());
 			if (file.is_open())
 				error_content.append(get_file_data(filename));
