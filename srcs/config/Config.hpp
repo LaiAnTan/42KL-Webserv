@@ -17,6 +17,7 @@
 #include <exception>
 #include "../server/Server.hpp"
 #include "validateKeywords.tpp"
+#include "../util/Utils.hpp"
 
 # define RESET		"\033[0m"
 # define BLACK		"\033[1;30m"
@@ -83,10 +84,10 @@ namespace conf
 			string	get_index() const;
 			string	get_server_name() const;
 			string	get_client_max() const;
-			const std::vector<string>			&get_port() const;
-			const std::map<string, std::vector<string> >	&get_error() const;
+			const std::vector<string>		&get_port() const;
+			const std::map<string, string>	&get_error() const;
 			const std::map<string, string>	&get_cgi() const;
-			const std::vector<string>	&get_methods() const;
+			const std::vector<string>		&get_methods() const;
 			const std::map<string, ServerLocation>	&get_locations() const;
 
 		private:
@@ -96,9 +97,9 @@ namespace conf
 			string								server_name;
 			string								client_max;
 
-			std::map<string, std::vector<string> >	error;
-			std::map<string, string>				cgi;
-			std::vector<string>						allowed_method;
+			std::map<string, string>			error;
+			std::map<string, string>			cgi;
+			std::vector<string>					allowed_method;
 			// stuff
 
 			std::set<string>					valid_keywords;
@@ -164,7 +165,14 @@ namespace conf
 			const char* what() const throw();
 	};
 
+	class TooManyValuesException: public std::exception
+	{
+		public:
+			const char* what() const throw();
+	};
+
 	template <typename T, typename U> bool	validateKeywords(std::set<std::string> keywords, std::map<T, U>	&map);
 }
 
 #endif
+

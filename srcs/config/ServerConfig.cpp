@@ -16,35 +16,54 @@ namespace conf
 	void	ServerConfig::set_root(string text)
 	{
 		// cout << "---root---" << endl;
-		size_t rootPos = text.find("root");
-		string res = text.substr(rootPos + 5);
-		this->root = res;
-		// cout << "(" << this->root << ")" << endl;
+		std::vector<string>		tokens;
+
+		tokens = util::split_many_delims(text, " \t");
+		
+		if (tokens.size() != 2 || tokens[0] != "root")
+			throw (conf::TooManyValuesException());
+
+		this->root = tokens[1];
 	}
 
 	void	ServerConfig::set_index(string text)
 	{
 		// cout << "---index---" << endl;
-		size_t indexPos = text.find("index");
-		string res = text.substr(indexPos + 6);
-		this->index = res;
-		// cout << "(" << this->index << ")" << endl;
+		std::vector<string>		tokens;
+
+		tokens = util::split_many_delims(text, " \t");
+
+		if (tokens.size() != 2 || tokens[0] != "index")
+			throw (conf::TooManyValuesException());
+
+		this->index = tokens[1];
 	}
 
 	void	ServerConfig::set_server_name(string text)
 	{
 		// cout << "---server_name---" << endl;
-		size_t serverPos = text.find("server_name");
-		string res = text.substr(serverPos + 12);
-		this->server_name = res;
+		std::vector<string>		tokens;
+
+		tokens = util::split_many_delims(text, " \t");
+
+		if (tokens.size() != 2 || tokens[0] != "server_name")
+			throw (conf::TooManyValuesException());
+
+		this->index = tokens[1];
 		// cout << "(" << this->server_name << ")" << endl;
 	}
 
 	void	ServerConfig::set_client_max(string text)
 	{
 		// cout << "---client_max---" << endl;
-		size_t clientPos = text.find("client_max_body_size");
-		string res = text.substr(clientPos + 21);
+		std::vector<string>		tokens;
+
+		tokens = util::split_many_delims(text, " \t");
+
+		if (tokens.size() != 2 || tokens[0] != "client_max_body_size")
+			throw (conf::TooManyValuesException());
+
+		string res = tokens[1];
 
 		string suffix = res.substr(res.size() - 2);
 
@@ -65,36 +84,23 @@ namespace conf
 
 		this->client_max = res;
 		// cout << "(" << this->client_max << ")" << endl;
-		// handle client max here because i can
 	}
 
 	void	ServerConfig::set_error(string text)
 	{
-		string var1, var2, var3, key;
-		std::vector<string> error_html;
+		string	code;
+		string error_path;
+		std::vector<string>		tokens;
 
-		size_t errorPos = text.find("error_page");
-		string res = text.substr(errorPos + 11);
-		std::stringstream ss(res);
-		while (std::getline(ss, var1, '	'))
-		{
-			if (var1.empty())
-				continue;
-			else
-				error_html.push_back(var1);
-		}
-		key = error_html.front();
-		error_html.erase(error_html.begin());
-		std::stringstream err(error_html.front());
-		error_html.clear();
-		while(std::getline(err, var2, ' '))
-		{
-			if (var2.empty())
-				continue;
-			else
-				error_html.push_back(var2);
-		}
-		this->error[key] = error_html;
+		tokens = util::split_many_delims(text, " \t");
+
+		if (tokens.size() != 3 || tokens[0] != "error_page")
+			throw (conf::TooManyValuesException());
+
+		code = tokens[1];
+		error_path = tokens[2];
+
+		this->error.insert(std::map<std::string, std::string>::value_type(code, error_path));
 	}
 
 	void	ServerConfig::set_cgi(string text)
@@ -161,7 +167,7 @@ namespace conf
 		return (this->client_max);
 	}
 
-	const std::map<string, std::vector<string> > &ServerConfig::get_error() const
+	const std::map<string, string> &ServerConfig::get_error() const
 	{
 		return(this->error);
 	}
@@ -217,9 +223,9 @@ namespace conf
 				location_name(text, file);
 			else if (text.empty() == false)
 				throw (conf::InvalidKeywordException());
-			if (this->server_name.empty())
-				this->server_name = "localhost";
 		}
+		if (this->server_name.empty())
+			this->server_name = "localhost";
 	}
 
 	ServerConfig::ServerConfig(const ServerConfig &server_config)
@@ -261,16 +267,12 @@ namespace conf
 		outs << YELLOW "Index : " RESET << server_config.get_index() << endl;
 		outs << YELLOW "Client_max : " RESET << server_config.get_client_max() << endl;
 
-		std::map<string, std::vector<string> >::iterator error_it;
-		std::map<string, std::vector<string> > err = server_config.get_error(); 
+		std::map<string, string>::iterator error_it;
+		std::map<string, string> err = server_config.get_error(); 
 		std::vector<string>::iterator htmls_it;
 		for (error_it = err.begin(); error_it != err.end(); error_it++)
 		{
-			outs << YELLOW "Error : " RESET << error_it->first << "	" << MAGENTA "Page :" RESET;
-			std::vector<string>	htmls = error_it->second;
-			for (htmls_it = htmls.begin(); htmls_it != htmls.end(); htmls_it++)
-				outs << " " << *htmls_it;
-			outs << endl;
+			outs << YELLOW "Error : " RESET << error_it->first << "	" << MAGENTA << "Page : " << RESET << error_it->second << endl;
 		}
 		std::map<string, string>::iterator map_it;
 		std::map<string, string> tmp = server_config.get_cgi(); 

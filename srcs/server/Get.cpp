@@ -146,10 +146,10 @@ namespace HDE
 		string				code[] = {"400", "404", "405", "413", "500", "501", "505"};
 		string				msg[] = {"Bad Request", "Not Found", "Method Not Allowed", "Payload Too Large", "Internal Server Error", "Not Implemented", "HTTP Version Not Supported"};
 
-		std::ifstream									file;
-		string											filename, error_content, error_description;
-		bool											found;
-		const std::map<string, std::vector<string> >	error_map = config->get_error();
+		std::ifstream					file;
+		string							filename, error_content, error_description;
+		bool							found;
+		const std::map<string, string>	error_map = config->get_error();
 
 		for (int i = 0; i < 7; i++)
 		{
@@ -160,13 +160,9 @@ namespace HDE
 			}
 		}
 
-		if( !error_map.empty() &&
-			error_map.find(error_code) != error_map.end())
+		if(!error_map.empty() && error_map.find(error_code) != error_map.end())
 		{
-			// fucking const qualifierrrr
-			// also can we even have multiple error files?
-			// no idea how to handle that EHH just grab the first
-			filename = *(error_map.at(error_code).begin());
+			filename = error_map.at(error_code);
 			file.open(filename.c_str());
 			if (file.is_open())
 				error_content.append(get_file_data(filename));

@@ -146,7 +146,7 @@ namespace HDE
 	{
 		string						header = get_headers();
 		string						first_row = util::split(header, "\r\n")[0];
-		std::vector<std::string>	first_row_info = util::split(first_row, " ");
+		std::vector<std::string>	first_row_info = util::split_many_delims(first_row, " ");
 
 		cout << first_row << endl;
 		cout << first_row_info[0] << endl;
