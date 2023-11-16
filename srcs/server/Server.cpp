@@ -23,6 +23,29 @@ using std::cout;
 
 namespace HDE
 {
+	double	Server::convert_content_length(string suffix)
+	{
+		double								converted;
+		std::vector<string>					suffixes;
+		std::vector<string>::const_iterator	it;
+
+		suffixes.push_back("B");
+		suffixes.push_back("KB");
+		suffixes.push_back("MB");
+		suffixes.push_back("GB");
+
+		it = std::find(suffixes.begin(), suffixes.end(), suffix);
+		if (it == suffixes.end())
+			return (-1);
+		
+		converted = this->content_length;
+
+		for (std::ptrdiff_t i = 0; i < it - suffixes.begin(); ++i)
+			converted /= 1000;
+
+		return (converted);
+	}
+
 	int	extract_content_length(string header)
 	{
 		std::stringstream	ss;
@@ -62,9 +85,13 @@ namespace HDE
 
 	int Server::accepter()
 	{
-		string request;
-		char buffer[BUFFER_SIZE];
-		int bytesRead;
+		double				limit;
+		double				converted;
+		int					bytesRead;
+		char				buffer[BUFFER_SIZE];
+		string				client_max_body_size;
+		string				suffix;
+		string				request;
 
 		// clear previous contents (what the fuck guys why wasnt this cleared?)
 		headers.clear();
@@ -90,6 +117,29 @@ namespace HDE
 		// get content length
 		this->content_length = extract_content_length(headers);
 		this->content_length -= this->content.length();
+		
+		// handle client_max_body_size
+		client_max_body_size = config->get_client_max();
+		suffix = client_max_body_size.substr(client_max_body_size.size() - 2);
+
+		if (not (suffix == "KB" || suffix == "MB" || suffix == "GB"))
+		{
+			if (client_max_body_size.substr(client_max_body_size.size() - 1) == "B")
+				suffix = client_max_body_size.substr(client_max_body_size.size() - 1);
+			else
+				throw (conf::InvalidSuffixException());
+		}
+		
+		limit = std::strtof(client_max_body_size.substr(0, client_max_body_size.find(suffix)).c_str(), NULL);
+
+		converted = convert_content_length(suffix);
+
+		if (converted > limit)
+		{
+			// do something here
+			cout << "Over the limit" << endl;
+			return sendError("413.html");
+		}
 
 		return headers.length() + content.length();
 	}

@@ -50,8 +50,27 @@ namespace conf
 		size_t clientPos = text.find("client_max_body_size");
     	size_t semicolonPos = text.find(";", clientPos);
 		string res = text.substr(clientPos + 21, semicolonPos - clientPos - 21);
+
+		string suffix = res.substr(res.size() - 2);
+
+		if (not (suffix == "KB" || suffix == "MB" || suffix == "GB"))
+		{
+			if (res.substr(res.size() - 1) == "B")
+				suffix = res.substr(res.size() - 1);
+			else
+				throw (conf::InvalidSuffixException());
+		}
+
+		char *end = NULL;
+
+		cout << res.substr(0, res.find(suffix)).c_str() << endl;
+		std::strtof(res.substr(0, res.find(suffix)).c_str(), &end);
+		if (*end != '\0')
+			throw (conf::InvalidValueException());
+
 		this->client_max = res;
 		// cout << "(" << this->client_max << ")" << endl;
+		// handle client max here because i can
 	}
 
 	void	ServerConfig::set_error(string text)
@@ -183,7 +202,6 @@ namespace conf
 
 		while (std::getline(*file, text))
 		{
-			cout << text << endl;
 			if (text[0] == '}')
 				break;
 			if (text.find('#') == std::string::npos)
