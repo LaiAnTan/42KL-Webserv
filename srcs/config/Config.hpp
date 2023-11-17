@@ -54,6 +54,7 @@ namespace conf
 			void	set_client_max_body_size(string text);
 			void	set_return_path(string text);
 			void 	set_allowed_method(string text);
+			void	set_alias(string text);
 
 			//getter
 			string	get_root() const;
@@ -61,6 +62,7 @@ namespace conf
 			string	get_autoindex() const;
 			string	get_client_max_body_size() const;
 			string	get_return_path() const;
+			string	get_alias() const;
 			const std::vector<string>	&get_allowed_method() const;
 
 
@@ -72,6 +74,7 @@ namespace conf
 			string					autoindex;
 			string					client_max_body_size;
 			string 					return_path;
+			string					alias;
 			std::vector<string>		allowed_method;
 
 			std::set<string>						valid_keywords;

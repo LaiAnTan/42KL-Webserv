@@ -247,7 +247,7 @@ namespace HDE
 
 	string	Server::config_path()
 	{
-		string												root_index, root = "", index = "", location_path;
+		string												root_index, root = "", index = "", location_path, alias;
 		std::map<string, conf::ServerLocation>				location = config->get_locations();
 		std::map<string, conf::ServerLocation>::iterator	location_start = location.begin();
 		std::map<string, conf::ServerLocation>::iterator	location_end = location.end();
@@ -274,12 +274,12 @@ namespace HDE
 		if (location_start != location_end)
 		{
 			// root
-			root = location[this->path].get_root();
+			root = location[location_path].get_root();
 			if (root.empty() == true)
 				root = config->get_root(); // use default Server root
 
 			// index file
-			index = location[this->path].get_index();
+			index = location[location_path].get_index();
 			if (index.empty() == true)
 			{
 				string	autoindex_value = location[this->path].get_autoindex();
@@ -291,6 +291,23 @@ namespace HDE
 				else
 					index = "index.html";
 			}
+
+			// alias
+
+			// Placing a alias directive in a location block 
+			// overrides the root or alias directive that was 
+			// applied at a higher scope.
+			// alias = location[location_path].get_alias();
+			// if (alias.empty() == false)
+			// {
+			// 	if (root.empty() == false)
+			// 	{
+			// 		cout << RED << "[Warning] Both Alias and Root found";
+			// 	}
+			// }
+
+			// so uhh, the pdf actually treats root so it functions as alias
+			// what the fuck
 		}
 		// not found, use "/"
 		else
