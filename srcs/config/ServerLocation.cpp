@@ -82,6 +82,19 @@ namespace conf
 		this->allowed_method = tokens;
 	}
 
+	void	ServerLocation::set_alias(string text)
+	{
+		// cout << "---allowed_method---" << endl;
+		std::vector<string>		tokens;
+
+		tokens = util::split_many_delims(text, " \t");
+
+		if (tokens.size() != 2 || tokens[0] != "alias")
+			throw (conf::TooManyValuesException());
+
+		this->alias = tokens[1];
+	}
+
 	string	ServerLocation::get_root() const
 	{
 		return (this->root);
@@ -95,6 +108,11 @@ namespace conf
 	string	ServerLocation::get_autoindex() const
 	{
 		return (this->autoindex);
+	}
+
+	string	ServerLocation::get_alias() const
+	{
+		return (this->alias);
 	}
 
 	string	ServerLocation::get_client_max_body_size() const
@@ -137,11 +155,12 @@ namespace conf
 			&ServerLocation::set_allowed_method,
 			&ServerLocation::set_client_max_body_size,
 			&ServerLocation::set_index,
-			&ServerLocation::set_return_path
+			&ServerLocation::set_return_path,
+			&ServerLocation::set_alias,
 		};
 
 		string arr[] = {"root", "autoindex", "allowed_methods", \
-			"client_max_body_size", "index", "return"};
+			"client_max_body_size", "index", "return", "alias"};
 
 		// set defaults in case they are not found
 		std::vector<string>		empty;
