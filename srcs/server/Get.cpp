@@ -332,8 +332,8 @@ namespace HDE
 			index = "index.html";
 		}
 
-		this->path = this->path.substr(location_path.length());
-		root_index = root + "/" + this->path;
+		string	new_path = this->path.substr(location_path.length());
+		root_index = root + "/" + new_path;
 		cout << root_index << endl;
 
 		if (root_index[root_index.length() - 1] == '/')

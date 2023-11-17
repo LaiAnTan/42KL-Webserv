@@ -236,6 +236,7 @@ namespace HDE
 				}
 				break;
 			case SEND_AUTO_INDEX:
+				this->status = DONE;
 				this->generate_index();
 				break;
 			case SEND_ERROR:
@@ -263,6 +264,8 @@ namespace HDE
 					this->status = SENDING_RESPONSE;
 					if (not error_code.empty())
 						this->status = SEND_ERROR;
+					if (this->auto_index)
+						this->status = SEND_AUTO_INDEX;
 				}
 				break;
 			default:

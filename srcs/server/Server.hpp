@@ -121,7 +121,7 @@ namespace HDE
 			void	reset();
 
 			// index generator
-			string	generate_index();
+			int	generate_index();
 
 		public:
 			Server(const conf::ServerConfig *config, int client_fd);
