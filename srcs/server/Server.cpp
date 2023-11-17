@@ -168,22 +168,10 @@ namespace HDE
 
 		if (location.find(this->path) != location.end())
 		{
-			location_rules = location[this->path].get_rules();
-
-			if (location_rules.find("allowed_methods") != location_rules.end())
-				location_methods = location_rules["allowed_methods"];
-			else
-				// since dont have specific, use the server wide one
-				// technically, this can go below the else statement
-				// but the code would look absolutely horrendous
-				location_methods = server_methods;
+			location_methods = location[this->path].get_allowed_method();
 		}
-		else
-		{
-			// i honestly do not know what to do with this
-			// probably use the default one ig
-			location_methods = server_methods;
-		}
+		if (location_methods.empty() == true)
+			location_methods = server_methods; // use default if not found
 
 		// check if method is allowed
 		// where the fuck is auto when u need it

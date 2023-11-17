@@ -142,6 +142,16 @@ namespace conf
 		string arr[] = {"root", "autoindex", "allowed_methods", \
 			"client_max_body_size", "index", "return"};
 
+		// set defaults in case they are not found
+		std::vector<string>		empty;
+
+		this->allowed_method = empty;
+		this->root = "";
+		this->index = "";
+		this->client_max_body_size = "";
+		this->autoindex = "on";
+		this->return_path = "";
+
 		while (std::getline(*file, text))
 		{
 			if (text[1] == '}')
