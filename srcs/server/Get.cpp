@@ -249,28 +249,31 @@ namespace HDE
 	{
 		string												root_index, root = "", index = "", location_path, alias;
 		std::map<string, conf::ServerLocation>				location = config->get_locations();
-		std::map<string, conf::ServerLocation>::iterator	location_start = location.begin();
+		std::map<string, conf::ServerLocation>::iterator	location_start = location.end();
 		std::map<string, conf::ServerLocation>::iterator	location_end = location.end();
-	
+
 		// we arent doing specific checks anymore
 
-		for (; location_start != location_end; ++location_start)
-		{
-			location_path = location_start->first;
+		// start from the most specific and check
+		std::string		check(this->path);
 
-			// path is found
-			// "/" is only used if the rest do not match
-			if (location_path == "/")
-				continue;
-			if (this->path.find(location_path) == 0)
-				break;
-		}
-		if (location_start == location_end)
+		for (std::size_t next_slash = check.rfind('/'); 
+			(not check.empty()) and (next_slash != string::npos); 
+			check = check.substr(0, next_slash), next_slash = check.rfind('/'))
 		{
-			cout << "Using / location info" << endl;
-			location_path = "/";
-			location_start = location.find("/");
+			location_path = check;
+			cout < "Checking Path: " << check << endl;
+			if (location.find(check) != location.end())
+			{
+				cout << "Found it" << endl;
+				break;
+			}
 		}
+		if (check.empty())
+			location_path = "/";
+		location_start = location.find(location_path);
+		// end, copy this over thanks :P
+
 		if (location_start != location_end)
 		{
 			// root
@@ -306,7 +309,7 @@ namespace HDE
 			// 	}
 			// }
 
-			// so uhh, the pdf actually treats root so it functions as alias
+			// so uhh, the pdf actually treats root as alias
 			// what the fuck
 		}
 		// not found, use "/"

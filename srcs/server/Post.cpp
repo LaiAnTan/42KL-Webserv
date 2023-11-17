@@ -157,31 +157,23 @@ namespace HDE
 		string		suffix;
 
 		std::map<string, conf::ServerLocation>	location = get_config()->get_locations();
+		std::string				check_path(this->path);
 
-		std::vector<string>	paths = util::split(path, "/");
-
-
-		// handle if has question mark at the end
-		size_t question_pos = paths.back().find("?");
-		if (question_pos != string::npos)
-			paths.back() = paths.back().substr(0, question_pos);
-
-		// start from the most specific and check
-		std::vector<string>::reverse_iterator	it = paths.rbegin();
-
-		for (; it != paths.rend(); ++it)
+		for (std::size_t next_slash = check_path.rfind('/'); 
+			(not check_path.empty()) and (next_slash != string::npos);
+			check_path = check_path.substr(0, next_slash), next_slash = check_path.rfind('/'))
 		{
-			cout << "checking for max in /" << *it << endl;
-			if (location.find("/" + *it) != location.end())
+			cout << "checking for max in " << check_path << endl;
+			if (location.find(check_path) != location.end())
 			{
-				client_max_body_size = location["/" + *it].get_client_max_body_size();
+				cout << "Found it" << endl;
+				client_max_body_size = location[check_path].get_client_max_body_size();
 				break;
 			}
 		}
-		if (client_max_body_size.empty() == true)
+		if (client_max_body_size.empty())
 			client_max_body_size = config->get_client_max();
 
-		// only specific checks, relative implement soon
 		suffix = client_max_body_size.substr(client_max_body_size.size() - 2);
 
 		if (not (suffix == "KB" || suffix == "MB" || suffix == "GB"))
