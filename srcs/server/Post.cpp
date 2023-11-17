@@ -151,7 +151,6 @@ namespace HDE
 		cout << YELLOW << "Handling Post Request" << endl;
 
 		// handle client_max_body_size
-
 		double		limit;
 		double		converted;
 		string		client_max_body_size;
@@ -159,9 +158,25 @@ namespace HDE
 
 		std::map<string, conf::ServerLocation>	location = get_config()->get_locations();
 
-		if (location.find(path) != location.end())
+		std::vector<string>	paths = util::split(path, "/");
+
+
+		// handle if has question mark at the end
+		size_t question_pos = paths.back().find("?");
+		if (question_pos != string::npos)
+			paths.back() = paths.back().substr(0, question_pos);
+
+		// start from the most specific and check
+		std::vector<string>::reverse_iterator	it = paths.rbegin();
+
+		for (; it != paths.rend(); ++it)
 		{
-			client_max_body_size = location[path].get_client_max_body_size();
+			cout << "checking for max in /" << *it << endl;
+			if (location.find("/" + *it) != location.end())
+			{
+				client_max_body_size = location["/" + *it].get_client_max_body_size();
+				break;
+			}
 		}
 		if (client_max_body_size.empty() == true)
 			client_max_body_size = config->get_client_max();
