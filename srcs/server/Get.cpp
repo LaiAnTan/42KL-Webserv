@@ -262,7 +262,7 @@ namespace HDE
 			check = check.substr(0, next_slash), next_slash = check.rfind('/'))
 		{
 			location_path = check;
-			cout < "Checking Path: " << check << endl;
+			cout << "Checking Path: " << check << endl;
 			if (location.find(check) != location.end())
 			{
 				cout << "Found it" << endl;
