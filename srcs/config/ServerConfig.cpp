@@ -4,13 +4,17 @@ namespace conf
 {
 	void ServerConfig::set_port(string text)
 	{
-		string res, word;
+		
+		std::vector<string>		tokens;
 
-		size_t listenPos = text.find("listen");
-		res = text.substr(listenPos + 7);
-		std::stringstream ss(res);
-		while (std::getline(ss, word, ' '))
-			this->port.push_back(word);
+		tokens = util::split_many_delims(text, " \t");
+		
+		if (tokens[0] != "listen")
+			throw (conf::TooManyValuesException());
+
+		tokens.erase(tokens.begin());
+
+		this->port = tokens;
 	}
 
 	void	ServerConfig::set_root(string text)
