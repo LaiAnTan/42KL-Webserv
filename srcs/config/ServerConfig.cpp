@@ -120,17 +120,15 @@ namespace conf
 
 	void	ServerConfig::set_methods(string text)
 	{
-		string	var1;
-		size_t methods = text.find("allowed_methods");
-		string res = text.substr(methods + 16);
-		std::stringstream ss(res);
-		while (std::getline(ss, var1, ' '))
-		{
-			if (var1.empty())
-				continue;
-			else
-				this->allowed_method.push_back(var1);
-		}
+		std::vector<string>		tokens;
+
+		tokens = util::split_many_delims(text, " \t");
+
+		if (tokens.size() < 2 || tokens[0] != "allowed_methods")
+			throw (conf::TooManyValuesException());
+
+		tokens.erase(tokens.begin());
+		this->allowed_method = tokens;
 	}
 	
 	void	ServerConfig::location_name(string text, std::ifstream *file)

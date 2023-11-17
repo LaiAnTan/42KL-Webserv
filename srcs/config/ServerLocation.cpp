@@ -45,6 +45,7 @@ namespace conf
 	void	ServerLocation::set_client_max_body_size(string text)
 	{
 		// cout << "---client_max_body_size---" << endl;
+		// cout << "---client_max---" << endl;
 		std::vector<string>		tokens;
 
 		tokens = util::split_many_delims(text, " \t");
@@ -52,7 +53,26 @@ namespace conf
 		if (tokens.size() != 2 || tokens[0] != "client_max_body_size")
 			throw (conf::TooManyValuesException());
 
-		this->client_max_body_size = tokens[1];
+		string res = tokens[1];
+
+		string suffix = res.substr(res.size() - 2);
+
+		if (not (suffix == "KB" || suffix == "MB" || suffix == "GB"))
+		{
+			if (res.substr(res.size() - 1) == "B")
+				suffix = res.substr(res.size() - 1);
+			else
+				throw (conf::InvalidSuffixException());
+		}
+
+		char *end = NULL;
+
+		cout << res.substr(0, res.find(suffix)).c_str() << endl;
+		std::strtof(res.substr(0, res.find(suffix)).c_str(), &end);
+		if (*end != '\0')
+			throw (conf::InvalidValueException());
+
+		this->client_max_body_size = res;
 	}
 
 	void	ServerLocation::set_return_path(string text)
