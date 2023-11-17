@@ -231,18 +231,31 @@ namespace HDE
 		string									redirect_url, root_index;
 		std::map<string, conf::ServerLocation>	location = config->get_locations();
 
+		std::vector<string>	paths = util::split(this->path, "/");
 
-		if (location.find(this->path) != location.end())
+		// handle if has question mark at the end
+		size_t question_pos = paths.back().find("?");
+		if (question_pos != string::npos)
+			paths.back() = paths.back().substr(0, question_pos);
+
+		// start from the most specific and check
+		std::vector<string>::reverse_iterator	it = paths.rbegin();
+
+		for (; it != paths.rend(); ++it)
 		{
-			redirect_url = location[path].get_return_path();
+			cout << "checking for return in /" << *it << endl;
+			if (location.find("/" + *it) != location.end())
+			{
+				redirect_url = location["/" + *it].get_return_path();
+				break;
+			}
 		}
-		if (redirect_url.empty() == false)
-		{
-			this->redirect_url = redirect_url;
-			return 0;
-		}
-		else
-			return -1;
+
+		if (redirect_url.empty() == true)
+			return (-1);
+		
+		this->redirect_url = redirect_url;
+		return 0;
 	}
 
 	string	Server::config_path()
