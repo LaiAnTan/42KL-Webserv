@@ -1,7 +1,6 @@
 # Import modules for CGI handling
 import os
 
-import os 
 dir_path = os.path.dirname(os.path.realpath(__file__)) + "/"
 
 # Create instance of FieldStorage

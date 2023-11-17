@@ -197,6 +197,12 @@ namespace conf
 			const char* what() const throw();
 	};
 
+	class DuplicatePortException: public std::exception
+	{
+		public:
+			const char* what() const throw();
+	};
+
 	template <typename T, typename U> bool	validateKeywords(std::set<std::string> keywords, std::map<T, U>	&map);
 }
 

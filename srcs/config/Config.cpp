@@ -88,4 +88,10 @@ namespace conf
 	{
 		return ("TooManyValuesException: Too many values");
 	}
+
+	const char* conf::DuplicatePortException::what() const throw()
+	{
+		return ("DuplicatePortException: Duplicate Ports");
+	}
+	
 }

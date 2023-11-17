@@ -58,6 +58,7 @@ namespace HDE
 			~WebSurf();
 
 			void	run_servers();
+			void	print_status();
 	};
 } // namespace HDE
 

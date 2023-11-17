@@ -35,6 +35,22 @@ namespace HDE
 		cout << YELLOW << "[INFO] Added " << doorbell_count << " doorbells!" << endl;
 	}
 
+	void	WebSurf::print_status()
+	{
+		cout << CYAN << "[PROMPT] --------------------------" << endl;
+		cout << "Number of Connection Points    || " << this->doorbell_count << endl;
+		cout << "Number of Serving Servers      || " << this->server_count << endl;
+		cout << "Total Number of Sockets Active || " << this->total_count << endl;
+		cout << "-------------------------------------" << endl;
+		cout << "PORTS IN USE" << endl;
+		cout << "-------------------------------------" << endl;
+		for (doorbell_iter start = doorbells.begin(); start != doorbells.end(); ++start)
+			cout << "PORT " << start->second->get_port() << endl;
+		cout << endl;
+		cout << CYAN << "[PROMPT-END] ----------------------" << endl;
+		cout << RESET;
+	}
+
 	void	WebSurf::run_servers()
 	{
 		// amen
@@ -44,21 +60,9 @@ namespace HDE
 		int	run_server = true;
 		Server	*current;
 
+		print_status();
 		while (run_server)
 		{
-			cout << CYAN << "[PROMPT] --------------------------" << endl;
-			cout << "Number of Connection Points    || " << this->doorbell_count << endl;
-			cout << "Number of Serving Servers      || " << this->server_count << endl;
-			cout << "Total Number of Sockets Active || " << this->total_count << endl;
-			cout << "-------------------------------------" << endl;
-			cout << "PORTS IN USE" << endl;
-			cout << "-------------------------------------" << endl;
-			for (doorbell_iter start = doorbells.begin(); start != doorbells.end(); ++start)
-				cout << "PORT " << start->second->get_port() << endl;
-			cout << endl;
-			cout << CYAN << "[PROMPT-END] ----------------------" << endl;
-			cout << RESET;
-
 			ret_value = poll(&pfds[0], this->total_count, WebSurf::timeout);
 			if (ret_value < 0)
 			{
@@ -180,6 +184,7 @@ namespace HDE
 		--this->total_count;
 		(*counter) = (*counter) - 1;
 
+		print_status();
 		return true;
 	}
 
@@ -201,6 +206,7 @@ namespace HDE
 		++this->server_count;
 		++this->total_count;
 
+		print_status();
 		return true;
 	}
 

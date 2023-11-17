@@ -1,5 +1,108 @@
 <!DOCTYPE html>
 <html>
+	<head>
+		<style>
+			body {
+			font-family: Arial, Helvetica, sans-serif;
+			background-color: #000000;
+			}
+
+			* {
+			box-sizing: border-box;
+			}
+
+			/* style the container */
+			.container {
+			position: relative;
+			border-radius: 5px;
+			background-color: #000000;
+			padding: 15% 0 30px 0;
+			} 
+
+			/* style inputs and link buttons */
+			input,
+			.btn {
+			width: 100%;
+			padding: 12px;
+			border: none;
+			border-radius: 10px;
+			margin: 5px 0;
+			opacity: 0.85;
+			display: inline-block;
+			font-size: 17px;
+			line-height: 30px;
+			text-decoration: none; /* remove underline from anchors */
+			}
+
+			input:hover,
+			.btn:hover {
+			opacity: 1;
+			}
+
+			/* style the submit button */
+			input[type=submit] {
+			background-color: #F79817;
+			color: black;
+			cursor: pointer;
+			}
+
+			input[type=submit]:hover {
+			background-color: #F79817;
+			}
+
+			/* style the file button */
+			input[type=file] {
+			background-color: #F79817;
+			color: black;
+			cursor: pointer;
+			text-align: center;
+			}
+
+			input[type=file]::-webkit-file-upload-button {
+				opacity: 0;
+				margin-left: -75px;
+			}
+
+			input[type=file]::-webkit-file-upload-button:hover {
+			background-color: #F79817;
+			}
+
+			/* Two-column layout */
+			.col {
+			width: 60%;
+			margin: auto;
+			padding: 0 50px;
+			margin-top: 6px;
+			}
+
+			/* Clear floats after the columns */
+			.row:after {
+			content: "";
+			display: table;
+			clear: both;
+			}
+
+		</style>
+	</head>
+
+	<body>
+		<div class="container">
+		<form action="/cgi/py_cgi.py" method = "get">
+			<div class="row">
+				<h2 style="text-align:center; color:white">Upload Files</h2>
+				<div class="col" style="text-align: center;">
+					<form method="post" enctype="multipart/form-data"></form>
+					<input type="file" name="files[]" id="file" multiple>
+					<input type="submit" value="Upload">
+				</div>
+			</div>
+		</form>
+		</div>
+	</body>
+</html>
+
+<!-- <!DOCTYPE html>
+<html>
 <head>
     <title>File Upload Form</title>
 </head>
@@ -12,4 +115,4 @@
         <input type="submit" value="Upload">
     </form>
 </body>
-</html>
+</html> -->

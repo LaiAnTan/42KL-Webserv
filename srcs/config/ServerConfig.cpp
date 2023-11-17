@@ -14,6 +14,11 @@ namespace conf
 
 		tokens.erase(tokens.begin());
 
+		std::set<string>	check(tokens.begin(), tokens.end());
+
+		if (check.size() != tokens.size())
+			throw(conf::DuplicatePortException());
+
 		this->port = tokens;
 	}
 
