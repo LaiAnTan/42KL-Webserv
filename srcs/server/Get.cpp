@@ -231,23 +231,12 @@ namespace HDE
 		string									redirect_url, root_index;
 		std::map<string, conf::ServerLocation>	location = config->get_locations();
 
+
 		if (location.find(this->path) != location.end())
 		{
-			conf::ServerLocation::rules_map rules = location[path].get_rules();
-			if (rules.find("return") != rules.end())
-			{
-				std::vector<string>::const_iterator return_it = rules["return"].begin();
-				std::vector<string>::const_iterator return_end = rules["return"].end();
-
-				for (; return_it != return_end; return_it++)
-				{
-					redirect_url = *return_it;
-					cout << YELLOW << "[INFO] Redirecting User to " << *return_it << RESET << endl;
-				}
-			}
-
+			redirect_url = location[path].get_return_path();
 		}
-		if (not redirect_url.empty())
+		if (redirect_url.empty() == false)
 		{
 			this->redirect_url = redirect_url;
 			return 0;
@@ -264,47 +253,28 @@ namespace HDE
 		// specific checks
 		if (location.find(this->path) != location.end())
 		{
-			conf::ServerLocation::rules_map rules = location[path].get_rules();
-
-			if (rules.find("alias") != rules.end())
-			{
-				cout << "found" << endl;
-				std::vector<string>::const_iterator alias_it = rules["alias"].begin();
-				std::vector<string>::const_iterator alias_end = rules["alias"].end();
-
-				for (; alias_it != alias_end; alias_it++)
-				{
-					this->path = *alias_it;
-					cout << YELLOW << *alias_it << RESET << endl;
-				}
-			}
-
-			if (rules.find("root") != rules.end())
-			{
-				std::vector<string>::const_iterator root_it = rules["root"].begin();
-				std::vector<string>::const_iterator root_end = rules["root"].end();
-
-				if (rules.find("alias") != rules.end())
-					cout << RED << "[WARNING] both alias and root was found" << endl;
-
-				for (; root_it != root_end; root_it++)
-					root = *root_it;
-			}
-			else if (rules.find("alias") == rules.end()) // no alias used, use default root config
+			// root
+			root = location[this->path].get_root();
+			if (root.empty() == true)
 				root = config->get_root(); // use default Server root
 
 			// index file
-			if (rules.find("index") != rules.end())
-			{
-				std::vector<string>::const_iterator index_it = rules["index"].begin();
-				std::vector<string>::const_iterator index_end = rules["index"].end();
+			index = location[this->path].get_index();
+			if (index.empty() == true)
+				index = "index.html"; // use default index (index.html)
 
-				for (; index_it != index_end; index_it++)
-					index = *index_it;
-				index = "/" + index;
-			}
-			else
-				index = "/index.html"; // use default index (index.html)
+			// if (rules.find("alias") != rules.end())
+			// {
+			// 	cout << "found" << endl;
+			// 	std::vector<string>::const_iterator alias_it = rules["alias"].begin();
+			// 	std::vector<string>::const_iterator alias_end = rules["alias"].end();
+
+			// 	for (; alias_it != alias_end; alias_it++)
+			// 	{
+			// 		root_index = *alias_it;
+			// 		cout << YELLOW << *alias_it << RESET << endl;
+			// 	}
+			// }
 		}
 		// if specific checks dh, start to check relative checks (/x/)
 		// not implemented yet, so just use / punya root
@@ -314,16 +284,9 @@ namespace HDE
 			root = config->get_root();
 			if (location.find("/") != location.end())
 			{
-				conf::ServerLocation::rules_map rules = location["/"].get_rules();
-
-				if (location["/"].get_rules().find("root") != location["/"].get_rules().end())
-				{
-					std::vector<string>::const_iterator root_it = rules["root"].begin();
-					std::vector<string>::const_iterator root_end = rules["root"].end();
-
-					for (; root_it != root_end; root_it++)
-						root = *root_it;
-				}
+				root = location["/"].get_root();
+				if (root.empty() == true)
+					root = config->get_root();
 			}
 		}
 

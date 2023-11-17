@@ -47,10 +47,33 @@ namespace conf
 			ServerLocation();
 			~ServerLocation();
 
+			//setter
+			void	set_root(string text);
+			void	set_index(string text);
+			void	set_autoindex(string text);
+			void	set_client_max_body_size(string text);
+			void	set_return_path(string text);
+			void 	set_allowed_method(string text);
+
 			//getter
+			string	get_root() const;
+			string	get_index() const;
+			string	get_autoindex() const;
+			string	get_client_max_body_size() const;
+			string	get_return_path() const;
+			const std::vector<string>	&get_allowed_method() const;
+
+
 			const std::map<string, std::vector<string> > &get_rules() const;
 
 		private:
+			string					root;
+			string					index;
+			string					autoindex;
+			string					client_max_body_size;
+			string 					return_path;
+			std::vector<string>		allowed_method;
+
 			std::set<string>						valid_keywords;
 			std::map<string, std::vector<string> >	rules;
 	};

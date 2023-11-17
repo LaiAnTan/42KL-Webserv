@@ -157,17 +157,16 @@ namespace HDE
 		string		client_max_body_size;
 		string		suffix;
 
-		// ???
-		try
-		{
-			client_max_body_size = get_config()->get_locations().at(path).get_rules().at("max_client_body_size")[0];
-		}
-		catch (const std::out_of_range& e)
-		{
-			client_max_body_size = config->get_client_max();
-		}
-		// only specific checks, relative implement soon
+		std::map<string, conf::ServerLocation>	location = get_config()->get_locations();
 
+		if (location.find(path) != location.end())
+		{
+			client_max_body_size = location[path].get_client_max_body_size();
+		}
+		if (client_max_body_size.empty() == true)
+			client_max_body_size = config->get_client_max();
+
+		// only specific checks, relative implement soon
 		suffix = client_max_body_size.substr(client_max_body_size.size() - 2);
 
 		if (not (suffix == "KB" || suffix == "MB" || suffix == "GB"))
