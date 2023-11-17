@@ -87,16 +87,15 @@
 
 	<body>
 		<div class="container">
-		<form action="/cgi/py_cgi.py" method = "get">
-			<div class="row">
-				<h2 style="text-align:center; color:white">Upload Files</h2>
-				<div class="col" style="text-align: center;">
-					<form method="post" enctype="multipart/form-data"></form>
+		<div class="row">
+			<h2 style="text-align:center; color:white">Upload Files</h2>
+			<div class="col" style="text-align: center;">
+				<form method="post" enctype="multipart/form-data">
 					<input type="file" name="files[]" id="file" multiple>
 					<input type="submit" value="Upload">
-				</div>
+				</form>
 			</div>
-		</form>
+		</div>
 		</div>
 	</body>
 </html>
