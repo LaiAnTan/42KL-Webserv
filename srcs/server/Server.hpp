@@ -30,6 +30,7 @@ namespace HDE
 		NEW,
 		HANDLING_DATA,
 		SENDING_RESPONSE,
+		SEND_AUTO_INDEX,
 		SEND_ERROR,
 		SEND_CHUNK,
 		SAVE_CHUNK,
@@ -66,6 +67,7 @@ namespace HDE
 			// get 
 			string						real_filepath;
 			string						redirect_url;
+			bool						auto_index;
 
 			// chunking
 			std::ifstream				file;
@@ -118,6 +120,9 @@ namespace HDE
 			// reset
 			void	reset();
 
+			// index generator
+			string	generate_index();
+
 		public:
 			Server(const conf::ServerConfig *config, int client_fd);
 			~Server();
@@ -126,7 +131,7 @@ namespace HDE
 			int responder();
 
 			string						get_headers();
-			string						get_content();
+			string						get_content();	
 			const conf::ServerConfig	*get_config();
 			int							get_socket();
 			int							get_content_length();

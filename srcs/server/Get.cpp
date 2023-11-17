@@ -247,11 +247,31 @@ namespace HDE
 
 	string	Server::config_path()
 	{
-		string									root_index, root = "", index = "";
-		std::map<string, conf::ServerLocation>	location = config->get_locations();
+		string												root_index, root = "", index = "", location_path;
+		std::map<string, conf::ServerLocation>				location = config->get_locations();
+		std::map<string, conf::ServerLocation>::iterator	location_start = location.begin();
+		std::map<string, conf::ServerLocation>::iterator	location_end = location.end();
+	
+		// we arent doing specific checks anymore
 
-		// specific checks
-		if (location.find(this->path) != location.end())
+		for (; location_start != location_end; ++location_start)
+		{
+			location_path = location_start->first;
+
+			// path is found
+			// "/" is only used if the rest do not match
+			if (location_path == "/")
+				continue;
+			if (this->path.find(location_path) == 0)
+				break;
+		}
+		if (location_start == location_end)
+		{
+			cout << "Using / location info" << endl;
+			location_path = "/";
+			location_start = location.find("/");
+		}
+		if (location_start != location_end)
 		{
 			// root
 			root = location[this->path].get_root();
@@ -261,39 +281,30 @@ namespace HDE
 			// index file
 			index = location[this->path].get_index();
 			if (index.empty() == true)
-				index = "index.html"; // use default index (index.html)
-
-			// if (rules.find("alias") != rules.end())
-			// {
-			// 	cout << "found" << endl;
-			// 	std::vector<string>::const_iterator alias_it = rules["alias"].begin();
-			// 	std::vector<string>::const_iterator alias_end = rules["alias"].end();
-
-			// 	for (; alias_it != alias_end; alias_it++)
-			// 	{
-			// 		root_index = *alias_it;
-			// 		cout << YELLOW << *alias_it << RESET << endl;
-			// 	}
-			// }
-		}
-		// if specific checks dh, start to check relative checks (/x/)
-		// not implemented yet, so just use / punya root
-		else
-		{
-			cout << "Using / location info" << endl;
-			root = config->get_root();
-			if (location.find("/") != location.end())
 			{
-				root = location["/"].get_root();
-				if (root.empty() == true)
-					root = config->get_root();
+				string	autoindex_value = location[this->path].get_autoindex();
+				if (autoindex_value == "on")
+				{
+					index = "";
+					this->auto_index = true;
+				}
+				else
+					index = "index.html";
 			}
 		}
+		// not found, use "/"
+		else
+		{
+			root = config->get_root();
+			index = "index.html";
+		}
 
-		// https://www.digitalocean.com/community/tutorials/nginx-location-directive
-		// 2. NGINX location matching exact URL
-		// basically that, but no =
-		root_index = root + this->path + index;
+		this->path = this->path.substr(location_path.length());
+		root_index = root + "/" + this->path;
+		cout << root_index << endl;
+
+		if (root_index[root_index.length() - 1] == '/')
+			root_index = root_index + index;
 		cout << "Path To File: " << root_index << endl;
 		return root_index;
 	}
@@ -315,6 +326,12 @@ namespace HDE
 		// build path based on config file
 		path = config_path();
 		this->real_filepath = path;
+
+		if (this->auto_index == true)
+		{
+			this->status = CLEARING_SOCKET;
+			return 0;
+		}
 
 		// it is a python file, time for cgi
 		if (path.find(".py") != string::npos)

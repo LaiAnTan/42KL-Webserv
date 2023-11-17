@@ -80,6 +80,8 @@ namespace HDE
 		this->headers = "";
 		this->content = "";
 
+		this->auto_index = false;
+
 		this->status = NEW;
 		this->content_length = -1;
 
@@ -167,9 +169,8 @@ namespace HDE
 		std::vector<string>						location_methods;
 
 		if (location.find(this->path) != location.end())
-		{
 			location_methods = location[this->path].get_allowed_method();
-		}
+
 		if (location_methods.empty() == true)
 			location_methods = server_methods; // use default if not found
 
@@ -233,6 +234,9 @@ namespace HDE
 						ret_value = (this->*response_list[x])();
 					}
 				}
+				break;
+			case SEND_AUTO_INDEX:
+				this->generate_index();
 				break;
 			case SEND_ERROR:
 				cout << "Sending Error Code" << endl;

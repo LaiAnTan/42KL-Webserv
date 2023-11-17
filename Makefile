@@ -16,7 +16,7 @@ UTIL_C = Utils.cpp
 
 # ---Network---
 SERVER_CDIR = srcs/server
-SERVER_C = Delete.cpp Get.cpp Post.cpp Server.cpp ServerListener.cpp 
+SERVER_C = Delete.cpp Get.cpp autoIndex.cpp Post.cpp Server.cpp ServerListener.cpp 
 
 # ---Socket---
 SOCKET_CDIR = srcs/server/socket
