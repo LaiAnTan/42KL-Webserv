@@ -12,7 +12,7 @@ using std::endl;
 namespace HDE
 {
 	// always remember to encode the url to your file...
-	string	encode_url(const string &value)
+	string	Server::encode_url(const string &value)
 	{
 		std::stringstream	save;
 
@@ -71,7 +71,6 @@ namespace HDE
 			full_file_path = this->real_filepath + de->d_name;
 			domain_file_path = this->path + "/" + de->d_name;
 			exist = stat(full_file_path.c_str(), &buf);
-			cout << de->d_name << endl;
 			if (string(de->d_name) == ".")
 				continue;
 			if (exist < 0)
@@ -83,7 +82,6 @@ namespace HDE
 				encoded_file_path = encode_url(domain_file_path);
 				// handled name
 				index_content << "<td><a href=\"" << encoded_file_path << "\">" << de->d_name << "</a></td>" << endl;
-
 				// handles date
 				timeinfo = localtime(&(buf.st_mtim.tv_sec));
 				strftime(save_buffer, 100, "%e-%B-%Y", timeinfo);
@@ -96,8 +94,8 @@ namespace HDE
 			}
 		}
 
-
-		index_content << "</table></body></html>" << endl;
+		index_content << "</table>" << endl;
+		index_content << "</body></html>" << endl;
 		std::stringstream	to_send;
 
 		to_send << "HTTP/1.1 200 OK\r\n" << "Connection: keep-alive\r\n" << "Content-Type: text/html\r\n" << "Content-Length: " << index_content.str().length() << "\r\n\r\n";

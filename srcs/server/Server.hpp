@@ -57,7 +57,7 @@ namespace HDE
 			void	parse_header();
 			int		check_valid_method();
 			void	find_config_location();
-			void	convert_path();
+			void	decode_path();
 
 			ServerStatus				status;
 
@@ -114,8 +114,9 @@ namespace HDE
 			// for cgi
 			int	py();
 
-			int	send_next_chunk();
-			int import_read_data();
+			int		send_next_chunk();
+			int		import_read_data();
+			string	encode_url(const string &value);
 
 			// helper 2
 			double	convert_content_length(string suffix);// converts content length to the specified suffix

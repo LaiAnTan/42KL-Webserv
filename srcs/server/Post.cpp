@@ -49,6 +49,7 @@ namespace HDE
 		// also, anything after the end boundary string is ignored
 		if (this->content.find("--" + this->boundary_string + "--") == 0)
 		{
+			cout << YELLOW << "End Boundary String Found, Ending Process" << endl;
 			this->status = CLEARING_SOCKET; // clear socket to send respond http message
 			return 0;
 		}
@@ -67,6 +68,7 @@ namespace HDE
 
 		if (this->content.find("--" + this->boundary_string) != string::npos)
 		{
+			cout << YELLOW << "Found a Boundary String" << endl;
 			int boundary_pos = this->content.find("--" + this->boundary_string);
 
 			// extract all previous data and put them into the old file
@@ -120,6 +122,7 @@ namespace HDE
 		// check for potential boundary strings
 		else if (this->content.rfind("\r\n--") != string::npos)
 		{
+			cout << YELLOW << "Potential Boundary String Found" << endl;
 			int	delimiter_pos = this->content.rfind("\r\n--");
 
 			if (this->boundary_string.find(this->content.substr(delimiter_pos)) != string::npos)
@@ -134,7 +137,7 @@ namespace HDE
 		// it is safe to just dump data
 		else
 		{
-			cout << YELLOW << "Dumping Data" << endl << endl;
+			cout << YELLOW << "Dumping Data" << endl;
 			this->save_to.write(this->content.c_str(), this->content.length());
 			this->content.clear();
 			return 0;

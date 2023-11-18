@@ -153,16 +153,16 @@ namespace HDE
 		this->method = first_row_info[0];
 		this->path = first_row_info[1];
 
-		convert_path();
+		decode_path();
 	}
 
-	void	Server::convert_path()
+	void	Server::decode_path()
 	{
 		int		value;
 		char	char_buffer[2];
 		size_t	checking = 0;
 
-		std::stringstream	buffer; // stringstream my favorite
+		std::stringstream	buffer; // stringstream my favorite 
 		std::string			chunk;
 
 		// % will only have a max of 2 characters
@@ -170,19 +170,18 @@ namespace HDE
 		cout << "Substituting Special Characters" << endl;
 		cout << "Original: " << this->path << endl;
 		char_buffer[1] = 0;
-		for (checking = this->path.find('%', checking);
+		for (checking = this->path.find('%', 0);
 			 checking != string::npos && checking < this->path.length();
 			 checking = this->path.find('%', checking + 1))
 		{
 			chunk = this->path.substr(checking + 1, 2);
 			buffer << chunk;
 			buffer >> std::hex >> value;
-			cout << "Buffer: " << buffer.str() << "   " << "Value = " << value << endl;
 			buffer.clear();
 
 			char_buffer[0] = static_cast<char>(value);
 			this->path.replace(checking, 3, string(char_buffer));
-			cout << "Current String: " << this->path << endl;
+			// cout << "Current String: " << this->path << endl;
 		}
 		cout << "Actual Path: " << this->path << endl;
 	}

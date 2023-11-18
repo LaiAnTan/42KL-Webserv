@@ -312,9 +312,6 @@ namespace HDE
 			is_folder = true;
 		}
 
-		cout << is_folder << endl;
-		cout << S_ISREG(path_stat.st_mode) << endl;
-
 		if (is_folder)
 		{
 			this->auto_index = need_gen_index;
