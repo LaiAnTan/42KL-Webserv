@@ -49,7 +49,7 @@ namespace HDE
 		// also, anything after the end boundary string is ignored
 		if (this->content.find("--" + this->boundary_string + "--") == 0)
 		{
-			this->status = CLEARING_SOCKET;
+			this->status = CLEARING_SOCKET; // clear socket to send respond http message
 			return 0;
 		}
 
@@ -88,6 +88,8 @@ namespace HDE
 			size_t	filenamePos = this->content.find("filename=");
 
 			// if filename isnt read yet, just call this function again
+			// actually dont need one since we already check that the seperator between the header and the content
+			// (\r\n\r\n) is present
 			if (filenamePos == string::npos)
 				return 0;
 
@@ -95,6 +97,8 @@ namespace HDE
 			size_t	filenameEnd = filename.find("\r\n");
 
 			// if filename is chopped, just recall the function again
+			// actually dont need one since we already check that the seperator between the header and the content
+			// (\r\n\r\n) is present
 			if (filenameEnd == string::npos)
 				return 0;
 

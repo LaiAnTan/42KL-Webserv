@@ -296,12 +296,37 @@ namespace HDE
 		}
 
 		string	new_path = this->path.substr(this->location_config_path.length());
-		root_index = root + "/" + new_path;
-		cout << root_index << endl;
+		if (new_path[0] == '/' || root[root.length() - 1] == '/')
+			root_index = root + new_path;
+		else
+			root_index = root + "/" + new_path;
+
+		bool	is_folder = false;
 
 		if (root_index[root_index.length() - 1] == '/'){
+			is_folder = true;
+		}
+
+		struct stat path_stat;
+		if (!stat(root_index.c_str(), &path_stat) && !S_ISREG(path_stat.st_mode)){
+			is_folder = true;
+		}
+
+		cout << is_folder << endl;
+		cout << S_ISREG(path_stat.st_mode) << endl;
+
+		if (is_folder)
+		{
 			this->auto_index = need_gen_index;
-			root_index = root_index + index;
+			if (root_index[root_index.length() - 1] != '/')
+				root_index = root_index + "/";
+			if (not this->auto_index)
+			{
+				if (index[0] == '/')
+					root_index = root_index + index.substr(1);
+				else
+					root_index = root_index + index;
+			}
 		}
 		cout << "Path To File: " << root_index << endl;
 		return root_index;

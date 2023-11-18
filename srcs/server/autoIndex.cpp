@@ -4,12 +4,38 @@
 # include <sys/stat.h>
 # include <sys/types.h>
 # include <time.h>
+# include <iomanip>
 
 using std::cout;
 using std::endl;
 
 namespace HDE
 {
+	// always remember to encode the url to your file...
+	string	encode_url(const string &value)
+	{
+		std::stringstream	save;
+
+		// frankly? im lazy to redo this so
+		// credit: https://stackoverflow.com/questions/154536/encode-decode-urls-in-c
+		for (string::const_iterator i = value.begin(), n = value.end(); i != n; ++i) {
+			string::value_type c = (*i);
+
+			// Keep alphanumeric and other accepted characters intact
+			// also the / since, well, url :P
+			if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~' || c == '/') {
+				save << c;
+				continue;
+			}
+
+			// Any other characters are percent-encoded
+			save << std::uppercase;
+			save << '%' << std::setw(2) << std::hex << int((unsigned char) c);
+			save << std::nouppercase;
+		}
+		return save.str();
+	}
+
 	int	Server::generate_index()
 	{
 		std::stringstream	index_content;
@@ -39,7 +65,7 @@ namespace HDE
 
 		cout << this->real_filepath << endl;
 		d = opendir(this->real_filepath.c_str());
-		string	full_file_path, domain_file_path;
+		string	full_file_path, domain_file_path, encoded_file_path;
 		for (de = readdir(d); de != NULL; de = readdir(d))
 		{
 			full_file_path = this->real_filepath + de->d_name;
@@ -54,9 +80,9 @@ namespace HDE
 			} else
 			{
 				index_content << "<tr>" << endl;
-
+				encoded_file_path = encode_url(domain_file_path);
 				// handled name
-				index_content << "<td> <a href=\"" << domain_file_path << "\">" << de->d_name << "</a></td>" << endl;
+				index_content << "<td><a href=\"" << encoded_file_path << "\">" << de->d_name << "</a></td>" << endl;
 
 				// handles date
 				timeinfo = localtime(&(buf.st_mtim.tv_sec));

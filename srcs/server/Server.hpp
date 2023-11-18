@@ -57,7 +57,8 @@ namespace HDE
 			void	parse_header();
 			int		check_valid_method();
 			void	find_config_location();
-	
+			void	convert_path();
+
 			ServerStatus				status;
 
 			// guys get and post and delete should be an abstract class
