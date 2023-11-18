@@ -403,10 +403,45 @@ namespace HDE
 		return (response);
 	}
 
+	std::vector<std::pair<string, string> >	Server::extract_cgi_variable(const string &source)
+	// dont need map since we will not be accessing any values
+	// please make sure you give it the values AFTER the ? mark
+	{
+		std::vector<std::pair<string, string> >	ret_array;
+		std::vector<string>						variables = util::split(source, "&");
+		std::vector<string>::iterator			var_start;
+		std::vector<string>						kw_pair;
+
+		for (var_start = variables.begin(); 
+			 var_start != variables.end(); 
+			 ++var_start)
+		{
+			std::pair<string, string>	new_pair; // im telling you this is probably illegal
+			kw_pair = util::split(*(var_start), "=");
+
+			for (std::vector<string>::iterator	kw_start = kw_pair.begin();
+				kw_start != kw_pair.end();
+				++kw_start)
+			{
+				while (kw_start->find('+') != string::npos){
+					cout << "???" << endl;
+					kw_start->replace(kw_start->find('+'), 1, " ");
+				}
+			}
+
+			new_pair.first = decode_data(kw_pair[0]);
+			new_pair.second = decode_data(kw_pair[1]);
+			ret_array.push_back(new_pair);
+		}
+		return ret_array;
+	}
+
 	int Server::py()
 	{
-		string exe_path = find_bin();	
-		std::map<string, string> cgi_vec = config->get_cgi();
+		string										exe_path = find_bin();	
+		std::map<string, string>					cgi_vec = config->get_cgi();
+		std::vector<std::pair<string, string> >		kw_var;
+		std::vector<std::pair<string, string> >::iterator		kw_var_start;
 		int stdout_fd = dup(1), stdin_fd = dup(0);
 		string content;
 
@@ -417,6 +452,15 @@ namespace HDE
 			return 1;
 		}
 
+		// get keyword arguments for cgi
+		if (this->path.find("?") != string::npos)
+			kw_var = extract_cgi_variable(this->path.substr(this->path.find('?') + 1));
+
+		cout << CYAN << "[INFO] -- Keyword Argument Extracted -- " << endl;
+		for (kw_var_start = kw_var.begin(); kw_var_start != kw_var.end(); ++kw_var_start)
+			cout << "Keyword = " << kw_var_start->first << "  " << "Argument = " << kw_var_start->second << endl;
+		cout << RESET;
+
 		int pid = fork();
 		if (pid == 0)
 		{
@@ -426,11 +470,17 @@ namespace HDE
 			close(pipe_fd[0]);
 
 			std::vector<char *> env_vec;
+			// mm should this be hardcoded...?
 			env_vec.push_back(strdup(string("CONTENT_TYPE=text/html").c_str()));
-			// extract the damn firstname and last name here
-			// maan wtf is this shiet
-			env_vec.push_back(strdup(string("first_name=First").c_str()));
-			env_vec.push_back(strdup(string("last_name=Last").c_str()));
+
+			string	new_kw_arg;
+			for (kw_var_start = kw_var.begin(); kw_var_start != kw_var.end(); ++kw_var_start)
+			{
+				new_kw_arg = kw_var_start->first + "=" + kw_var_start->second;
+				env_vec.push_back(strdup(string(new_kw_arg).c_str()));
+				new_kw_arg.clear();
+			}
+
 			env_vec.push_back(NULL);
 
 			char *args[] = {const_cast<char *>(exe_path.c_str()), const_cast<char *>(cgi_path.c_str()), NULL};

@@ -110,9 +110,11 @@ namespace HDE
 			bool	file_exists(std::string path);
 			string	get_file_data(std::string filename);
 			int		clear_read_end();
+			string	decode_data(const string &source);
 
 			// for cgi
 			int	py();
+			std::vector<std::pair<string, string> >	extract_cgi_variable(const string &source);
 
 			int		send_next_chunk();
 			int		import_read_data();
@@ -125,7 +127,7 @@ namespace HDE
 			void	reset();
 
 			// index generator
-			int	generate_index();
+			int		generate_index();
 
 		public:
 			Server(const conf::ServerConfig *config, int client_fd);

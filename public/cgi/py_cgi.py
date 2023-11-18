@@ -7,21 +7,53 @@ dir_path = os.path.dirname(os.path.realpath(__file__)) + "/"
 # form = cgi.FieldStorage()
 
 # Get data from fields
-first_name = os.environ.get('first_name')
-last_name = os.environ.get('last_name')
+first_name = os.environ.get('username')
+last_name = os.environ.get('password')
 content_type = os.environ.get('CONTENT_TYPE')
 content_len = os.environ.get('CONTENT_LENGTH')
 # data = os.environ.get('DATA')
 
-if (first_name == "" and last_name == ""):
+if (first_name is None and last_name is None):
     content = """
 <!DOCTYPE html>
 <html>
 <head>
+    <style>
+        body {
+        font-family: Arial, Helvetica, sans-serif;
+        background-color: #000000;
+        }
+
+        * {
+        box-sizing: border-box;
+        }
+
+        p {
+        color: white;
+        }
+
+        .center {
+        margin: auto;
+        width: 50%;
+        padding: 10px;
+        text-align: center;
+        }
+
+        img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 40%;
+        border: 3px solid white
+        }
+    </style>
     <title>Hm</title>
 </head>
 <body>
-    <p>you arent supposed to be here</p>
+    <div class="center">
+    <p text-align="center">you arent supposed to be here</p>
+    <img src="/image/door.webp" alt="Image">
+    </div>
 </body>
 </html>
 """

@@ -9,27 +9,32 @@ using std::endl;
 namespace HDE
 {
 	// extracts login details from header, returns a pair
-	std::pair<string, string>	extract_login_details(string header)
-	{
-		size_t un_loc;
-		size_t pw_loc;
-		std::pair<string, string>	details;
+	// gonna be depreciated in favour of a much more dynamic implementation
+	// sorry william!
 
-		un_loc = header.find("username=");
-		pw_loc = header.find("&password=");
+	// ...now that i think about this why is OH YEAHHH
+	// COOL DEPRECIATED VALUE HEHHH
+	// std::pair<string, string>	extract_login_details(string header)
+	// {
+	// 	size_t un_loc;
+	// 	size_t pw_loc;
+	// 	std::pair<string, string>	details;
 
-		if (un_loc == string::npos || pw_loc == string::npos) // if errror return empty pair
-		{
-			details.first = "";
-			details.second = "";
-		}
-		else
-		{
-			details.first = header.substr(un_loc + 9, pw_loc - (un_loc + 9));
-			details.second = header.substr(pw_loc + 10);
-		}
-		return (details);
-	}
+	// 	un_loc = header.find("username=");
+	// 	pw_loc = header.find("&password=");
+
+	// 	if (un_loc == string::npos || pw_loc == string::npos) // if errror return empty pair
+	// 	{
+	// 		details.first = "";
+	// 		details.second = "";
+	// 	}
+	// 	else
+	// 	{
+	// 		details.first = header.substr(un_loc + 9, pw_loc - (un_loc + 9));
+	// 		details.second = header.substr(pw_loc + 10);
+	// 	}
+	// 	return (details);
+	// }
 
 	int Server::import_read_data()
 	{

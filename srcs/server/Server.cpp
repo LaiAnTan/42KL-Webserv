@@ -156,33 +156,39 @@ namespace HDE
 		decode_path();
 	}
 
-	void	Server::decode_path()
+	string	Server::decode_data(const string &source)
 	{
 		int		value;
 		char	char_buffer[2];
 		size_t	checking = 0;
 
+		std::string			save(source);
 		std::stringstream	buffer; // stringstream my favorite 
 		std::string			chunk;
 
 		// % will only have a max of 2 characters
 
-		cout << "Substituting Special Characters" << endl;
-		cout << "Original: " << this->path << endl;
 		char_buffer[1] = 0;
-		for (checking = this->path.find('%', 0);
-			 checking != string::npos && checking < this->path.length();
-			 checking = this->path.find('%', checking + 1))
+		for (checking = save.find('%', 0);
+			 checking != string::npos && checking < save.length();
+			 checking = save.find('%', checking + 1))
 		{
-			chunk = this->path.substr(checking + 1, 2);
+			chunk = save.substr(checking + 1, 2);
 			buffer << chunk;
 			buffer >> std::hex >> value;
 			buffer.clear();
 
 			char_buffer[0] = static_cast<char>(value);
-			this->path.replace(checking, 3, string(char_buffer));
-			// cout << "Current String: " << this->path << endl;
+			save.replace(checking, 3, string(char_buffer));
 		}
+		return (save);
+	}
+
+	void	Server::decode_path()
+	{
+		cout << "Substituting Special Characters" << endl;
+		cout << "Original: " << this->path << endl;
+		this->path = decode_data(this->path);
 		cout << "Actual Path: " << this->path << endl;
 	}
 
@@ -236,6 +242,10 @@ namespace HDE
 	{
 		std::map<string, conf::ServerLocation>				location = config->get_locations();
 		std::string											check(this->path), location_path, location_start;
+
+		// dont check the cgi query part
+		if (this->path.find('?') != string::npos)
+			check = this->path.substr(0, this->path.find('?'));
 
 		for (std::size_t next_slash = check.rfind('/'); 
 			(not check.empty()) and (next_slash != string::npos); 
