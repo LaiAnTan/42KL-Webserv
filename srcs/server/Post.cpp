@@ -156,26 +156,13 @@ namespace HDE
 		string		client_max_body_size;
 		string		suffix;
 
-		std::map<string, conf::ServerLocation>	location = get_config()->get_locations();
-		std::string				check_path(this->path);
+		std::map<string, conf::ServerLocation>	location = this->config->get_locations();
 
-		for (std::size_t next_slash = check_path.rfind('/'); 
-			(not check_path.empty()) and (next_slash != string::npos);
-			check_path = check_path.substr(0, next_slash), next_slash = check_path.rfind('/'))
-		{
-			cout << "checking for max in " << check_path << endl;
-			if (location.find(check_path) != location.end())
-			{
-				cout << "Found it" << endl;
-				client_max_body_size = location[check_path].get_client_max_body_size();
-				break;
-			}
-		}
+		client_max_body_size = location[location_config_path].get_client_max_body_size();
 		if (client_max_body_size.empty())
 			client_max_body_size = config->get_client_max();
 
 		suffix = client_max_body_size.substr(client_max_body_size.size() - 2);
-
 		if (not (suffix == "KB" || suffix == "MB" || suffix == "GB"))
 		{
 			if (client_max_body_size.substr(client_max_body_size.size() - 1) == "B")
@@ -183,7 +170,7 @@ namespace HDE
 			else // will never happen hopefully
 				throw (conf::InvalidSuffixException()); // i do love crashing my server whenever the config suffix is wrong
 		}
-		
+
 		limit = std::strtof(client_max_body_size.substr(0, client_max_body_size.find(suffix)).c_str(), NULL);
 		converted = convert_content_length(suffix);
 

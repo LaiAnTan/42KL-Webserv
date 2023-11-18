@@ -194,7 +194,7 @@ namespace HDE
 			{
 				file.open("./default_error/error.html");
 				// get content
-				// and substitue the CODE and MSG in the error.html (why is this a thing?)
+				// and substitute the CODE and MSG in the error.html (why is this a thing?)
 				if (file.is_open())
 				{
 					while (!file.eof())
@@ -231,26 +231,10 @@ namespace HDE
 		string									redirect_url, root_index;
 		std::map<string, conf::ServerLocation>	location = config->get_locations();
 
-		std::vector<string>	paths = util::split(this->path, "/");
+		if (location.find(this->location_config_path) == location.end())
+			return (0);
 
-		// handle if has question mark at the end
-		size_t question_pos = paths.back().find("?");
-		if (question_pos != string::npos)
-			paths.back() = paths.back().substr(0, question_pos);
-
-		// start from the most specific and check
-		std::vector<string>::reverse_iterator	it = paths.rbegin();
-
-		for (; it != paths.rend(); ++it)
-		{
-			cout << "checking for return in /" << *it << endl;
-			if (location.find("/" + *it) != location.end())
-			{
-				redirect_url = location["/" + *it].get_return_path();
-				break;
-			}
-		}
-
+		redirect_url = location[this->location_config_path].get_return_path();
 		if (redirect_url.empty() == true)
 			return (-1);
 		
@@ -260,49 +244,28 @@ namespace HDE
 
 	string	Server::config_path()
 	{
-		string												root_index, root = "", index = "", location_path, alias;
-		std::map<string, conf::ServerLocation>				location = config->get_locations();
-		std::map<string, conf::ServerLocation>::iterator	location_start = location.end();
-		std::map<string, conf::ServerLocation>::iterator	location_end = location.end();
+		string										root_index, root = "", index = "", alias = "";
+		std::map<string, conf::ServerLocation>		location = config->get_locations();
+		bool										need_gen_index;
 
-		// we arent doing specific checks anymore
-
-		// start from the most specific and check
-		std::string		check(this->path);
-
-		for (std::size_t next_slash = check.rfind('/'); 
-			(not check.empty()) and (next_slash != string::npos); 
-			check = check.substr(0, next_slash), next_slash = check.rfind('/'))
-		{
-			location_path = check;
-			cout << "Checking Path: " << check << endl;
-			if (location.find(check) != location.end())
-			{
-				cout << "Found it" << endl;
-				break;
-			}
-		}
-		if (check.empty())
-			location_path = "/";
-		location_start = location.find(location_path);
 		// end, copy this over thanks :P
 
-		if (location_start != location_end)
+		if (location.find(this->location_config_path) != location.end())
 		{
 			// root
-			root = location[location_path].get_root();
+			root = location[this->location_config_path].get_root();
 			if (root.empty() == true)
 				root = config->get_root(); // use default Server root
 
 			// index file
-			index = location[location_path].get_index();
+			index = location[this->location_config_path].get_index();
 			if (index.empty() == true)
 			{
-				string	autoindex_value = location[this->path].get_autoindex();
+				string	autoindex_value = location[this->location_config_path].get_autoindex();
 				if (autoindex_value == "on")
 				{
 					index = "";
-					this->auto_index = true;
+					need_gen_index = true;
 				}
 				else
 					index = "index.html";
@@ -332,12 +295,14 @@ namespace HDE
 			index = "index.html";
 		}
 
-		string	new_path = this->path.substr(location_path.length());
+		string	new_path = this->path.substr(this->location_config_path.length());
 		root_index = root + "/" + new_path;
 		cout << root_index << endl;
 
-		if (root_index[root_index.length() - 1] == '/')
+		if (root_index[root_index.length() - 1] == '/'){
+			this->auto_index = need_gen_index;
 			root_index = root_index + index;
+		}
 		cout << "Path To File: " << root_index << endl;
 		return root_index;
 	}
@@ -380,8 +345,6 @@ namespace HDE
 	}
 
 	// CGI METHODS
-
-	// guys, chances are cgi generated files will not be in one limbillion gb righttt?? right??? dont need chunkin for this RIGHT???
 	string find_bin()
 	{
 		char *value = getenv("PATH");
@@ -442,9 +405,10 @@ namespace HDE
 
 			std::vector<char *> env_vec;
 			env_vec.push_back(strdup(string("CONTENT_TYPE=text/html").c_str()));
+			// extract the damn firstname and last name here
+			// maan wtf is this shiet
 			env_vec.push_back(strdup(string("first_name=First").c_str()));
 			env_vec.push_back(strdup(string("last_name=Last").c_str()));
-			// env_vec.push_back(strdup(string("DATA=" + get).c_str()));
 			env_vec.push_back(NULL);
 
 			char *args[] = {const_cast<char *>(exe_path.c_str()), const_cast<char *>(cgi_path.c_str()), NULL};

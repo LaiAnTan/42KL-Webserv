@@ -24,8 +24,8 @@ namespace HDE
 
 		struct tm			*timeinfo;
 
-		// there is no way the length of the date is more than 100
-		char			save_buffer[100];
+		// there is no way the length of the date is more than 50
+		char			save_buffer[50];
 
 		index_content << "<!DOCTYPE html>" << endl;
 		index_content << "<html>" << endl;

@@ -52,9 +52,11 @@ namespace HDE
 			// we would NOT have this problem IF SOMEONE COMPILED THE HEADER BEFOREHAND
 			string						method;
 			string						path;
+			string						location_config_path;
 
 			void	parse_header();
 			int		check_valid_method();
+			void	find_config_location();
 	
 			ServerStatus				status;
 

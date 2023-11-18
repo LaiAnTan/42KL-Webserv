@@ -87,6 +87,7 @@ namespace HDE
 
 		this->method = "";
 		this->path = "";
+		this->location_config_path = "";
 
 		this->error_code = "";
 		this->real_filepath = "";
@@ -149,9 +150,6 @@ namespace HDE
 		string						first_row = util::split(header, "\r\n")[0];
 		std::vector<std::string>	first_row_info = util::split_many_delims(first_row, " ");
 
-		cout << first_row << endl;
-		cout << first_row_info[0] << endl;
-
 		this->method = first_row_info[0];
 		this->path = first_row_info[1];
 	}
@@ -168,8 +166,8 @@ namespace HDE
 		conf::ServerLocation::rules_map			location_rules;
 		std::vector<string>						location_methods;
 
-		if (location.find(this->path) != location.end())
-			location_methods = location[this->path].get_allowed_method();
+		if (location.find(this->location_config_path) != location.end())
+			location_methods = location[this->location_config_path].get_allowed_method();
 
 		if (location_methods.empty() == true)
 			location_methods = server_methods; // use default if not found
@@ -180,8 +178,6 @@ namespace HDE
 		for (; method_start != location_methods.end(); ++method_start)
 		{
 			// all good!
-			cout << *(method_start) << endl;
-			cout << this->method << endl;
 			if (*(method_start) == this->method){
 				return 1;
 			}
@@ -191,6 +187,29 @@ namespace HDE
 		cout << YELLOW << "[INFO] Can't do that [" << this->method << "]" << endl;
 		this->error_code = "405";
 		return 0;
+	}
+
+	void Server::find_config_location()
+	{
+		std::map<string, conf::ServerLocation>				location = config->get_locations();
+		std::string											check(this->path), location_path, location_start;
+
+		for (std::size_t next_slash = check.rfind('/'); 
+			(not check.empty()) and (next_slash != string::npos); 
+			check = check.substr(0, next_slash), next_slash = check.rfind('/'))
+		{
+			location_path = check;
+			cout << "Checking Path: " << check << endl;
+			if (location.find(check) != location.end())
+			{
+				cout << "Found it" << endl;
+				break;
+			}
+		}
+		if (check.empty())
+			location_path = "/";
+		this->location_config_path = location_path;
+		cout << "Location Configuration Used: " << this->location_config_path << endl;
 	}
 
 	int Server::responder()
@@ -208,6 +227,7 @@ namespace HDE
 		{
 			case NEW:
 				this->parse_header();
+				this->find_config_location();
 				this->status = HANDLING_DATA;
 				if (!this->check_valid_method())
 					this->status = CLEARING_SOCKET;
