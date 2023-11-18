@@ -41,6 +41,7 @@ namespace HDE
 		// failsafe my fucking ass, if this happens its an error
 		// this means THERES NO END BOUNDARY STRING
 		cout << "Length = " << this->content_length << endl;
+		cout << "Content still has = " << this->content << endl;
 		if (this->content_length <= 0 && this->content.empty())
 			return 1;
 		// the end boundary string is found
@@ -54,14 +55,17 @@ namespace HDE
 			return 0;
 		}
 
-		bytesRead = read(this->newsocket, buffer, sizeof(buffer));
-		if (bytesRead < 0)
+		if (this->content_length > 0)
 		{
-			std::cerr << RED << "Error when reading content" << endl;
-			return 1;
+			bytesRead = read(this->newsocket, buffer, sizeof(buffer));
+			if (bytesRead < 0)
+			{
+				std::cerr << RED << "Error when reading content" << endl;
+				return 1;
+			}
+			this->content_length -= bytesRead;
+			this->content.append(buffer, bytesRead);
 		}
-		this->content_length -= bytesRead;
-		this->content.append(buffer, bytesRead);
 
 		if (this->content.find("--" + this->boundary_string) != string::npos)
 		{
@@ -162,19 +166,27 @@ namespace HDE
 		if (client_max_body_size.empty())
 			client_max_body_size = config->get_client_max();
 
-		suffix = client_max_body_size.substr(client_max_body_size.size() - 2);
-		if (not (suffix == "KB" || suffix == "MB" || suffix == "GB"))
+		if (not client_max_body_size.empty())
 		{
-			if (client_max_body_size.substr(client_max_body_size.size() - 1) == "B")
-				suffix = client_max_body_size.substr(client_max_body_size.size() - 1);
-			else // will never happen hopefully
-				throw (conf::InvalidSuffixException()); // i do love crashing my server whenever the config suffix is wrong
+			suffix = client_max_body_size.substr(client_max_body_size.size() - 2);
+			if (not (suffix == "KB" || suffix == "MB" || suffix == "GB"))
+			{
+				if (client_max_body_size.substr(client_max_body_size.size() - 1) == "B")
+					suffix = client_max_body_size.substr(client_max_body_size.size() - 1);
+				else // will never happen hopefully
+					throw (conf::InvalidSuffixException()); // i do love crashing my server whenever the config suffix is wrong
+			}
+
+			limit = std::strtof(client_max_body_size.substr(0, client_max_body_size.find(suffix)).c_str(), NULL);
+			converted = convert_content_length(suffix);
+		}
+		else
+		{
+			limit = -1;
+			converted = this->content_length;
 		}
 
-		limit = std::strtof(client_max_body_size.substr(0, client_max_body_size.find(suffix)).c_str(), NULL);
-		converted = convert_content_length(suffix);
-
-		if (converted > limit)
+		if (limit > 0 && converted > limit)
 		{
 			cout << "Over the limit " << converted << " > " << limit << endl;
 			this->error_code = "413";
@@ -182,6 +194,10 @@ namespace HDE
 		}
 		else
 		{
+			if (limit == -1)
+				cout << "[NOTICE] No Limit" << endl;
+			else
+				cout << "[NOTICE] Within Limit" << endl;
 			this->status = SAVE_CHUNK;
 			// wow nothing is posted
 			if (this->content_length == 0){

@@ -158,6 +158,12 @@ namespace HDE
 
 	int	Server::check_valid_method()
 	{
+		// default allowed methods
+		std::vector<string>						default_methods;
+		default_methods.push_back("GET");
+		default_methods.push_back("POST");
+		default_methods.push_back("DELETE");
+
 		// general server allowed methods
 		std::vector<string>						server_methods = config->get_methods();
 
@@ -170,7 +176,12 @@ namespace HDE
 			location_methods = location[this->location_config_path].get_allowed_method();
 
 		if (location_methods.empty() == true)
-			location_methods = server_methods; // use default if not found
+		{
+			if (server_methods.empty() == true)
+				location_methods = default_methods; // use default if not found
+			else
+				location_methods = server_methods;
+		}
 
 		// check if method is allowed
 		// where the fuck is auto when u need it
@@ -277,7 +288,6 @@ namespace HDE
 				this->status = NEW;
 				break;
 			case CLEARING_SOCKET:
-				cout << "Flushing Socket" << endl;
 				if (this->clear_read_end())
 				{
 					// socket is cleared, clear to send data
@@ -305,8 +315,11 @@ namespace HDE
 		int		actual_read;
 
 		if (this->content_length <= 0)
+		{
+			cout << "Done Flushing Socket" << endl;
 			return 1;
-
+		}
+		cout << "Flushing Socket" << endl;
 		actual_read = read(this->newsocket, discard, BUFFER_SIZE);
 		this->content_length -= actual_read;
 		return 0;
