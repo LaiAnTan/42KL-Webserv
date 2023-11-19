@@ -438,9 +438,8 @@ namespace HDE
 
 	int Server::py()
 	{
-		string										exe_path = find_bin();	
-		std::map<string, string>					cgi_vec = config->get_cgi();
-		std::vector<std::pair<string, string> >		kw_var;
+		string													exe_path = find_bin(), cgi_path;	
+		std::vector<std::pair<string, string> >					kw_var;
 		std::vector<std::pair<string, string> >::iterator		kw_var_start;
 		int stdout_fd = dup(1), stdin_fd = dup(0);
 
@@ -465,7 +464,12 @@ namespace HDE
 		int pid = fork();
 		if (pid == 0)
 		{
-			string cgi_path = cgi_vec[".py"];
+			cout << this->real_filepath << endl;
+			// seperate keyword arg
+			if (this->real_filepath.find("?") != string::npos)
+				cgi_path = this->real_filepath.substr(0, this->real_filepath.find('?'));
+			else
+				cgi_path = this->real_filepath;
 
 			dup2(pipe_fd[1], 1);
 			close(pipe_fd[0]);

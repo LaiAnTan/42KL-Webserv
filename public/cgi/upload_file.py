@@ -12,7 +12,6 @@ root_path = os.path.split(os.path.split(os.path.split(dir_path)[0])[0])[0] + "/r
 first_name = os.environ.get('username')
 last_name = os.environ.get('password')
 content_type = os.environ.get('CONTENT_TYPE')
-content_len = os.environ.get('CONTENT_LENGTH')
 
 if (first_name is None and last_name is None):
     content = """
@@ -64,30 +63,9 @@ if (first_name is None and last_name is None):
 
     print(content)
 else:
-    f = open(dir_path + "../html/file.html", "r")
+    f = open(dir_path + "/upload_file.html", "r")
 
     content = f.read()
-
-    custom_delete_buttons = []
-    custom_delete_buttons.append("<table>")
-
-    for filename in os.listdir(root_path):
-        file_path = "/root/" + filename
-
-        delete_button = f"""
-        <tr>
-        <td><a href="{urllib.parse.quote(file_path)}">{filename}</a></td>
-        <td>
-            <button class="delete_btn" onclick="makeDELETErequest('{file_path}')">
-                Delete File
-            </button>
-        </td>
-        </tr>
-    """
-        custom_delete_buttons.append(delete_button)
-    custom_delete_buttons.append("</table>")
-
-    content = content.replace("TABLE_CONTENT", "".join(custom_delete_buttons))
 
     print("Content-Type: %s" % (content_type), end="\r\n")
     print("Content-Length: %s\r\n" % len(content), end="\r\n")

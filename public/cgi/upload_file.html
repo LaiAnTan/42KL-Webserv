@@ -82,11 +82,12 @@
 			clear: both;
 			}
 
-			/* Delete Button */
-			.delete_btn {
-				background-color: #F79817;
+
+			/* list all elements button */
+			.list_btn {
+				background-color: white;
 				border: none;
-				color: white;
+				color: black;
 				padding: 15px 32px;
 				text-align: center;
 				text-decoration: none;
@@ -95,94 +96,19 @@
 				border-radius: 10px
 			}
 
-			.delete_btn:hover {
-				background-color: #a16a17;
+			.list_btn:hover {
+				background-color: #CACACA;
 				cursor: pointer;
 			}
-
-			/*Info displayer*/
-			table, td, th {
-				border-spacing: 0;
-				margin: auto;
-			}
-
-			table {
-				border-radius: 0;
-				border-collapse: separate;
-				border-radius: 10px;
-				border: 1px solid white;
-
-				color: white;
-				width: 0.1%;
-			}
-
-			td {
-				width:0.1%;
-				white-space: nowrap;
-				text-align: center;
-				vertical-align: middle;
-
-				padding-top: 10px;
-				padding-right: 30px;
-				padding-bottom: 10px;
-				padding-left: 30px;
-			}
-
-			/* Apply a border to the right of all but the last column */
-			table th:not(:last-child),
-			table td:not(:last-child) {
-				border-right: 1px solid white;
-			}
-
-			/* Apply a border to the bottom of all but the last row */
-			table>thead>tr:not(:last-child)>th,
-			table>thead>tr:not(:last-child)>td,
-			table>tbody>tr:not(:last-child)>th,
-			table>tbody>tr:not(:last-child)>td,
-			table>tfoot>tr:not(:last-child)>th,
-			table>tfoot>tr:not(:last-child)>td,
-			table>tr:not(:last-child)>td,
-			table>tr:not(:last-child)>th,
-			table>thead:not(:last-child),
-			table>tbody:not(:last-child),
-			table>tfoot:not(:last-child) {
-				border-bottom: 1px solid white;
-			}
-
-			a:link {
-				color: #F79817;
-			}
-
-			a:visited {
-				color: #a16a17;
-			}
-
+			
 		</style>
-
-		<!-- Importing the jQuery -->
-		<script src=
-			"https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js">
-		</script>
-
 </head>
-
-<script>
-	function makeDELETErequest(delete_path) {
-		$.ajax({
-			url: delete_path,
-			type: 'DELETE',
-			success: function (result) {
-				window.location.href = location.href;
-			}
-		});
-	}
-</script>
 
 <body>
 	<div class="container">
 	<div class="row">
 		<h2 style="text-align:center; color:white">Upload Files</h2>
-		<div class="col" style="text-align: center;" onsubmit="refresh_page()">
+		<div class="col" style="text-align: center;">
 			<form id="submiter" method="post" enctype="multipart/form-data" action="">
 				<input type="file" name="files[]" id="file" multiple>
 				<input type="submit" value="Upload">
@@ -191,15 +117,14 @@
 	</div>
 	<br>
 	<div class="row">
-		<h2 style="text-align: center; color: white;">Files Uploaded</h2>
-		TABLE_CONTENT
+		<div class="col" style="text-align: center;">
+			<button onclick="location.href = '/cgi/display_file.py';" class="list_btn";>
+				List All Files
+			</button>
+		</div>
 	</div>
 	</div>
 </body>
-
-<script>
-
-</script>
 </html>
 
 <!-- <!DOCTYPE html>
