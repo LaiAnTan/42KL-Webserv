@@ -82,22 +82,81 @@
 			clear: both;
 			}
 
-		</style>
-	</head>
+			/* Delete Button */
+			.delete_btn {
+				background-color: #04AA6D; /* Green */
+				border: none;
+				color: white;
+				padding: 15px 32px;
+				text-align: center;
+				text-decoration: none;
+				display: inline-block;
+				font-size: 16px;
+			}
 
-	<body>
-		<div class="container">
-		<div class="row">
-			<h2 style="text-align:center; color:white">Upload Files</h2>
-			<div class="col" style="text-align: center;">
-				<form method="post" enctype="multipart/form-data">
-					<input type="file" name="files[]" id="file" multiple>
-					<input type="submit" value="Upload">
-				</form>
-			</div>
+			.delete_btn:hover {
+				background-color: #05543f; /* Green */
+				cursor: pointer;
+			}
+
+			/*Info displayer*/
+			table, td, th {
+				border: 1px solid black;
+				margin: auto;
+			}
+
+			table {
+				border-collapse: collapse;
+				background-color: white;
+				width: 40%;
+			}
+
+			td {
+				width:0.1%;
+				white-space: nowrap;
+				text-align: center;
+				vertical-align: middle;
+			}
+
+		</style>
+
+		<!-- Importing the jQuery -->
+		<script src= 
+		"https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"> 
+		</script>
+
+</head>
+
+<script> 
+	function makeDELETErequest(delete_path) { 
+        $.ajax({ 
+            url: delete_path, 
+            type: 'DELETE', 
+            success: function (result) {
+				window.location.href = location.href;
+            } 
+        });
+	}
+</script> 
+
+<body>
+	<div class="container">
+	<div class="row">
+		<h2 style="text-align:center; color:white">Upload Files</h2>
+		<div class="col" style="text-align: center;">
+			<form method="post" enctype="multipart/form-data">
+				<input type="file" name="files[]" id="file" multiple>
+				<input type="submit" value="Upload">
+			</form>
 		</div>
-		</div>
-	</body>
+	</div>
+	<br>
+	<div class="row">
+		TABLE_CONTENT
+	</div>
+	</div>
+</body>
+
 </html>
 
 <!-- <!DOCTYPE html>

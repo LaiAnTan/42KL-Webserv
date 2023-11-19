@@ -219,15 +219,15 @@ namespace conf
 			i = 0;
 			while (i < 8 && text.find(arr[i]) == std::string::npos)
 				i++;
-			if (i < 8)
+			if (text.find("location /") != std::string::npos)
+				location_name(text, file);
+			else if (i < 8)
 			{
 				if ((semicolon_pos = text.find(";")) == string::npos)
 					throw (conf::MissingSemicolonException());
 				text.resize(semicolon_pos);
 				(this->*funct[i])(text);
 			}
-			else if (text.find("location /") != std::string::npos)
-				location_name(text, file);
 			else if (text.empty() == false)
 				throw (conf::InvalidKeywordException());
 		}

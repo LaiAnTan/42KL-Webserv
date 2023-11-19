@@ -137,6 +137,8 @@ namespace HDE
 			}
 		}
 
+		cout << headers << endl;
+
 		// get content length
 		this->content_length = extract_content_length(headers);
 		this->content_length -= this->content.length();

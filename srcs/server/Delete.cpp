@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "../config/Config.hpp"
 #include "../util/Utils.hpp"
 #include <sys/stat.h>
 #include <cstdio>
@@ -19,29 +20,38 @@ namespace HDE
 	int	Server::handleDeleteRequest()
 	{
 		std::string			root;
-		std::string			path;
 		std::string			header = get_headers();
 		std::vector<string>	header_tokens = util::split(header, string(" "));
+		std::map<string, conf::ServerLocation>		location = config->get_locations();
 
-		// cout << header << endl;
+		// simpler version of get's file idk blabla
+		if (location.find(this->location_config_path) != location.end())
+		{
+			// root
+			root = location[this->location_config_path].get_root();
+			if (root.empty() == true)
+				root = config->get_root(); // use default Server root
+		}
+		else
+			root = config->get_root();
 
-		if (header_tokens.empty() == true)
-			// return what bro??
-			// return error brooo why header_token will empty
-			return 1;
+		string	new_path = this->path.substr(this->location_config_path.length());
+		if (new_path[0] == '/' || root[root.length() - 1] == '/')
+			this->real_filepath = root + new_path;
+		else
+			this->real_filepath = root + "/" + new_path;
+		// simpler version of get's file end
 
-		// i hate hardcoding ???
-		root = "root";
-		path = root + header_tokens[1];
+		cout << "File to delete: " << this->real_filepath << endl;
 
-		if (file_exists(path))
+		if (file_exists(this->real_filepath))
 		{
 			cout << "File exists" << endl;
 			// do delete
-			std::remove(path.c_str());
+			std::remove(this->real_filepath.c_str());
 		}
 
-		this->is_deleted = !file_exists(path);
+		this->is_deleted = !file_exists(this->real_filepath);
 		this->status = CLEARING_SOCKET;
 		return 0;
 	}
@@ -62,6 +72,7 @@ namespace HDE
 			response.append("HTTP/1.1 202 Accepted\r\n");
 		else
 			response.append("HTTP/1.1 204 No Content\r\n");
+		response.append("\r\n");
 
 		cout << "Header Sent: \n" << response << endl;
 		return sendData(this->newsocket, (void *) response.c_str(), response.size());

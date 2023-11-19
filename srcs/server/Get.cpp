@@ -443,7 +443,8 @@ namespace HDE
 		std::vector<std::pair<string, string> >		kw_var;
 		std::vector<std::pair<string, string> >::iterator		kw_var_start;
 		int stdout_fd = dup(1), stdin_fd = dup(0);
-		string content;
+
+		string header_send, content_send;
 
 		int pipe_fd[2];
 		if (pipe(pipe_fd) == -1)
@@ -480,7 +481,6 @@ namespace HDE
 				env_vec.push_back(strdup(string(new_kw_arg).c_str()));
 				new_kw_arg.clear();
 			}
-
 			env_vec.push_back(NULL);
 
 			char *args[] = {const_cast<char *>(exe_path.c_str()), const_cast<char *>(cgi_path.c_str()), NULL};
@@ -496,24 +496,21 @@ namespace HDE
 		else
 		{
 			close(pipe_fd[1]);
-
+			waitpid(pid, NULL, 0);
 			char buffer[BUFFER_SIZE];
 			ssize_t bytes_read;
 			while ((bytes_read = read(pipe_fd[0], buffer, BUFFER_SIZE)) > 0)
-				content.append(buffer, bytes_read);
+				content_send.append(buffer, bytes_read);
 			close(pipe_fd[0]);
-			waitpid(pid, NULL, 0);
 		}
 		dup2(stdout_fd, 1);
 		dup2(stdin_fd, 0);
 
-		string header;
+		header_send.append("HTTP/1.1 200 OK\r\n");
+		header_send.append("Connection: keep-alive\r\n");
 
-		header.append("HTTP/1.1 200 OK\r\n");
-		header.append("Connection: keep-alive\r\n");
-		// cout << RED << content << RESET << endl;
-		sendData(this->newsocket, (void *)header.c_str(), header.size());
-		sendData(this->newsocket, (void *)content.c_str(), content.size());
+		sendData(this->newsocket, (void *)header_send.c_str(), header_send.size());
+		sendData(this->newsocket, (void *)content_send.c_str(), content_send.size());
 		return 0;
 	}
 }

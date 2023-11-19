@@ -2,6 +2,7 @@
 import os
 
 dir_path = os.path.dirname(os.path.realpath(__file__)) + "/"
+root_path = os.path.split(os.path.split(os.path.split(dir_path)[0])[0])[0] + "/root"
 
 # Create instance of FieldStorage
 # form = cgi.FieldStorage()
@@ -11,7 +12,6 @@ first_name = os.environ.get('username')
 last_name = os.environ.get('password')
 content_type = os.environ.get('CONTENT_TYPE')
 content_len = os.environ.get('CONTENT_LENGTH')
-# data = os.environ.get('DATA')
 
 if (first_name is None and last_name is None):
     content = """
@@ -64,22 +64,33 @@ if (first_name is None and last_name is None):
     print(content)
 else:
     f = open(dir_path + "../html/file.html", "r")
-    counter = open(dir_path + "../html/file.html", "r")
 
-    print("Content-Type: %s" % (content_type))
-    print("Content-Length: %s" % (sum(len(x) for x in counter.readlines())))
-    print("\r\n")
+    content = f.read()
 
-    print(f.read())
-    # print (data)
-    # print ("<html>")
-    # print ('<head>')
-    # print ("<title>Hello - Second CGI Program</title>")
-    # print ('</head>')
-    # print ('<body>')
-    # print ("<h2>Hello %s %s</h2>" % (first_name, last_name))
-    # print ('</body>')
-    # print ('</html>')
+    custom_delete_buttons = []
+    custom_delete_buttons.append("<table>")
 
-    # /usr/bin/python3 // for linux
-    # /usr/local/bin/python3 // for mac
+    for filename in os.listdir(root_path):
+        file_path =  "/root/" + filename
+
+        delete_button = f"""\
+        <tr>
+        <td>{filename}</td>
+        <td>
+            <button class="delete_btn" onclick="makeDELETErequest('{file_path}')">
+                Delete File
+            </button>
+        </td>
+        </tr>
+    """
+        custom_delete_buttons.append(delete_button)
+    custom_delete_buttons.append("</table>")
+
+    content = content.replace("TABLE_CONTENT", "".join(custom_delete_buttons))
+
+    print("Content-Type: %s" % (content_type), end="\r\n")
+    print("Content-Length: %s\r\n" % len(content), end="\r\n")
+    print(content)
+
+# /usr/bin/python3 // for linux
+# /usr/local/bin/python3 // for mac
