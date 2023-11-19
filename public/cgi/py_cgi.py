@@ -1,5 +1,6 @@
 # Import modules for CGI handling
 import os
+import urllib.parse
 
 dir_path = os.path.dirname(os.path.realpath(__file__)) + "/"
 root_path = os.path.split(os.path.split(os.path.split(dir_path)[0])[0])[0] + "/root"
@@ -71,11 +72,11 @@ else:
     custom_delete_buttons.append("<table>")
 
     for filename in os.listdir(root_path):
-        file_path =  "/root/" + filename
+        file_path = "/root/" + filename
 
-        delete_button = f"""\
+        delete_button = f"""
         <tr>
-        <td>{filename}</td>
+        <td><a href="{urllib.parse.quote(file_path)}">{filename}</a></td>
         <td>
             <button class="delete_btn" onclick="makeDELETErequest('{file_path}')">
                 Delete File

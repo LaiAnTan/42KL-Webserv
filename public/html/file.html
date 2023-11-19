@@ -84,7 +84,7 @@
 
 			/* Delete Button */
 			.delete_btn {
-				background-color: #04AA6D; /* Green */
+				background-color: #F79817;
 				border: none;
 				color: white;
 				padding: 15px 32px;
@@ -92,23 +92,28 @@
 				text-decoration: none;
 				display: inline-block;
 				font-size: 16px;
+				border-radius: 10px
 			}
 
 			.delete_btn:hover {
-				background-color: #05543f; /* Green */
+				background-color: #a16a17;
 				cursor: pointer;
 			}
 
 			/*Info displayer*/
 			table, td, th {
-				border: 1px solid black;
+				border-spacing: 0;
 				margin: auto;
 			}
 
 			table {
-				border-collapse: collapse;
-				background-color: white;
-				width: 40%;
+				border-radius: 0;
+				border-collapse: separate;
+				border-radius: 10px;
+				border: 1px solid white;
+
+				color: white;
+				width: 0.1%;
 			}
 
 			td {
@@ -116,34 +121,73 @@
 				white-space: nowrap;
 				text-align: center;
 				vertical-align: middle;
+
+				padding-top: 10px;
+				padding-right: 30px;
+				padding-bottom: 10px;
+				padding-left: 30px;
+			}
+
+			/* Apply a border to the right of all but the last column */
+			table th:not(:last-child),
+			table td:not(:last-child) {
+				border-right: 1px solid white;
+			}
+
+			/* Apply a border to the bottom of all but the last row */
+			table>thead>tr:not(:last-child)>th,
+			table>thead>tr:not(:last-child)>td,
+			table>tbody>tr:not(:last-child)>th,
+			table>tbody>tr:not(:last-child)>td,
+			table>tfoot>tr:not(:last-child)>th,
+			table>tfoot>tr:not(:last-child)>td,
+			table>tr:not(:last-child)>td,
+			table>tr:not(:last-child)>th,
+			table>thead:not(:last-child),
+			table>tbody:not(:last-child),
+			table>tfoot:not(:last-child) {
+				border-bottom: 1px solid white;
+			}
+
+			a:link {
+				color: #F79817;
+			}
+
+			a:visited {
+				color: #a16a17;
 			}
 
 		</style>
 
 		<!-- Importing the jQuery -->
-		<script src= 
-		"https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"> 
+		<script src=
+			"https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js">
 		</script>
 
 </head>
 
-<script> 
-	function makeDELETErequest(delete_path) { 
-        $.ajax({ 
-            url: delete_path, 
-            type: 'DELETE', 
-            success: function (result) {
+<script>
+	function makeDELETErequest(delete_path) {
+		$.ajax({
+			url: delete_path,
+			type: 'DELETE',
+			success: function (result) {
 				window.location.href = location.href;
-            } 
-        });
+			}
+		});
 	}
-</script> 
+
+	function refresh() {
+		window.location.href = location.href;
+		return false;
+	}
+</script>
 
 <body>
 	<div class="container">
 	<div class="row">
 		<h2 style="text-align:center; color:white">Upload Files</h2>
-		<div class="col" style="text-align: center;">
+		<div class="col" style="text-align: center;"">
 			<form method="post" enctype="multipart/form-data">
 				<input type="file" name="files[]" id="file" multiple>
 				<input type="submit" value="Upload">
@@ -152,6 +196,7 @@
 	</div>
 	<br>
 	<div class="row">
+		<h2 style="text-align: center; color: white;">Files Uploaded</h2>
 		TABLE_CONTENT
 	</div>
 	</div>
@@ -162,15 +207,15 @@
 <!-- <!DOCTYPE html>
 <html>
 <head>
-    <title>File Upload Form</title>
+	<title>File Upload Form</title>
 </head>
 <body>
-    <h1>Upload Files</h1>
-    <form method="post" enctype="multipart/form-data">
-        <label for="file">Select files:</label>
-        <input type="file" name="files[]" id="file" multiple>
-        <br>
-        <input type="submit" value="Upload">
-    </form>
+	<h1>Upload Files</h1>
+	<form method="post" enctype="multipart/form-data">
+		<label for="file">Select files:</label>
+		<input type="file" name="files[]" id="file" multiple>
+		<br>
+		<input type="submit" value="Upload">
+	</form>
 </body>
 </html> -->

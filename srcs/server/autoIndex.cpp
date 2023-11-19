@@ -83,7 +83,7 @@ namespace HDE
 				// handled name
 				index_content << "<td><a href=\"" << encoded_file_path << "\">" << de->d_name << "</a></td>" << endl;
 				// handles date
-				timeinfo = localtime(&(buf.st_mtim.tv_sec));
+				timeinfo = localtime(&(buf.st_mtime)); // huh? its different in mac
 				strftime(save_buffer, 100, "%e-%B-%Y", timeinfo);
 				index_content << "<td>" << save_buffer << "</td>" << endl;
 
