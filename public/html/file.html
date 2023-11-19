@@ -176,19 +176,14 @@
 			}
 		});
 	}
-
-	function refresh() {
-		window.location.href = location.href;
-		return false;
-	}
 </script>
 
 <body>
 	<div class="container">
 	<div class="row">
 		<h2 style="text-align:center; color:white">Upload Files</h2>
-		<div class="col" style="text-align: center;"">
-			<form method="post" enctype="multipart/form-data">
+		<div class="col" style="text-align: center;" onsubmit="refresh_page()">
+			<form id="submiter" method="post" enctype="multipart/form-data" action="">
 				<input type="file" name="files[]" id="file" multiple>
 				<input type="submit" value="Upload">
 			</form>
@@ -202,6 +197,9 @@
 	</div>
 </body>
 
+<script>
+
+</script>
 </html>
 
 <!-- <!DOCTYPE html>
