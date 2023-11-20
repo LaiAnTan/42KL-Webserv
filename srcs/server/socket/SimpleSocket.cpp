@@ -1,5 +1,5 @@
 #include "SimpleSocket.hpp"
-
+#include "fcntl.h"
 namespace HDE
 {
 
@@ -14,6 +14,11 @@ namespace HDE
 		const int enable = 1;
 		if (setsockopt(this->sock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
     		std::cerr << "setsockopt(SO_REUSEADDR) failed" << endl;
+
+		// set socket to non-blocking
+		if (fcntl(this->sock, F_SETFL, O_NONBLOCK, FD_CLOEXEC) < 0)
+			std::cerr << "failed to set socket to non-blocking" << endl;
+
 		test_connection(this->sock);
 		//Establish Connection
 		// std::cout << "run1" << std::endl;

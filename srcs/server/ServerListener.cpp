@@ -35,6 +35,10 @@ namespace HDE
 			return NULL;
 		}
 
+		// set socket to non-blocking
+		if (fcntl(client_fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC) < 0)
+			std::cerr << "failed to set socket to non-blocking" << endl;
+
 		// note to self, handle leaky leaky later
 		return new Server(this->server_config, client_fd);
 	}

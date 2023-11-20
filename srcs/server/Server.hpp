@@ -28,7 +28,8 @@ namespace HDE
 {
 	enum ServerStatus {
 		NEW,
-		HANDLING_DATA,
+		GET_HEADER,
+		PROCESS_HEADER,
 		SENDING_RESPONSE,
 		SEND_AUTO_INDEX,
 		SEND_ERROR,
@@ -36,6 +37,19 @@ namespace HDE
 		SAVE_CHUNK,
 		CLEARING_SOCKET,
 		DONE
+	};
+
+	enum AccepterStatus {
+		ACP_ERROR = -1,
+		ACP_DISCONNECT = 0,
+		ACP_SUCCESS = 1,
+		ACP_FINISH = 2
+	};
+
+	enum ResponderStatus {
+		RES_ERROR = -1,
+		RES_SUCCESS = 0,
+		RES_FINISH = 1
 	};
 
 	class Server
@@ -54,6 +68,7 @@ namespace HDE
 			string						path;
 			string						location_config_path;
 
+			int		read_header();
 			void	parse_header();
 			int		check_valid_method();
 			void	find_config_location();
@@ -111,6 +126,7 @@ namespace HDE
 			string	get_file_data(std::string filename);
 			int		clear_read_end();
 			string	decode_data(const string &source);
+			void	determine_send_type();
 
 			// for cgi
 			int	py();

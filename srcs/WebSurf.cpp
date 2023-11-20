@@ -111,18 +111,27 @@ namespace HDE
 							cout << BLUE << "[NOTICE] Socket at " << pfds[x].fd << " is receiving data" << endl;
 							cout << RESET;
 							// if read returns zero, socket has disconnected, remove the server
-							if (current->accepter() <= 0)
+
+							switch (current->accepter())
 							{
-								if (current->accepter() == 0)
-									cout << YELLOW << "[INFO] Socket at " << pfds[x].fd << " has disconnected" << endl;
-								else {
+								case ACP_ERROR:
 									cerr << RED << "[ERROR] Socket " << pfds[x].fd << " : An error had occured" << endl;
 									cerr << RED << "Reason: " << strerror(errno) << endl;
-								}
-								remove_server(pfds[x].fd, &x);
+									remove_server(pfds[x].fd, &x);
+									break;
+								case ACP_FINISH:
+									// done reading, convert to POLLOUT
+									pfds[x].events = POLLOUT;
+									break;
+								case ACP_DISCONNECT:
+									// client has disconmected
+									cout << YELLOW << "[INFO] Socket at " << pfds[x].fd << " has disconnected" << endl;
+									remove_server(pfds[x].fd, &x);
+									break;
+								case ACP_SUCCESS:
+									// yay it did not fail, do nothing about it
+									break;
 							}
-							else
-								pfds[x].events = POLLOUT;
 						}
 						else if (pfds[x].revents & POLLOUT)
 						{
@@ -130,22 +139,28 @@ namespace HDE
 							cout << RESET;
 
 							cout << GREEN << "[RESPONDER] -----------------------" << RESET << endl;
-							cout << RESET;
-							ret_value = current->responder();
-							cout << GREEN << "[RESPONDER-END] -------------------" << RESET << endl;
 
-							// something went wrong and it isn't a 404
-							if (ret_value)
+							switch (current->responder())
 							{
-								cerr << RED << "[ERROR] Severe Error at Server fd " << pfds[x].fd << " , disconnecting server" << endl;
-								cerr << RED << "Reason: " << strerror(errno) << endl;
-								remove_server(pfds[x].fd, &x);
+								case RES_SUCCESS:
+									// finish but not done
+									// continue
+									break;
+								
+								case RES_ERROR:
+									// error occur, uhh not sure yet, deal with this later
+									cerr << RED << "[ERROR] Severe Error at Server fd " << pfds[x].fd << " , disconnecting server" << endl;
+									cerr << RED << "Reason: " << strerror(errno) << endl;
+									remove_server(pfds[x].fd, &x);
+									break;
+
+								case RES_FINISH:
+									cout << "Set Back To Pollin" << endl;
+									pfds[x].events = POLLIN;
+									break;
+									// le done
 							}
-							else if (current->get_status() == NEW)
-							{
-								cout << "Set Back To Pollin" << endl;
-								pfds[x].events = POLLIN;
-							}
+							cout << GREEN << "[RESPONDER-END] -------------------" << RESET << endl;
 						}
 						else
 						{

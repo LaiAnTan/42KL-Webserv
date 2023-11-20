@@ -52,7 +52,6 @@ namespace HDE
 		}
 
 		this->is_deleted = !file_exists(this->real_filepath);
-		this->status = CLEARING_SOCKET;
 		return 0;
 	}
 

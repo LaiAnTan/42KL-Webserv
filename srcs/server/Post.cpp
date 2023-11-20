@@ -46,7 +46,8 @@ namespace HDE
 		// failsafe my fucking ass, if this happens its an error
 		// this means THERES NO END BOUNDARY STRING
 		if (this->content_length <= 0 && this->content.empty())
-			return 1;
+			return ACP_ERROR;
+
 		// the end boundary string is found
 		// and is located at the start of the buffer
 		// this means all content successfully extracted
@@ -55,8 +56,16 @@ namespace HDE
 		if (this->content.find("--" + this->boundary_string + "--") == 0)
 		{
 			cout << YELLOW << "End Boundary String Found, Ending Process" << endl;
-			this->status = CLEARING_SOCKET; // clear socket to send respond http message
-			return 0;
+			if (!this->content_length)
+			{
+				this->status = SENDING_RESPONSE; // clear socket to send respond http message
+				return ACP_FINISH;
+			}
+			else
+			{
+				this->status = CLEARING_SOCKET;
+				return ACP_SUCCESS;
+			}
 		}
 
 		if (this->content_length > 0)
@@ -65,7 +74,7 @@ namespace HDE
 			if (bytesRead < 0)
 			{
 				std::cerr << RED << "Error when reading content" << endl;
-				return 1;
+				return ACP_ERROR;
 			}
 			this->content_length -= bytesRead;
 			this->content.append(buffer, bytesRead);
@@ -88,7 +97,7 @@ namespace HDE
 			// find the \r\n\r\n seperator between header and content
 			// if dont have, just call function again 
 			if (this->content.find("\r\n\r\n") == string::npos)
-				return 0;
+				return ACP_SUCCESS;
 
 			// open another file
 			// extract filename
@@ -98,7 +107,7 @@ namespace HDE
 			// actually dont need one since we already check that the seperator between the header and the content
 			// (\r\n\r\n) is present
 			if (filenamePos == string::npos)
-				return 0;
+				return ACP_SUCCESS;
 
 			filename = this->content.substr(filenamePos + 10);
 			size_t	filenameEnd = filename.find("\r\n");
@@ -107,7 +116,7 @@ namespace HDE
 			// actually dont need one since we already check that the seperator between the header and the content
 			// (\r\n\r\n) is present
 			if (filenameEnd == string::npos)
-				return 0;
+				return ACP_SUCCESS;
 
 			filename = filename.substr(0, filename.find("\""));
 			cout << "Filename: " << "|" + filename + "|" << endl;
@@ -121,7 +130,7 @@ namespace HDE
 			this->content = this->content.substr(dataPos);
 
 			// DO NOT put data into the new file YET, as there MAY BE potential boundary strings
-			return 0;
+			return ACP_SUCCESS;
 		}
 		// there might be a potential boundary string
 		// check for potential boundary strings
@@ -135,7 +144,7 @@ namespace HDE
 				// may or may not be a delimiter string, do not put this in just in case
 
 				// just call this function again to read more data and determine next move
-				return 0;
+				return ACP_SUCCESS;
 			}
 		}
 		// no potential boundary strings, no boundary strings found, nothing
@@ -145,9 +154,9 @@ namespace HDE
 			cout << YELLOW << "Dumping Data" << endl;
 			this->save_to.write(this->content.c_str(), this->content.length());
 			this->content.clear();
-			return 0;
+			return ACP_SUCCESS;
 		}
-		return 0;
+		return ACP_SUCCESS;
 	}
 
 	int	Server::handlePostRequest()
@@ -200,7 +209,6 @@ namespace HDE
 		{
 			cout << "Over the limit " << converted << " > " << limit << endl;
 			this->error_code = "413";
-			this->status = CLEARING_SOCKET; // clear socket to send error message
 		}
 		else
 		{
@@ -210,11 +218,14 @@ namespace HDE
 				cout << "[NOTICE] Within Limit" << endl;
 			this->status = SAVE_CHUNK;
 			// wow nothing is posted
-			if (this->content_length == 0){
+			if (this->content_length == 0)
+			{
 				this->status = SENDING_RESPONSE;
+				return ACP_FINISH;
 			}
 		}
-		return 0;
+
+		return ACP_SUCCESS;
 	}
 
 	int	Server::handlePostResponse()

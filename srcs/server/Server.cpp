@@ -23,6 +23,8 @@ using std::cout;
 
 namespace HDE
 {
+	typedef	int (Server::*function_ptr) ();
+
 	double	Server::convert_content_length(string suffix)
 	{
 		double								converted;
@@ -111,39 +113,224 @@ namespace HDE
 		return this->newsocket;
 	}
 
+	void	Server::determine_send_type()
+	{
+		this->status = SENDING_RESPONSE;
+		if (not error_code.empty())
+			this->status = SEND_ERROR;
+		if (this->auto_index)
+			this->status = SEND_AUTO_INDEX;
+	}
+
+	/*
+	ret value explanation
+	-1 - something went horribly wrong 
+	0 - client disconnect
+	1 - completed successfully
+	2 - completed and can now send over data
+	*/
 	int Server::accepter()
+	{
+		int		ret_value = ACP_SUCCESS;
+
+		string			method_list[3] = {"GET", "POST", "DELETE"};
+		// you know these could have been in a abstract class riiiight?
+		function_ptr	request_list[3] = {&Server::handleGetRequest, &Server::handlePostRequest, &Server::handleDeleteRequest};
+
+		switch (this->status)
+		{
+			case NEW:
+				this->status = GET_HEADER;
+				break;
+			case GET_HEADER:
+				cout << CYAN << "[INFO] Reading Header" << RESET << endl;
+				ret_value = read_header();
+
+				if (this->status == PROCESS_HEADER)
+				{
+					cout << CYAN << "[INFO] Parsing Header" << RESET << endl;
+					this->parse_header();
+					this->find_config_location();
+
+					if (!this->check_valid_method())
+					{
+						if (this->content_length)
+						{
+							this->status = CLEARING_SOCKET;
+							return ACP_SUCCESS;
+						}
+						else
+						{
+							this->status = SEND_ERROR;
+							return ACP_FINISH;
+						}
+					}
+
+					// switch does not work on string
+					// this is one way of finding out
+					cout << CYAN << "[INFO] Handling Header" << RESET << endl;
+
+					for (int x = 0; x < 3; ++x)
+					{
+						if (this->method == method_list[x]){
+							ret_value = (this->*request_list[x])();
+						}
+					}
+
+					// do not flush the socket if you need to
+					// save the chunks :skull
+					if (this->status != SAVE_CHUNK)
+					{
+						if (this->content_length)
+						{
+							this->status = CLEARING_SOCKET;
+							return ACP_SUCCESS;
+						}
+						else
+						{
+							determine_send_type();
+							return ACP_FINISH;
+						}
+					}
+				}
+				break;
+
+			case SAVE_CHUNK:
+				cout << "Saving Incoming Chunk" << endl;
+				ret_value = this->import_read_data();
+
+				if (ret_value == ACP_SUCCESS)
+				{
+					// readable
+					if (this->content_length)
+						return ret_value;
+					else
+					// read content_length is empty and read cannot be called anymore
+						return ACP_FINISH;
+				}
+
+				break;
+
+			case CLEARING_SOCKET:
+				if (this->clear_read_end())
+				{
+					determine_send_type();
+					return ACP_FINISH;
+				}
+				break;
+
+			default:
+				// the rest are all SEND_X, which means we are done accepting values
+				ret_value = ACP_FINISH;
+				break;
+		}
+		return ret_value;
+	}
+
+	// top 10 biggest regrets of this project
+	// 1 - get post and delete not being a abstract class
+	int Server::responder()
+	{
+		int		ret_value = 0;
+
+		string			method_list[3] = {"GET", "POST", "DELETE"};
+		function_ptr	response_list[3] = {&Server::handleGetResponse, &Server::handlePostResponse, &Server::handleDeleteResponse};
+
+		switch (this->status)
+		{
+			case SENDING_RESPONSE: 
+				// MAKE SURE SOCKET IS CLEARED BEFORE SENDING OVER STUFF
+				cout << "Sending HTTP response" << endl;
+				this->status = DONE;
+				for (int x = 0; x < 3; ++x)
+				{
+					if (this->method == method_list[x]){
+						ret_value = (this->*response_list[x])();
+					}
+				}
+				break;
+
+			case SEND_AUTO_INDEX:
+				cout << "Generating Index.html" << endl;
+				this->status = DONE;
+				this->generate_index();
+				break;
+
+			case SEND_ERROR:
+				cout << "Sending Error Code" << endl;
+				this->status = DONE;
+				ret_value = this->sendError(this->error_code);
+				break;
+
+			case SEND_CHUNK:
+				cout << "Sending Next Chunk" << endl;
+				ret_value = this->send_next_chunk();
+				break;
+
+			case DONE:
+				this->reset();
+				this->status = NEW;
+				return RES_FINISH;
+
+			// so if read in import_read_data has data stored in buffer
+			// but not in the socket, poll will not set POLLIN true (ofc LMAO)
+			// solution = put one here as well HAHAHHAHA
+			// import_read_data here will NOT call read as this->content_length
+			// is empty, means everything is read already
+			case SAVE_CHUNK:
+				cout << "Saving Incoming Chunk" << endl;
+				ret_value = this->import_read_data();
+
+				if (ret_value == ACP_ERROR)
+					ret_value = RES_ERROR;
+				else
+					ret_value = RES_SUCCESS;
+
+				break;
+
+			default:
+				// not handled
+				cout << this->status << endl;
+				break;
+
+		}
+		return ret_value;
+	}
+
+	int		Server::read_header()
 	{
 		int					bytesRead;
 		char				buffer[BUFFER_SIZE];
 		string				request;
 
-		// clear previous contents (what the fuck guys why wasnt this cleared?)
-		headers.clear();
-		content.clear();
-		
-		// read header
-		while (headers.empty() == true)
+		bytesRead = read(this->newsocket, buffer, sizeof(buffer));
+		if (bytesRead == -1)
+			return ACP_ERROR;
+		if (bytesRead == 0)
+			return ACP_DISCONNECT;
+		request.append(buffer, bytesRead);
+		size_t pos = request.find("\r\n\r\n");
+		if (pos != string::npos)
 		{
-			bytesRead = read(this->newsocket, buffer, sizeof(buffer));
-			if (bytesRead == -1 || bytesRead == 0)
-				break;
-			request.append(buffer, bytesRead);
-			size_t pos = request.find("\r\n\r\n");
-			if (pos != string::npos)
-			{
-				headers = request.substr(0, pos + 4);
-				if (pos + 4 < request.length())
-					content = request.substr(pos + 4); // retrieve any content that was accidentally extracted as well yes
+			headers = request.substr(0, pos + 4);
+			if (pos + 4 < request.length())
+				content = request.substr(pos + 4); // retrieve any content that was accidentally extracted as well yes
+
+			cout << headers << endl;
+
+			// get content length
+			this->content_length = extract_content_length(headers);
+			this->content_length -= this->content.length();
+
+			// if content length = 0, we areee probably done with reading
+			if (this->content_length == 0){
+				this->status = PROCESS_HEADER;
+				return ACP_FINISH;
 			}
+
+			this->status = PROCESS_HEADER;
 		}
-
-		cout << headers << endl;
-
-		// get content length
-		this->content_length = extract_content_length(headers);
-		this->content_length -= this->content.length();
-
-		return headers.length() + content.length();
+		return ACP_SUCCESS;
 	}
 
 	void	Server::parse_header()
@@ -193,8 +380,6 @@ namespace HDE
 		this->path = decode_data(this->path);
 		cout << "Actual Path: " << this->path << endl;
 	}
-
-	typedef	int (Server::*function_ptr) ();
 
 	int	Server::check_valid_method()
 	{
@@ -267,89 +452,6 @@ namespace HDE
 		cout << "Location Configuration Used: " << this->location_config_path << endl;
 	}
 
-	int Server::responder()
-	{
-		int		ret_value = 0;
-
-		// you know these could have been in a abstract class riiiight?
-		function_ptr	request_list[3] = {&Server::handleGetRequest, &Server::handlePostRequest, &Server::handleDeleteRequest};
-		// HAH I KNEW THIS WILL COME BACK AND SHOOT ME IN THE FOOT
-		function_ptr	response_list[3] = {&Server::handleGetResponse, &Server::handlePostResponse, &Server::handleDeleteResponse};
-
-		string			method_list[3] = {"GET", "POST", "DELETE"};
-		// cout << "Server status --- " << this->status << endl;
-		switch (this->status)
-		{
-			case NEW:
-				this->parse_header();
-				this->find_config_location();
-				this->status = HANDLING_DATA;
-				if (!this->check_valid_method())
-					this->status = CLEARING_SOCKET;
-				break;
-			case HANDLING_DATA:
-				// switch does not work on string
-				// this is one way of finding out
-				cout << "Handling Header" << endl;
-				this->status = CLEARING_SOCKET;
-				for (int x = 0; x < 3; ++x)
-				{
-					if (this->method == method_list[x]){
-						ret_value = (this->*request_list[x])();
-					}
-				}
-				break;
-			case SENDING_RESPONSE: 
-				// MAKE SURE SOCKET IS CLEARED BEFORE SENDING OVER STUFF
-				cout << "Sending HTTP response" << endl;
-				this->status = DONE;
-				for (int x = 0; x < 3; ++x)
-				{
-					if (this->method == method_list[x]){
-						ret_value = (this->*response_list[x])();
-					}
-				}
-				break;
-			case SEND_AUTO_INDEX:
-				cout << "Generating Index.html" << endl;
-				this->status = DONE;
-				this->generate_index();
-				break;
-			case SEND_ERROR:
-				cout << "Sending Error Code" << endl;
-				this->status = DONE;
-				ret_value = this->sendError(this->error_code);
-				break;
-			case SEND_CHUNK:
-				cout << "Sending Next Chunk" << endl;
-				ret_value = this->send_next_chunk();
-				break;
-			case SAVE_CHUNK:
-				cout << "Saving Incoming Chunk" << endl;
-				ret_value = this->import_read_data();
-				break;
-			case DONE:
-				this->reset();
-				this->status = NEW;
-				break;
-			case CLEARING_SOCKET:
-				if (this->clear_read_end())
-				{
-					// socket is cleared, clear to send data
-					this->status = SENDING_RESPONSE;
-					if (not error_code.empty())
-						this->status = SEND_ERROR;
-					if (this->auto_index)
-						this->status = SEND_AUTO_INDEX;
-				}
-				break;
-			default:
-				// not handled LOL
-				break;
-		}
-		return ret_value;
-	}
-
 	// flush socket for next input
 	int Server::clear_read_end()
 	{
@@ -359,14 +461,15 @@ namespace HDE
 		char	discard[BUFFER_SIZE];
 		int		actual_read;
 
+		cout << "Flushing Socket" << endl;
+		actual_read = read(this->newsocket, discard, BUFFER_SIZE);
+		this->content_length -= actual_read;
 		if (this->content_length <= 0)
 		{
 			cout << "Done Flushing Socket" << endl;
 			return 1;
 		}
-		cout << "Flushing Socket" << endl;
-		actual_read = read(this->newsocket, discard, BUFFER_SIZE);
-		this->content_length -= actual_read;
+
 		return 0;
 	}
 
@@ -411,11 +514,11 @@ namespace HDE
 			if (numSent == -1)
 			{
 				std::cerr << RED << "Error Sending Data" << endl;
-				return -1;
+				return RES_ERROR;
 			}
 			pdata += numSent;
 			datalen -= numSent;
 		}
-		return 0;
+		return RES_SUCCESS;
 	}
 }

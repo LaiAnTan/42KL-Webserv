@@ -341,7 +341,7 @@ namespace HDE
 
 		// -1 means it isnt a redirection 
 		if (this->redirectClient() != -1)
-			return 0;
+			return ACP_FINISH;
 
 		// build path based on config file
 		path = config_path();
@@ -350,12 +350,12 @@ namespace HDE
 		if (this->auto_index == true)
 		{
 			this->status = CLEARING_SOCKET;
-			return 0;
+			return ACP_FINISH;
 		}
 
 		// it is a python file, time for cgi
 		if (path.find(".py") != string::npos)
-			return 0;
+			return ACP_FINISH;
 
 		cout << GREEN << "Path: " << path << RESET << endl;
 
@@ -363,7 +363,7 @@ namespace HDE
 		// check if it exist			// check if it is a regular file
 		if (stat(path.c_str(), &stats) || !S_ISREG(stats.st_mode))
 			this->error_code = "404";
-		return 0;
+		return ACP_FINISH;
 	}
 
 	// CGI METHODS
@@ -423,10 +423,8 @@ namespace HDE
 				kw_start != kw_pair.end();
 				++kw_start)
 			{
-				while (kw_start->find('+') != string::npos){
-					cout << "???" << endl;
+				while (kw_start->find('+') != string::npos)
 					kw_start->replace(kw_start->find('+'), 1, " ");
-				}
 			}
 
 			new_pair.first = decode_data(kw_pair[0]);
@@ -464,7 +462,6 @@ namespace HDE
 		int pid = fork();
 		if (pid == 0)
 		{
-			cout << this->real_filepath << endl;
 			// seperate keyword arg
 			if (this->real_filepath.find("?") != string::npos)
 				cgi_path = this->real_filepath.substr(0, this->real_filepath.find('?'));
@@ -495,7 +492,7 @@ namespace HDE
 		else if (pid < 0)
 		{
 			std::cerr << "fork failed" << std::endl;
-			return 1;
+			return RES_ERROR;
 		}
 		else
 		{
@@ -512,9 +509,11 @@ namespace HDE
 
 		header_send.append("HTTP/1.1 200 OK\r\n");
 		header_send.append("Connection: keep-alive\r\n");
+		
 
-		sendData(this->newsocket, (void *)header_send.c_str(), header_send.size());
-		sendData(this->newsocket, (void *)content_send.c_str(), content_send.size());
-		return 0;
+		if (sendData(this->newsocket, (void *)header_send.c_str(), header_send.size()) == RES_ERROR
+			|| sendData(this->newsocket, (void *)content_send.c_str(), content_send.size()) == RES_ERROR)
+			return RES_ERROR;
+		return RES_SUCCESS;
 	}
 }
