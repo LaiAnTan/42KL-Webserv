@@ -15,8 +15,8 @@
 #include <algorithm>
 #include <sys/wait.h>
 
-// const int BUFFER_SIZE = 16000;
-const int BUFFER_SIZE = 20;
+const int BUFFER_SIZE = 16000;
+// const int BUFFER_SIZE = 20;
 
 using std::string;
 
