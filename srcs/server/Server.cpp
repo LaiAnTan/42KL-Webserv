@@ -321,7 +321,7 @@ namespace HDE
 		size_t pos = request.find("\r\n\r\n");
 		if (pos != string::npos)
 		{
-			headers = request.substr(0, pos + 4);
+			headers.append(request.substr(0, pos + 4));
 			if (pos + 4 < request.length())
 				content = request.substr(pos + 4); // retrieve any content that was accidentally extracted as well yes
 
@@ -339,12 +339,16 @@ namespace HDE
 
 			this->status = PROCESS_HEADER;
 		}
+		else
+			headers.append(request);
 		return ACP_SUCCESS;
 	}
 
 	void	Server::parse_header()
 	{
 		string						header = get_headers();
+
+		cout << header << endl;
 		string						first_row = util::split(header, "\r\n")[0];
 		std::vector<std::string>	first_row_info = util::split_many_delims(first_row, " ");
 
