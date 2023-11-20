@@ -347,8 +347,6 @@ namespace HDE
 	void	Server::parse_header()
 	{
 		string						header = get_headers();
-
-		cout << header << endl;
 		string						first_row = util::split(header, "\r\n")[0];
 		std::vector<std::string>	first_row_info = util::split_many_delims(first_row, " ");
 

@@ -79,6 +79,7 @@ namespace HDE
 			this->content_length -= bytesRead;
 			this->content.append(buffer, bytesRead);
 		}
+		cout << this->content << endl;
 
 		if (this->content.find("--" + this->boundary_string) != string::npos)
 		{
@@ -96,8 +97,10 @@ namespace HDE
 
 			// find the \r\n\r\n seperator between header and content
 			// if dont have, just call function again 
-			if (this->content.find("\r\n\r\n") == string::npos)
+			if (this->content.find("\r\n\r\n") == string::npos){
+				cout << "\\r\\n\\r\\n not present" << endl;
 				return ACP_SUCCESS;
+			}
 
 			// open another file
 			// extract filename
@@ -134,10 +137,10 @@ namespace HDE
 		}
 		// there might be a potential boundary string
 		// check for potential boundary strings
-		else if (this->content.rfind("\r\n--") != string::npos)
+		else if (this->content.rfind("--") != string::npos)
 		{
 			cout << YELLOW << "Potential Boundary String Found" << endl;
-			int	delimiter_pos = this->content.rfind("\r\n--");
+			int	delimiter_pos = this->content.rfind("--");
 
 			if (this->boundary_string.find(this->content.substr(delimiter_pos)) != string::npos)
 			{
