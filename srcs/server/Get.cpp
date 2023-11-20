@@ -273,18 +273,6 @@ namespace HDE
 
 			// alias
 
-			// Placing a alias directive in a location block 
-			// overrides the root or alias directive that was 
-			// applied at a higher scope.
-			// alias = location[location_path].get_alias();
-			// if (alias.empty() == false)
-			// {
-			// 	if (root.empty() == false)
-			// 	{
-			// 		cout << RED << "[Warning] Both Alias and Root found";
-			// 	}
-			// }
-
 			// so uhh, the pdf actually treats root as alias
 			// what the fuck
 		}

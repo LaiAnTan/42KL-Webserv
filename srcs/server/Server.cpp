@@ -227,6 +227,15 @@ namespace HDE
 		return ret_value;
 	}
 
+	void	Server::no_response()
+	{
+		std::string	send;
+
+		send = "HTTP/1.1 444 No Response\r\n";
+		send.append("Connection: closed\r\n\r\n");
+		sendData(this->newsocket, send.c_str(), send.length());
+	}
+
 	// top 10 biggest regrets of this project
 	// 1 - get post and delete not being a abstract class
 	int Server::responder()

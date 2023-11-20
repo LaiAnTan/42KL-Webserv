@@ -73,6 +73,18 @@ namespace HDE
 			exist = stat(full_file_path.c_str(), &buf);
 			if (string(de->d_name) == ".")
 				continue;
+			else if (string(de->d_name) == "..")
+			{
+				// first char SHOULD always be a /
+				if (this->path.find('/', 1) != string::npos)
+				{
+					domain_file_path = this->path.substr(0, this->path.find('/', 1));
+				}
+				else
+					domain_file_path = "/";
+			}
+			cout << "domain file path = " << domain_file_path << endl;
+
 			if (exist < 0)
 			{
 				cout << "No exist file" << endl;
@@ -88,7 +100,10 @@ namespace HDE
 				index_content << "<td>" << save_buffer << "</td>" << endl;
 
 				// handles size
-				index_content << "<td>" << buf.st_size << "</td>" << endl;
+				if (S_ISREG(buf.st_mode))
+					index_content << "<td>" << buf.st_size << " bytes" << "</td>" << endl;
+				else
+					index_content << "<td> - </td>" << endl;
 
 				index_content << "</tr>" << endl;
 			}

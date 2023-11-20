@@ -111,6 +111,8 @@ namespace HDE
 			int			redirectClient();
 			string		config_path();
 
+			double	convert_content_length(string suffix);// converts content length to the specified suffix
+
 			// get
 			int	handleGetRequest();
 			int	handleGetResponse();
@@ -136,11 +138,9 @@ namespace HDE
 			int		import_read_data();
 			string	encode_url(const string &value);
 
-			// helper 2
-			double	convert_content_length(string suffix);// converts content length to the specified suffix
-
 			// reset
 			void	reset();
+
 
 			// index generator
 			int		generate_index();
@@ -159,6 +159,9 @@ namespace HDE
 			int							get_content_length();
 			ServerStatus				get_status();
 			void						set_status(ServerStatus new_status);
+
+			// error handling
+			void	no_response();
 	};
 }
 

@@ -117,6 +117,7 @@ namespace HDE
 								case ACP_ERROR:
 									cerr << RED << "[ERROR] Socket " << pfds[x].fd << " : An error had occured" << endl;
 									cerr << RED << "Reason: " << strerror(errno) << endl;
+									current->no_response();
 									remove_server(pfds[x].fd, &x);
 									break;
 								case ACP_FINISH:
@@ -148,17 +149,17 @@ namespace HDE
 									break;
 								
 								case RES_ERROR:
-									// error occur, uhh not sure yet, deal with this later
 									cerr << RED << "[ERROR] Severe Error at Server fd " << pfds[x].fd << " , disconnecting server" << endl;
 									cerr << RED << "Reason: " << strerror(errno) << endl;
+									current->no_response();
 									remove_server(pfds[x].fd, &x);
 									break;
 
 								case RES_FINISH:
-									cout << "Set Back To Pollin" << endl;
+									// le done
+									cout << "[INFO] Respond Sent Properly" << endl;
 									pfds[x].events = POLLIN;
 									break;
-									// le done
 							}
 							cout << GREEN << "[RESPONDER-END] -------------------" << RESET << endl;
 						}
@@ -175,6 +176,7 @@ namespace HDE
 		}
 	}
 
+	// remove a connected client
 	bool	WebSurf::remove_server(int server_fd, int *counter)
 	{
 		// close fd connection
