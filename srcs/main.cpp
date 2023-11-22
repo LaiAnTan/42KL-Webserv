@@ -13,8 +13,6 @@ int main(int ac, char **av)
 			cout << configuration << endl;
 			HDE::WebSurf		server(&configuration);
 			server.run_servers();
-			// HDE::Server		server(&configuration);
-
 		}
 		catch (const std::exception &e)
 		{
@@ -24,3 +22,4 @@ int main(int ac, char **av)
 	else
 		cout << RED "Error: ./webserv [configuration file]" RESET << endl;
 }
+

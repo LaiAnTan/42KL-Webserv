@@ -79,7 +79,6 @@ namespace HDE
 			this->content_length -= bytesRead;
 			this->content.append(buffer, bytesRead);
 		}
-		cout << this->content << endl;
 
 		if (this->content.find("--" + this->boundary_string) != string::npos)
 		{
